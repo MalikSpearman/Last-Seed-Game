@@ -1,5 +1,27 @@
 [
  {
+  "version": "0.3.1",
+  "date": "Nov 24, 2026",
+  "title": "Stability & Quality of Life",
+  "items": [
+   "Fixed: a fight could get stuck on screen after a K.O. that happened at the very start (bleed at low HP, or an Ambush that finished a weak foe)",
+   "New rule: no one can be knocked out by status effects or start-of-fight effects on turn 1. They hold at 1 HP",
+   "Fixed: Continue could reload a road or free-roam fight you had already finished",
+   "Fixed: choosing \"Never mind\" on a card pick (boss spoils, gifts, elite spoils, the vault) no longer hands you a card at random. You take nothing",
+   "Fixed: Copy result on the Daily challenge no longer claims it copied when the clipboard is blocked",
+   "New setting (Gameplay): Super Art cinematics, Full, First time per run, or Off",
+   "Fast animations now stays on between sessions",
+   "Full health now fills the whole health bar",
+   "Less flicker: impact frames, counters, crits and hit flashes no longer snap the whole screen to white or black for a frame, cut-ins fade out instead of popping, and menus no longer use a background blur that could flicker on high-resolution screens",
+   "Super Art cinematics fill the whole screen on every screen shape, and every fighter finishes their closing line before the fight returns",
+   "Cinematics fade smoothly back into the fight instead of cutting out",
+   "Every enemy and wanderer in free roam breathes with the same idle motion as the fighters",
+   "Fixed: some free-roam enemies could be invisible (only their shadow showed) until their art finished loading",
+   "Skip a Super Art cinematic with Space, Enter or Esc as well as a tap",
+   "Cinematics can no longer hang: they close themselves if anything goes wrong"
+  ]
+ },
+ {
   "version": "0.3.0",
   "date": "Nov 24, 2026",
   "title": "Calamities, Size Chart & Fighter Bios",
