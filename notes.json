@@ -1,27 +1,78 @@
 [
-  {"version":"0.2.3","date":"Nov 24, 2026","title":"New Fight Stages","items":[
-    "Mistveil Marsh: four new fight stages: Stilt Village, Whispering Bamboo, Mossy Graveyard and the Broken Waterwheel",
-    "Crimson Coast: three new fight stages: Cliffside Dojo, Lighthouse Point and the Whaling Village",
-    "Fights now take place on the stage for wherever you are on the map, and never on top of the map itself"]},
-  {"version":"0.2.2","date":"Nov 24, 2026","title":"New Ultimates","items":[
-    "Cinematic Ultimate Arts for Kaede (Dynamic Blossom), Suzu (Raiko Rush), Rasetsu (Mountain Splitter) and Nia (Teacup Voyage), each with its own banner, voice lines and sound design",
-    "New Nia card, Storybook Summon: pulls a Rabbit Knight, Paper Dragon, Teacup Serpent or Big Bad Wolf out of her book to fight beside her",
-    "Her creature strikes for 2 plus its own status each time she plays a card; rivals can attack it, and recasting swaps in a new one"]},
-  {"version":"0.2.1","date":"Nov 24, 2026","title":"Cinematic Super Arts","items":[
-    "30 fighters' Lv1 Super Arts now play as full-screen animated cinematics with their own sound design and voice lines",
-    "New this update: Kuro, Lyra, Uzume, Shura, Rasetsu, Maya, Tetsu, the Duelist, Gogo, Ito and Wukong",
-    "Tap anywhere to skip a cinematic"]},
-  {"version":"0.2.0","date":"Nov 24, 2026","title":"The Launcher","items":[
-    "Last Seed now opens into its own launcher with news, patch notes and one-click updates",
-    "Updates download only the files that changed, and resume if you close the launcher mid-download",
-    "Launcher settings: auto-update, repair game files, and hide/minimize/close while you play"]},
-  {"version":"0.1.3","date":"Nov 24, 2026","title":"PC Settings","items":[
-    "New Settings menu (Esc): window mode, resolutions from 1280×720 to 4K and ultrawide, monitor picker",
-    "Frame rate: match your screen (120/144 Hz and up), cap at 30–240, or unlimited; optional FPS counter",
-    "Graphics, Audio, Gameplay and Controls tabs, plus Quit to desktop"]},
-  {"version":"0.1.2","date":"Nov 24, 2026","title":"16 New Enemies","items":[
-    "Horde: Lantern Bomber, Rat in a Coat, Rokurokubi Lookout, Door-Guard Oni, Empty Yoroi, Taiko War-Drummer",
-    "Road: Speed-Ramen Courier, Sumo Baby, Livestreamer, Obaa-chan, Kitsune Fortune Teller, Unbreakable Daruma, Street-Stall Chef, Karaoke Yurei",
-    "Minibosses: Kintaro Bear and the Lantern Bomber King",
-    "Every new enemy flinches, gets launched, tumbles and gets knocked down; the rats fall out of the coat when you hit it"]}
+ {
+  "version": "0.3.0",
+  "date": "Nov 24, 2026",
+  "title": "Calamities, Size Chart & Fighter Bios",
+  "items": [
+   "New Calamity: The Landlord, a grumpy building super. Rent is due every 3 turns; at half HP he starts Renovation and every wall comes down",
+   "New Calamity: Tama the Cat. She naps and can't be hurt. Wake her and she knocks cards out of your hand, then hits 3 AM Zoomies",
+   "Seven more Calamities: Golf Dad, the Exam Proctor, Rush Hour, the Weatherman, Lunch Lady Oba, the Customer Service Hold Line, plus two serious ones from Stage 3: the Unborn Sun and the Ninth Founder",
+   "Every character now shows at true relative size, in fights, supers and the codex. Kuzuryu looms, the Mochi Twins are snack-sized",
+   "Codex: new Fighters and Mentors tabs. Every bio now lists height, likes and dislikes",
+   "The Mochi Twins are now Mochi and Matcha. They call each other by name, and scream it when the other falls",
+   "All enemies and Nyx got flinch, launch and knockdown animations",
+   "New Calamity relics, keepsakes, and match-up lines with the whole cast"
+  ]
+ },
+ {
+  "version": "0.2.3",
+  "date": "Nov 24, 2026",
+  "title": "New Fight Stages",
+  "items": [
+   "Mistveil Marsh: four new fight stages: Stilt Village, Whispering Bamboo, Mossy Graveyard and the Broken Waterwheel",
+   "Crimson Coast: three new fight stages: Cliffside Dojo, Lighthouse Point and the Whaling Village",
+   "Fights now take place on the stage for wherever you are on the map, and never on top of the map itself"
+  ]
+ },
+ {
+  "version": "0.2.2",
+  "date": "Nov 24, 2026",
+  "title": "New Ultimates",
+  "items": [
+   "Cinematic Ultimate Arts for Kaede (Dynamic Blossom), Suzu (Raiko Rush), Rasetsu (Mountain Splitter) and Nia (Teacup Voyage), each with its own banner, voice lines and sound design",
+   "New Nia card, Storybook Summon: pulls a Rabbit Knight, Paper Dragon, Teacup Serpent or Big Bad Wolf out of her book to fight beside her",
+   "Her creature strikes for 2 plus its own status each time she plays a card; rivals can attack it, and recasting swaps in a new one"
+  ]
+ },
+ {
+  "version": "0.2.1",
+  "date": "Nov 24, 2026",
+  "title": "Cinematic Super Arts",
+  "items": [
+   "30 fighters' Lv1 Super Arts now play as full-screen animated cinematics with their own sound design and voice lines",
+   "New this update: Kuro, Lyra, Uzume, Shura, Rasetsu, Maya, Tetsu, the Duelist, Gogo, Ito and Wukong",
+   "Tap anywhere to skip a cinematic"
+  ]
+ },
+ {
+  "version": "0.2.0",
+  "date": "Nov 24, 2026",
+  "title": "The Launcher",
+  "items": [
+   "Last Seed now opens into its own launcher with news, patch notes and one-click updates",
+   "Updates download only the files that changed, and resume if you close the launcher mid-download",
+   "Launcher settings: auto-update, repair game files, and hide/minimize/close while you play"
+  ]
+ },
+ {
+  "version": "0.1.3",
+  "date": "Nov 24, 2026",
+  "title": "PC Settings",
+  "items": [
+   "New Settings menu (Esc): window mode, resolutions from 1280×720 to 4K and ultrawide, monitor picker",
+   "Frame rate: match your screen (120/144 Hz and up), cap at 30–240, or unlimited; optional FPS counter",
+   "Graphics, Audio, Gameplay and Controls tabs, plus Quit to desktop"
+  ]
+ },
+ {
+  "version": "0.1.2",
+  "date": "Nov 24, 2026",
+  "title": "16 New Enemies",
+  "items": [
+   "Horde: Lantern Bomber, Rat in a Coat, Rokurokubi Lookout, Door-Guard Oni, Empty Yoroi, Taiko War-Drummer",
+   "Road: Speed-Ramen Courier, Sumo Baby, Livestreamer, Obaa-chan, Kitsune Fortune Teller, Unbreakable Daruma, Street-Stall Chef, Karaoke Yurei",
+   "Minibosses: Kintaro Bear and the Lantern Bomber King",
+   "Every new enemy flinches, gets launched, tumbles and gets knocked down; the rats fall out of the coat when you hit it"
+  ]
+ }
 ]
