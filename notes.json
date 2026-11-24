@@ -1,5 +1,18 @@
 [
  {
+  "version": "0.3.2",
+  "date": "Nov 24, 2026",
+  "title": "Neon Ward",
+  "items": [
+   "New region south of the festival: the Neon Ward, a rain-soaked Neo-Tokyo district that opens after the Semifinal. Reach it down the canal from Sake Alley, or by fast travel",
+   "Six new enemies: the Bosozoku biker gang (always rides as a crew of three), the Ghost Taxi, the Pachinko Tsukumogami and the Host Club Kitsune",
+   "Three bosses: Mama-san of the Snack Bar, the Oyabun with his living irezumi dragon, and the Neon Jorogumo at the top of the Web Tower. The Oyabun's teahouse opens once Mama-san vouches for you; the tower opens after the Oyabun, or by Ghost Train",
+   "Jo's high-stakes table at the Lucky Star Casino, mentor scenes on the Inari rooftop, a 24-hour konbini and an irezumi parlor that inks permanent buffs",
+   "New minigames: a UFO crane game and pachinko. Region events: Blackout, Neon Matsuri and Rent Day",
+   "Three free-roam stages (Neon Arcade Street, Shuto Expressway, Neon Rooftops), eight new fight backdrops and match-up lines between the new enemies and the whole cast"
+  ]
+ },
+ {
   "version": "0.3.1",
   "date": "Nov 24, 2026",
   "title": "Stability & Quality of Life",
