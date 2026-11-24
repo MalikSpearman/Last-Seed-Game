@@ -65,20 +65,20 @@ D.ribbon([{ x: -13.1, z: -40, w: .5 }, { x: -13.1, z: 40, w: .5 }], I('t_dirt'),
   for (let x = -40; x < 40; x += rnd(6, 9)) { if (Math.abs(x + 16) < 4) continue; await A(R() < .5 ? 'bamboo3' : 'rfg_bamboo', x, 8.6 + R() * 2, rnd(6.5, 8), { fadeNear: 1, flip: R() < .5, sway: .01, blobW: .25 }); }
   for (let x = -38; x < 24; x += 3.1) { const z = 6.2 + R() * 1.5; if (Math.abs(x + 16) < 4) continue; await A('ferns', x, z, rnd(.7, 1.1), { flip: R() < .5 }); }
   // stone lanterns along the road, each one a real light
-  const toro = [[-34, -.6], [-24, -.4], [-8, .6], [3, -1.2], [10, 6.4], [16, -.5], [24.4, -1.6]];
+  const toro = [[-34, -.6], [-24, -.4], [-8, .6], [5.6, -1.6], [10, 6.4], [16, -.5], [24.4, -1.6]];
   for (const [x, z] of toro) { await A('toro', x, z, 2.3); D.lantern(x, 1.62, z + .15, { distance: 9, intensity: 16 }); }
   await A('toro_s', -29, 5.4, 1.2); D.lantern(-29, .72, 5.55, { distance: 6, intensity: 8, glow: .7 });
   await A('toro_s', 20, 5.4, 1.2, { flip: 1 }); D.lantern(20, .72, 5.55, { distance: 6, intensity: 8, glow: .7 });
   // stairs: lanterns climb with you, guardians at the top, torii frames the shrine
   for (let i = 0; i < 3; i++) { const z = -1 - i * 2.4, y = (1 + i * 2.4) / 7 * 3; await A('toro_s', 24.6, z, 1.1, { y }); await A('toro_s', 29.4, z, 1.1, { y, flip: 1 }); D.lantern(24.6, y + .65, z + .15, { distance: 5, intensity: 6, glow: .32 }); D.lantern(29.4, y + .65, z + .15, { distance: 5, intensity: 6, glow: .32 }); }
-  await A('komainu', 24.6, -8.2, 1.7, { y: 3 }); await A('komainu', 29.4, -8.2, 1.7, { y: 3, flip: 1 });
+  await A('komainu', 22.3, -8.6, 1.7, { y: 3 }); await A('komainu', 31.7, -8.6, 1.7, { y: 3, flip: 1 });
   await A('torii', 27, -10.2, 4.6, { y: 3, blobW: .3 });
-  await A('toro', 22.5, -13, 2.3, { y: 3 }); D.lantern(22.5, 4.62, -12.85, { distance: 9, intensity: 16 });
-  await A('toro', 31.5, -13, 2.3, { y: 3, flip: 1 }); D.lantern(31.5, 4.62, -12.85, { distance: 9, intensity: 16 });
+  await A('toro', 22.4, -18.4, 2.3, { y: 3 }); D.lantern(22.4, 4.62, -18.25, { distance: 9, intensity: 16 });
+  await A('toro', 31.6, -18.4, 2.3, { y: 3, flip: 1 }); D.lantern(31.6, 4.62, -18.25, { distance: 9, intensity: 16 });
   for (let x = 19.6; x < 34.6; x += 1.5) { if (Math.abs(x - 27) < 2.4) continue; await A(R() < .6 ? 'ferns' : 'rocks', x, -7.25, rnd(.7, 1), { y: 3, flip: R() < .5 }); }
   for (let x = 18; x < 37; x += 1.7) await A(R() < .5 ? 'bamboo3' : 'rfg_bamboo', x + R(), -24 - R() * 3, rnd(7, 9), { y: 3, sway: .012, blobW: .2, flip: R() < .5 });
   for (let z = -9; z > -24; z -= 2.2) { await A('bamboo3', 19.4 - R(), z, rnd(7, 8.5), { y: 3, sway: .012, blobW: .2 }); await A('bamboo3', 34.6 + R(), z, rnd(7, 8.5), { y: 3, sway: .012, blobW: .2, flip: 1 }); }
-  await A('sakura', 21, -18.5, 4.2, { y: 3 }); await A('sakura', 33.5, -17.5, 3.8, { y: 3, flip: 1 });
+  await A('sakura', 19.9, -20.6, 4.2, { y: 3 }); await A('sakura', 34.1, -20.2, 3.8, { y: 3, flip: 1 });
   await A('sakura', -27, -4.5, 4.4); await A('sakura', 8, -3.2, 3.6, { flip: 1 });
   D.petals(70, -27, -3, 4); D.petals(60, 27, -16, 7); D.petals(40, 8, -2, 3.5);
   D.fireflies(140, 0, 1, 40, 6); D.fireflies(40, 27, -14, 7, 5, { y0: 3.3, y1: 6.5 });

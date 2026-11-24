@@ -1,5 +1,17 @@
 [
  {
+  "version": "0.3.5",
+  "date": "Nov 24, 2026",
+  "title": "Lit stages and win badges",
+  "items": [
+   "Fixed: some rounds started with the arena grey and dim. A fight that ended during a counter window or a freeze effect left that filter on for the next round",
+   "Removed the coloured box glow behind the fighter whose turn it is (the red arrow still marks the turn; awakening glow is unchanged)",
+   "Win badges: every fighter you've won a run with shows a gold trophy on their tile, with a count after two or more wins",
+   "HD-2D stages: the camera now fits itself so both fighters stand on the stage's clearing at every screen size, with the set framed between them (lantern string on the road, torii and shrine hall at the shrine, the red bridge between two banks)",
+   "HD-2D stages: fighters pick up the stage's light (cool moonlight, warm lantern glow, drifting bamboo shade) and the moon casts their shadows onto the ground"
+  ]
+ },
+ {
   "version": "0.3.4",
   "date": "Nov 24, 2026",
   "title": "Phones, tablets and a 3D test stage",

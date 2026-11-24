@@ -79,3 +79,5 @@ body.ui-tablet:not(.portrait) .csel:not(.pt) .cs-roster,body.ui-tablet .csel.cod
 .ui-tablet .csel .cs-cos{min-height:48px}
 .ui-touch .cs-hint{display:none!important}
 .ui-tablet #lsMenu.battle{width:48px;height:48px}
+.ui-touch .cs-tile .winb{padding:2px 4px;border-radius:6px}
+.ui-touch .cs-tile .winb svg{width:13px;height:13px}.ui-touch .cs-tile .winb small{font-size:11px}
