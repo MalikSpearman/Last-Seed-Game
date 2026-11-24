@@ -1,4 +1,8 @@
 [
+  {"version":"0.2.1","date":"Nov 24, 2026","title":"Cinematic Super Arts","items":[
+    "30 fighters' Lv1 Super Arts now play as full-screen animated cinematics with their own sound design and voice lines",
+    "New this update: Kuro, Lyra, Uzume, Shura, Rasetsu, Maya, Tetsu, the Duelist, Gogo, Ito and Wukong",
+    "Tap anywhere to skip a cinematic"]},
   {"version":"0.2.0","date":"Nov 24, 2026","title":"The Launcher","items":[
     "Last Seed now opens into its own launcher with news, patch notes and one-click updates",
     "Updates download only the files that changed, and resume if you close the launcher mid-download",
