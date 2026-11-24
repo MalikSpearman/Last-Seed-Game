@@ -1,0 +1,15 @@
+[
+  {"version":"0.2.0","date":"Nov 24, 2026","title":"The Launcher","items":[
+    "Last Seed now opens into its own launcher with news, patch notes and one-click updates",
+    "Updates download only the files that changed, and resume if you close the launcher mid-download",
+    "Launcher settings: auto-update, repair game files, and hide/minimize/close while you play"]},
+  {"version":"0.1.3","date":"Nov 24, 2026","title":"PC Settings","items":[
+    "New Settings menu (Esc): window mode, resolutions from 1280×720 to 4K and ultrawide, monitor picker",
+    "Frame rate: match your screen (120/144 Hz and up), cap at 30–240, or unlimited; optional FPS counter",
+    "Graphics, Audio, Gameplay and Controls tabs, plus Quit to desktop"]},
+  {"version":"0.1.2","date":"Nov 24, 2026","title":"16 New Enemies","items":[
+    "Horde: Lantern Bomber, Rat in a Coat, Rokurokubi Lookout, Door-Guard Oni, Empty Yoroi, Taiko War-Drummer",
+    "Road: Speed-Ramen Courier, Sumo Baby, Livestreamer, Obaa-chan, Kitsune Fortune Teller, Unbreakable Daruma, Street-Stall Chef, Karaoke Yurei",
+    "Minibosses: Kintaro Bear and the Lantern Bomber King",
+    "Every new enemy flinches, gets launched, tumbles and gets knocked down; the rats fall out of the coat when you hit it"]}
+]
