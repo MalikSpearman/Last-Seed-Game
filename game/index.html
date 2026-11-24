@@ -5750,7 +5750,7 @@ function vsSplash(opp,stage,label){ return new Promise(res=>{ Snd.setMech('valka
   const done=()=>{ if(!v.parentNode) return; v.style.transition='opacity .35s'; v.style.opacity=0; setTimeout(()=>v.remove(),360); res(); }; v.onclick=()=>{ clearInterval(vsPol); done(); }; const vsPol=setInterval(()=>{ if(performance.now()>=vsEnd){ clearInterval(vsPol); done(); } },150); }); }
 
 // ── battle ──
-function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.remove('dim'); const RD=custom||rivalRound(stage); const bgEl=document.getElementById('bg'); if(custom&&custom.bg) bgEl.style.backgroundImage=`url(${custom.bg})`; const mods=fightMods(opp); if(custom&&custom.mods) custom.mods.forEach(m=>mods.list.push(m));
+function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.remove('dim'); const RD=custom||rivalRound(stage); const bgEl=document.getElementById('bg'); if(custom&&custom.bg) bgEl.style.backgroundImage=`url(${fightBg(custom.bg,opp)})`; const mods=fightMods(opp); if(custom&&custom.mods) custom.mods.forEach(m=>mods.list.push(m));
   dailyReseed('bt'+stage+':'+opp.id+':'+((run.stats&&run.stats.fights)||0)); const EDX=(()=>{ if(run.tut&&stage===0&&!custom) return {h:1,p:0,x:1,gm:null,e:0}; const T=opp.tier, st=Math.min(3,stage||0), gm=gmOf(opp); if(!custom||!T) return {h:EDIFF.rh[st],p:EDIFF.rp[st],x:EDIFF.rx[st],gm}; return {h:EDIFF.fh[T]||1.1,p:EDIFF.fp[T]||0,x:EDIFF.fx[T]||1.15,gm,e:EDIFF.fe[T]||0}; })(); if(EDX.e) mods.list.push({e:{maxEnergy:EDX.e}}); const b=new Battle({id:HERO,name:hero().name,hp:run.hp,maxHp:run.maxHp,deck:run.deck,el:hero().el,...(HEROES[HERO].kit||{}),life:HERO==='kuro'?(run.life||1):0,underdog:HERO==='kaede',ult:ULTS[HERO]?HERO:null,inn:run.inn||[HERO],spirit:run.spirit||0},{id:opp.id,name:opp.name,hp:Math.round((custom?Math.round(RD.hp*HPX):Math.round(RD.hp*(run.tut&&stage===0?.7:1)))*EDX.h),gm:EDX.gm,xm:EDX.x,deck:(custom?opp.deck:rivalDeck(opp,stage)).concat((FIGHTERS[opp.id]||{}).gear&&!opp.tint?[FIGHTERS[opp.id].gear]:[]),el:opp.el||(FIGHTERS[opp.sprite||opp.id]||{}).el,power:RD.power+EDX.p,toreo:!!((HEROES[opp.sprite||opp.id]||{}).kit||{}).toreo,ult:ULTS[opp.sprite||opp.id]?(opp.sprite||opp.id):null,saves:!custom&&(stage>=2||!!opp.tint||opp.id==='vex'),spirit:!custom&&stage===3?6:0,demon:['horde','general','king'].includes(opp.tier)},(Math.random()*1e9)|0,run.mentor.card); b.mx=(run.mx||[]).map(m=>({card:m.card,used:false})); { const EM=rivalMentor(opp,stage,custom); b.emt=EM?{card:EM.card,used:false,M:EM}:null; } b.e.fk=opp.foe||null; if(custom&&((custom.pack&&custom.pack.length)||(custom.waves&&custom.waves.length))) b.group(custom.pack,custom.waves); RS_b=b; b.legacy=store.legacy.length; b.aiCtr=run.tut?0:COUNTER.ai[Math.min(3,stage)]; window.__LS._b=b; window.__LS._spk=(x,y,c,t,d)=>sparkV3(x,y,c,t,d); window.__LS._gspk=(x,y,cr)=>guardSpark(x,y,cr); window.__LS._tag=(x,y,t,c)=>hitTag(x,y,t,c); window.__LS._art=k=>doArt(k); window.__LS._ev=()=>runEv(b.flush()); window.__LS._cut=(...a)=>cutin(...a); window.__LS._sf=(...a)=>superFlash(...a); window.__LS._fgc=(sd,n,cm)=>{ FGN[sd]=n; FGCH[sd]=cm; fgcShow(sd); }; window.__LS._ono=(...a)=>onoHit(...a);
   const s=h('div','scr battle intro'); const ms=run.mentor;
   s.innerHTML=`<div class="domains"><div class="dom p"></div><div class="dom e"></div><div class="seam"></div><div class="domcap p"></div><div class="domcap e"></div></div><div id="stage"><div class="field">
@@ -9561,6 +9561,27 @@ Object.assign(PLACES,{
 });
 Object.assign(PLACES,{moonshrine:{name:'Moonlit Shrine',xy:[52,66],pxy:[58,68],roads:['bridge','town'],hidden:'moon'},vault:{name:'Sealed Vault',xy:[59,13.5],pxy:[49,18],roads:['pass','inn'],hidden:'split'}}); PLACES.bridge.roads.push('moonshrine'); PLACES.town.roads.push('moonshrine'); PLACES.pass.roads.push('vault'); PLACES.inn.roads.push('vault');
 const REGIONS={"fest":{"name":"Festival Lands","dir":"center","dirName":"Back to the festival","icon":"img/nd_town.webp","blurb":"The festival town and the roads around the arena."},"west":{"name":"Mistveil Marsh","dir":"west","dirName":"West of the festival","open":1,"openTxt":"Round of Sixteen","bg":"img/bg_west.webp","icon":"img/reg_west.webp","blurb":"Haunted bamboo marshland. Ghost-fires lead travellers astray, and something old sleeps under the Sunken Temple.","bgp":"img/bg_west_p.webp"},"east":{"name":"Crimson Coast","dir":"east","dirName":"East of the festival","open":2,"openTxt":"Quarterfinal","bg":"img/bg_east.webp","icon":"img/reg_east.webp","blurb":"A pirate coastline under a red moon. The Crimson Fleet rules the harbor, and the sea itself has teeth.","bgp":"img/bg_east_p.webp"}};
+// ── Fight backdrops: every map place fights on its own side-view stage. Region map art (bg_west/bg_east/bg_map) is never a
+//    fight backdrop. Road and horde fights use the place you are standing on; bosses keep their own stage. Every new map or map
+//    unlock needs its places listed here (and in REGION_FIGHT_BG for anywhere without a place).
+const PLACE_BG={
+  w_gate:'img/bg_marsh.webp', w_lanterns:'img/bg_marsh.webp', w_village:'img/bg_w_village.webp', w_ferry:'img/bg_w_village.webp',
+  w_bamboo:'img/bg_w_bamboo.webp', w_grove:'img/bg_w_bamboo.webp', w_tea:'img/bg_w_bamboo.webp', w_graves:'img/bg_w_graves.webp',
+  w_hut:'img/bg_w_graves.webp', w_mill:'img/bg_w_mill.webp', w_temple:'img/bg_sunken.webp',
+  e_harbor:'img/bg_harbor.webp', e_pier:'img/bg_e_whale.webp', e_whale:'img/bg_e_whale.webp', e_gate:'img/bg_e_dojo.webp', e_dojo:'img/bg_e_dojo.webp',
+  e_salt:'img/bg_e_light.webp', e_lighthouse:'img/bg_e_light.webp', e_caves:'img/bg_seacave.webp', e_wreck:'img/bg_seacave.webp',
+  e_reef:'img/bg_seacave.webp', e_torii:'img/bg_seacave.webp'
+};
+const REGION_FIGHT_BG={ west:['img/bg_marsh.webp','img/bg_w_village.webp','img/bg_w_bamboo.webp','img/bg_w_graves.webp','img/bg_w_mill.webp'],
+  east:['img/bg_harbor.webp','img/bg_seacave.webp','img/bg_e_dojo.webp','img/bg_e_light.webp','img/bg_e_whale.webp'], fest:['img/bg_road.webp','img/bg_festival.webp'] };
+const isMapArt=bg=>/img\/bg_(west|east|map)[a-z_]*\.webp/.test(bg||'');
+function fightBg(bg,opp){
+  const p=(typeof RS_ctx!=='undefined'&&RS_ctx&&RS_ctx.p)||null, boss=opp&&opp.tier==='boss';
+  if(p&&PLACE_BG[p]&&(!boss||isMapArt(bg))) return PLACE_BG[p];
+  if(!isMapArt(bg)) return bg;
+  const rg=/bg_west/.test(bg)?'west':/bg_east/.test(bg)?'east':(p?regOf(p):'fest'), L=REGION_FIGHT_BG[rg]||REGION_FIGHT_BG.fest;
+  return L[Math.floor(Math.random()*L.length)];
+}
 const regOf=p=>(PLACES[p]&&PLACES[p].reg)||'fest', regOpen=r=>!REGIONS[r].open||(run&&run.stage>=REGIONS[r].open);
 PLACES.market.roads.push('w_gate'); PLACES.market.ex=Object.assign(PLACES.market.ex||{},{"west":{"xy":[97.6,52],"p":[97,45]}});
 PLACES.grounds.roads.push('e_gate'); PLACES.grounds.ex=Object.assign(PLACES.grounds.ex||{},{"east":{"xy":[2.5,58],"p":[3,49]}});
