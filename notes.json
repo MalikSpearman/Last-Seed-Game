@@ -1,5 +1,16 @@
 [
  {
+  "version": "0.3.3",
+  "date": "Nov 24, 2026",
+  "title": "Neon Ward polish",
+  "items": [
+   "The Bosozoku Horn Kid now has his voice, and the Irezumi Dragon roars",
+   "The biker gang and the Pachinko Tsukumogami were redrawn: their rising-sun patterns are now flames, dragon crests and lucky sevens",
+   "Horde waves: a foe knocked out while launched no longer leaves its air pose over the next foe",
+   "The end-of-run Pass the torch screen now scrolls, so you can pick any technique from a big deck"
+  ]
+ },
+ {
   "version": "0.3.2",
   "date": "Nov 24, 2026",
   "title": "Neon Ward",
