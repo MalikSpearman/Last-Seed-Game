@@ -1,0 +1,81 @@
+/* Last Seed · screen-size layer. ui-phone (shortest side < 600 css px, touch), ui-tablet (touch, >= 600), ui-desktop.
+   Touch targets follow Material (48dp) / Apple HIG (44pt): 48px on tablet, 44px minimum on phone, 8px between targets. */
+
+/* menu button: the one way to Settings and the corner tools on touch screens (and on desktop whenever the corner bar is hidden) */
+#lsMenu{position:absolute;z-index:120;top:max(8px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));width:48px;height:48px;border-radius:14px;display:none;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:rgba(10,8,20,.78);border:1.5px solid rgba(255,210,120,.65);box-shadow:0 4px 14px rgba(0,0,0,.5);cursor:pointer;padding:0;touch-action:manipulation}
+#lsMenu i{display:block;width:20px;height:2.5px;border-radius:2px;background:#ffe3a6}
+#lsMenu.need{display:flex}
+#lsMenu.hide{display:none}
+#lsMenu.battle{top:calc(.86rem + 4px);right:auto;left:50%;transform:translateX(-50%);width:44px;height:44px}
+.ui-desktop #lsMenu{width:40px;height:40px}
+#lsMenu:focus-visible{outline:3px solid #ffd27a;outline-offset:2px}
+
+#lsSheet{position:fixed;inset:0;z-index:9500;background:rgba(4,3,10,.72);display:flex;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 16px}
+#lsSheet[hidden]{display:none}
+.lsS-in{width:min(620px,100%);max-height:100%;overflow:auto;border-radius:18px;background:linear-gradient(170deg,#1c1638,#0d0a1c);border:1.5px solid rgba(255,210,120,.55);box-shadow:0 18px 50px rgba(0,0,0,.6);padding:14px 16px 16px}
+.lsS-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.lsS-hd b{font:400 24px/1 Anton,Impact,sans-serif;letter-spacing:.04em;color:#ffd27a}
+.lsS-x{width:48px;height:48px;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:#fff;font:700 20px system-ui;cursor:pointer}
+.lsS-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:10px}
+.lsS-b{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);color:#f4ead6;text-align:left;cursor:pointer;font:500 15px/1.2 'Barlow Condensed',system-ui,sans-serif}
+.lsS-b:first-child{border-color:rgba(255,210,120,.7);background:rgba(255,190,80,.14)}
+.lsS-b.off{opacity:.6}
+.lsS-b .ic{flex:none;width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:rgba(0,0,0,.35);color:#ffe3a6}
+.lsS-b .ic svg{width:22px;height:22px}.lsS-b .ic b{font-size:13px!important}
+.lsS-b .tx{display:flex;flex-direction:column;min-width:0}
+.lsS-b .tx b{font:700 17px/1.15 'Barlow Condensed',system-ui,sans-serif;letter-spacing:.02em}
+.lsS-b .tx small{font-size:13px;color:#bfb6d2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* portrait on a phone or tablet: ask to rotate (the Android app is locked to landscape) */
+#lsRotate{display:none}
+.ui-portrait-block #lsRotate{display:grid;position:fixed;inset:0;z-index:9900;place-items:center;background:#07060f;color:#f4ead6;text-align:center;font:600 18px/1.4 'Barlow Condensed',system-ui,sans-serif}
+#lsRotate b{display:block;font:400 26px/1.1 Anton,Impact,sans-serif;margin:14px 0 4px;color:#ffd27a}
+#lsRotate small{color:#bfb6d2;font-size:15px}
+#lsRotate svg{color:#ffd27a;animation:lsRot 2.4s ease-in-out infinite}
+@keyframes lsRot{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+
+/* ── touch: the corner coin bar moves into the menu ── */
+.ui-touch #util{display:none!important}
+
+/* ── touch targets ── */
+.ui-touch .btn{min-height:44px;min-width:44px}
+.ui-tablet .btn{min-height:48px;min-width:48px}
+.ui-touch .btn.sm{min-height:40px}
+.ui-tablet .btn.sm{min-height:44px}
+.ui-touch .sseg button,.ui-touch .seg button,.ui-touch .stabs button{min-height:44px;min-width:44px}
+.ui-touch .opt input[type=range],.ui-touch .spage input[type=range]{min-height:44px}
+.ui-touch input[type=checkbox]{width:28px;height:28px}
+.ui-touch .modal .btns{gap:10px}
+
+/* dialogs on phones/tablets: one scroll area (the sheet body) instead of nested fixed-height panes */
+.ui-touch .modal .stg{max-height:none;width:auto}
+.ui-touch .modal .sheet .body{min-height:0}
+.ui-phone .modal .sheet h2{padding-top:.08rem;padding-bottom:.06rem}
+.ui-phone .modal .sseg{flex-wrap:wrap}
+
+/* small chips and toggles that are tapped */
+.ui-touch .hb-chip{min-height:40px;display:inline-flex;align-items:center;padding-inline:12px}
+.ui-tablet .hb-chip{min-height:44px}
+.ui-touch .efast{display:none!important}
+
+/* fighter select on phones: the roster becomes a two-row strip you swipe sideways, with thumb-sized tiles */
+body.ui-touch:not(.portrait) .csel:not(.pt) .cs-roster,body.ui-touch .csel.codex .cs-roster{display:grid!important;grid-template-columns:none!important;grid-auto-flow:column;grid-template-rows:repeat(2,50px);grid-auto-columns:44px;gap:6px 8px!important;transform:none!important;left:8px!important;right:auto!important;bottom:6px!important;width:min(52vw,calc(100vw - 16px))!important;max-width:none!important;max-height:none!important;overflow-x:auto!important;overflow-y:hidden!important;padding:8px 6px 4px!important;scrollbar-width:none;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.ui-touch .csel .cs-roster::-webkit-scrollbar{display:none}
+.ui-phone .csel .cs-tile{width:44px!important;height:50px!important}
+.ui-phone .csel .cs-tile span{font-size:9px!important}
+.ui-touch .csel .cs-cos{min-height:36px;font-size:12px;padding-inline:10px}
+.ui-touch .csel [class*=arr],.ui-touch .csel .cs-prev,.ui-touch .csel .cs-next{min-width:44px;min-height:44px}
+
+#lsMenu.alt{right:auto;left:calc(4.7rem + 14px)}
+.ui-touch .cv-b{min-width:44px;min-height:44px}
+.ui-tablet .cv-b{min-width:48px;min-height:48px}
+body.ui-tablet:not(.portrait) .csel:not(.pt) .cs-roster,body.ui-tablet .csel.codex .cs-roster{grid-template-rows:repeat(2,58px);grid-auto-columns:50px;gap:8px 10px!important}
+.ui-tablet .csel .cs-tile{width:50px!important;height:58px!important}
+.ui-tablet .csel .cs-tile span{font-size:11px!important}
+.ui-touch .btn.sm{min-height:44px}
+.ui-touch .hb-chip{min-height:44px}
+.ui-tablet .btn.sm,.ui-tablet .hb-chip{min-height:48px}
+.ui-touch .csel .cs-cos{min-height:44px}
+.ui-tablet .csel .cs-cos{min-height:48px}
+.ui-touch .cs-hint{display:none!important}
+.ui-tablet #lsMenu.battle{width:48px;height:48px}

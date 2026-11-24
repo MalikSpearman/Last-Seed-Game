@@ -1,5 +1,19 @@
 [
  {
+  "version": "0.3.4",
+  "date": "Nov 24, 2026",
+  "title": "Phones, tablets and a 3D test stage",
+  "items": [
+   "New menu button on phones and tablets: Settings, Save, How to play, Run status, Fast animations and Rival turn ×2 are one tap away on every screen, no Escape key needed",
+   "Phones and tablets play in landscape (the Android app locks it; in a browser you're asked to turn the device)",
+   "Bigger tap targets on phones and tablets: buttons, chips, settings controls and the fighter roster meet touch-size guidelines",
+   "Dialogs like Settings scale up and scroll on small screens so the text is readable",
+   "Fighter select on phones: the roster is a two-row strip you swipe sideways",
+   "The Settings coin in the corner bar is now a gear",
+   "New test setting (Gameplay): HD-2D stages. Fights play in front of a 3D Moonlit Bamboo Road set that drifts, shakes on hits and sweeps on ultimates"
+  ]
+ },
+ {
   "version": "0.3.3",
   "date": "Nov 24, 2026",
   "title": "Neon Ward polish",

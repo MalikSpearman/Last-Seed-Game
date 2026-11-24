@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Last Seed · HD-2D fight stage test</title>
+<style>
+html,body{margin:0;height:100%;background:#05060d;overflow:hidden;font-family:system-ui,sans-serif;-webkit-user-select:none;user-select:none}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+#bar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+#bar button{min-width:48px;height:48px;padding:0 18px;border-radius:12px;background:rgba(8,6,18,.75);border:1px solid rgba(255,210,120,.55);color:#fff;font:700 15px system-ui}
+#bar button.on{background:rgba(255,190,80,.35)}
+#lbl{position:fixed;left:16px;top:12px;color:#ffd27a;font:800 14px system-ui;letter-spacing:.2em;text-transform:uppercase;text-shadow:0 2px 6px #000}
+#fps{position:fixed;right:12px;top:10px;color:#8f8;font:12px monospace;opacity:.7}
+.num{position:fixed;transform:translate(-50%,-50%);font:900 42px Anton,Impact,sans-serif;color:#fff;-webkit-text-stroke:2px #000;animation:nu .8s ease-out forwards;pointer-events:none}
+@keyframes nu{from{transform:translate(-50%,-50%) scale(1.5)}to{transform:translate(-50%,-160%) scale(1);opacity:0}}
+</style></head><body>
+<canvas id="c"></canvas><div id="lbl"></div><div id="fps"></div>
+<div id="bar"><button data-s="road">Lantern Road</button><button data-s="shrine">Shrine Steps</button><button data-s="bridge">Red Bridge</button><button id="hit">Hit</button><button id="sup">Super</button><button id="auto" class="on">Auto</button></div>
+<script type="module" src="stage.js"></script>
+</body></html>

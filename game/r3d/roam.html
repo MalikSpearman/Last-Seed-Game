@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Last Seed · Moonlit Bamboo Road (HD-2D test)</title>
+<style>
+html,body{margin:0;height:100%;background:#05060d;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;font-family:'Barlow Condensed',system-ui,sans-serif}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+.card{position:fixed;left:50%;top:14%;transform:translateX(-50%);text-align:center;color:#fff;pointer-events:none;transition:opacity 1.2s;text-shadow:0 2px 12px #000}
+.card b{display:block;font:900 clamp(26px,5.2vw,64px)/1 Anton,Impact,sans-serif;letter-spacing:.04em}
+.card i{display:block;font-style:normal;letter-spacing:.35em;font-size:clamp(11px,1.4vw,16px);color:#ffd27a;margin-top:6px;text-transform:uppercase}
+#prompt{position:fixed;left:50%;bottom:16%;transform:translateX(-50%);padding:10px 18px;border-radius:999px;background:rgba(8,6,18,.78);border:1px solid rgba(255,210,120,.6);color:#fff;font-size:18px;letter-spacing:.06em;display:none}
+#prompt kbd{display:inline-grid;place-items:center;min-width:26px;height:26px;margin-right:8px;border-radius:6px;background:#ffd27a;color:#120c20;font:800 15px system-ui}
+#pop{position:fixed;left:0;top:0;pointer-events:none}
+.pop{position:fixed;transform:translate(-50%,-100%);color:#ffe28a;font:800 22px Anton,Impact,sans-serif;text-shadow:0 2px 6px #000;animation:pu 1.2s ease-out forwards}
+@keyframes pu{to{transform:translate(-50%,-220%);opacity:0}}
+#joy{position:fixed;left:24px;bottom:24px;width:132px;height:132px;border-radius:50%;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.18);display:none}
+#joy i{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px;border-radius:50%;background:rgba(255,220,150,.35);border:2px solid rgba(255,220,150,.7)}
+#act{position:fixed;right:28px;bottom:34px;width:84px;height:84px;border-radius:50%;background:rgba(255,190,80,.22);border:2px solid rgba(255,210,120,.8);color:#fff;font:800 18px system-ui;display:none}
+.touch #joy,.touch #act{display:block}
+#hud{position:fixed;right:12px;top:10px;display:flex;gap:8px}
+#hud button{min-width:48px;height:48px;padding:0 14px;border-radius:12px;background:rgba(8,6,18,.7);border:1px solid rgba(255,255,255,.25);color:#fff;font:700 15px system-ui}
+#fps{position:fixed;left:10px;top:8px;color:#8f8;font:12px monospace;opacity:.7}
+#flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none}
+</style></head><body>
+<canvas id="c"></canvas>
+<div class="card" id="card"><b>MOONLIT BAMBOO ROAD</b><i>Cross the stream · climb to the shrine</i></div>
+<div id="prompt"><kbd>E</kbd><span></span></div>
+<div id="joy"><i></i></div><button id="act">Act</button>
+<div id="hud"><button id="q">Quality: High</button></div>
+<div id="fps"></div><div id="flash"></div>
+<script type="module" src="roam.js"></script>
+</body></html>
