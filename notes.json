@@ -1,5 +1,19 @@
 [
  {
+  "version": "0.3.10",
+  "date": "Nov 24, 2026",
+  "title": "Living 3D arenas",
+  "items": [
+   "Supers now play out in the arena you are fighting in, 2D or 3D, instead of switching to a separate backdrop",
+   "The 3D bamboo arenas have weather (rain, fog, snow), drifting leaves and fireflies, and they react to the fight: hits flash light and kick up dust, and fire, ice, lightning and other elements leave marks on the ground",
+   "Group fights: backup enemies and summons stand on the stage, get the same lighting and shadows, and the camera pulls back so the whole crew fits. Very tall enemies pull the camera back too",
+   "The 3D camera now glides smoothly with the talking camera before fights",
+   "3D free roam: longer roads east and west, a real 3D red bridge, and new enemies, chests and pots along the way, with a gashadokuro boss at the end of the east road",
+   "Awakened fighters now sway in their idle like everyone else",
+   "Fixed fighters (and their counter ring) sometimes disappearing after an Ultimate"
+  ]
+ },
+ {
   "version": "0.3.9",
   "date": "Nov 24, 2026",
   "title": "Snappier launches",
