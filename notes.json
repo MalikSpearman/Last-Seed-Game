@@ -1,5 +1,14 @@
 [
  {
+  "version": "0.3.44",
+  "date": "Nov 25, 2026",
+  "title": "Rush tweaks",
+  "items": [
+   "Rushdown now also starts when your chain is already at Max Chain, not only on the hit that reaches it",
+   "A Rush card that would start a Rushdown right now glows with fire in your hand"
+  ]
+ },
+ {
   "version": "0.3.43",
   "date": "Nov 25, 2026",
   "title": "Training mode",
