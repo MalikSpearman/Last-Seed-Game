@@ -1,5 +1,17 @@
 [
  {
+  "version": "0.3.33",
+  "date": "Nov 25, 2026",
+  "title": "Online 1v1",
+  "items": [
+   "Online versus (desktop launcher): Versus › Online 1v1. Create a room and send the five-letter code, or join a friend's room with theirs",
+   "Online fights are fully synced: you answer your rival's attacks in your own counter window, they answer yours, and either of you can call a rematch",
+   "Versus is now an even fight: no rival stat bonuses or fight modifiers, both sides start with 4 Energy, and fighter HP is evened out (big fighters still have more, but the gap is much smaller)",
+   "Hana's STOP. hauls the sign back, whips it overhead with afterimages and crashes into the rival with a freeze-frame, shockwave, clang and knockback",
+   "Bios show only the fighter's own height"
+  ]
+ },
+ {
   "version": "0.3.32",
   "date": "Nov 25, 2026",
   "title": "New music",
