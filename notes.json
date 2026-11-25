@@ -1,5 +1,14 @@
 [
  {
+  "version": "0.3.41",
+  "date": "Nov 25, 2026",
+  "title": "Rush cards in the menus",
+  "items": [
+   "Character select now shows each fighter's Launcher and Rush cards",
+   "The Codex lists every fighter's Launcher and Rush under Abilities"
+  ]
+ },
+ {
   "version": "0.3.40",
   "date": "Nov 25, 2026",
   "title": "Versus loadouts and duel gimmicks",
