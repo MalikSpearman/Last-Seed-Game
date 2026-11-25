@@ -45,7 +45,7 @@ export async function build(D, phase = 1) {
   if (night) { // the express charging in: headlights, sparks off the rails, it crawls forward and back on a cycle
     const hl = new T.MeshBasicMaterial({ color: 0xfff8d0 }); for (const dz of [-.9, .9]) { const l = new T.Mesh(new T.CircleGeometry(.3, 16), hl); l.position.set(-16.02, 1.6, -7.8 + dz); l.rotation.y = -Math.PI / 2; train.add(l); }
     const beam = new T.PointLight(0xfff0c0, 80, 40, 1.4); beam.position.set(-18, 1.4, -7.8); train.add(beam); D.glow(-17, 1.6, -7.8, 10, 0xfff0c0);
-    D.updaters.push(t => { const u = (t * .08) % 1; train.position.x = 30 - u * 60; }); drift(D, 60, -18, -7.8, 3, 1.4, 0xffd040, { y0: -1, y1: 1.4, size: 14 });
+    D.updaters.push(t => { const P = 25, RUN = 13, X0 = 58, X1 = -76, u = ((t + 3) % P) / RUN; train.visible = u < 1; train.position.x = u < 1 ? X0 + (X1 - X0) * u : X1; });   // the whole train enters from off-screen right, runs clean off the left edge, then waits for the next pass (every 25 s) drift(D, 60, -18, -7.8, 3, 1.4, 0xffd040, { y0: -1, y1: 1.4, size: 14 });
     lightning(D, R, { color: 0xffe080, area: [-50, 50, -40, -90], every: [2, 5] }); rain(D, 800, [-30, 30], [0, 16], [-30, -12], { speed: 16 });
     skyline(K, D, R, { zNear: -30, zFar: -120, n: 40, spread: 80, spire: false }); farPainting(D, 'rushhour2', { v1: .45, z: -144 });
   } else {

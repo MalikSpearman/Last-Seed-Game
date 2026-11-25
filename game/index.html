@@ -6657,12 +6657,15 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
   const ctrHas=(side,pose)=>{ const L=CTR_SPR[phxWho(side)]; return !!(L&&L.includes(pose)); };
   setTimeout(()=>{ for(const sd of ['p','e']) (CTR_SPR[phxWho(sd)]||[]).forEach(k=>{ const i=new Image(); i.src=`img/ctr/${phxWho(sd)}_${k}.webp`; }); },600);
   function ctrMask(side){ const im=$('.spr img',F[side]), c=$('.pbcrk',F[side]); if(im&&c) c.style.setProperty('--m',`url("${im.currentSrc||im.src}")`); }
+  /* a Poise Break kneel keeps the kneeling body at about 0.72x the standing body: kneel art drawn edge to edge (figure filling the picture) is scaled down instead of stretched to full standing height */
+  const CTR_KSC={"azami":0.93,"gogo":0.9,"ito":0.89,"jin":0.88,"kaiko":0.76,"kuro":0.94,"maya":0.92,"nia":0.84,"orin":0.78,"rasetsu":0.93,"rei":0.88,"rhea":0.89,"tetsu":0.92,"valka":0.94,"wukong":0.85};
+  function ctrKH(im,id,pose){ if(im.dataset.oh===undefined||im.style.height!==im.dataset.kh) im.dataset.oh=im.style.height||''; const k=pose==='f_kneel'?(CTR_KSC[id]||1):1; im.style.height=k===1?im.dataset.oh:`calc((${im.dataset.oh||'var(--sprh)'}) * ${k})`; im.dataset.kh=im.style.height; }
   function ctrPose(side,pose,force){ const fe=F[side], im=fe&&$('.spr img',fe); if(!im) return false;
-    if(!pose){ if(im.dataset.osrc){ im.src=im.dataset.osrc; delete im.dataset.osrc; } fe.classList.remove('ctrposed'); if(fe.classList.contains('pbknee')&&ctrHas(side,'f_kneel')) ctrPose(side,'f_kneel',true); ctrMask(side); return true; }
+    if(!pose){ if(im.dataset.osrc){ im.src=im.dataset.osrc; delete im.dataset.osrc; } if(im.dataset.oh!==undefined){ if(im.style.height===im.dataset.kh) im.style.height=im.dataset.oh; delete im.dataset.oh; delete im.dataset.kh; } fe.classList.remove('ctrposed'); if(fe.classList.contains('pbknee')&&ctrHas(side,'f_kneel')) ctrPose(side,'f_kneel',true); ctrMask(side); return true; }
     if(!ctrHas(side,pose)||!(force||stageEl.classList.contains('ots'))) return false;
     if(!(typeof AIR!=='undefined'&&AIR[side])){ try{ poseEnd(side); }catch(_){ } const sp=$('.spr',fe); if(sp){ if(sp.style.opacity==='0') sp.style.opacity=''; if(sp.style.visibility==='hidden') sp.style.visibility=''; } im.style.visibility=''; if(im.style.opacity==='0') im.style.opacity=''; if(fe.style.opacity==='0') fe.style.opacity=''; }
     if(!im.dataset.osrc) im.dataset.osrc=im.getAttribute('src'); im.onerror=()=>{ im.onerror=null; if(im.dataset.osrc){ im.src=im.dataset.osrc; delete im.dataset.osrc; } fe.classList.remove('ctrposed'); };   // a pose that can't load never leaves an empty fighter
-    im.src=`img/ctr/${phxWho(side)}_${pose}.webp`; fe.classList.add('ctrposed'); ctrMask(side); return true; }
+    im.src=`img/ctr/${phxWho(side)}_${pose}.webp`; ctrKH(im,phxWho(side),pose); fe.classList.add('ctrposed'); ctrMask(side); return true; }
   function ctrThreat(side,col){ for(const sd of ['p','e']) if(F[sd]) F[sd].classList.remove('ctrthreat'); if(side&&F[side]){ F[side].classList.add('ctrthreat'); F[side].style.setProperty('--tc',col||'#fff'); } }
   function ctrCam(on,def){ def=def||'p'; const att=def==='p'?'e':'p';
     if(!on){ ctrPose('p',null); ctrPose('e',null); }

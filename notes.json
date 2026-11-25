@@ -1,5 +1,14 @@
 [
  {
+  "version": "0.3.35",
+  "date": "Nov 25, 2026",
+  "title": "Kneels sized right, a proper train",
+  "items": [
+   "Poise Break: fighters who drop to one knee now kneel at their real size instead of being stretched to full standing height (Kaiko, Orin, Nia, Wukong and others no longer look huge when downed)",
+   "Rush Hour (night): the express now runs all the way off screen before it comes back, and passes about every 25 seconds"
+  ]
+ },
+ {
   "version": "0.3.34",
   "date": "Nov 25, 2026",
   "title": "Kuro's Ninth Life",
