@@ -13,7 +13,7 @@ D.post.uniforms.band.value = .26; D.post.uniforms.focus.value = .5;
 const STAGES = {
   road:   { name: 'Lantern Road', c: [-0.6, 0, 2.0], off: [0, 2.3, 7.6], gap: 2.3 },
   shrine: { name: 'Shrine Steps', c: [27, 3, -17.2], off: [0, 2.0, 6.3], gap: 2.1 },
-  bridge: { name: 'Red Bridge',   c: [-16, 1.5, 2.6], off: [0, 2.0, 7.2], gap: 1.9 },
+  bridge: { name: 'Red Bridge',   c: [-16, 1, 2.6], off: [0, 2.0, 7.2], gap: 1.9 },
 };
 let S = STAGES[Q.get('s')] || STAGES.road;
 

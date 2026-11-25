@@ -35,6 +35,10 @@ function decal(kind) {
   const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; return (DEC[kind] = t);
 }
 
+// a soft round dust mote (points are square without it)
+let _dot = null;
+function softDot() { if (_dot) return _dot; const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(.45, 'rgba(255,255,255,.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return (_dot = new T.CanvasTexture(c)); }
 export class ArenaFX {
   constructor(D) {
     this.D = D; this.marks = []; this.flashes = []; this.dust = []; this.weatherKind = 'clear';
@@ -69,8 +73,17 @@ export class ArenaFX {
     }
   }
   // ── living scenery: green leaves drift through, low mist rolls along the ground ──
-  life(c) {
-    const D = this.D; this.leaves = this.leaves || {}; const lk = c.join(','); if (!this.leaves[lk]) this.leaves[lk] = D.petals(46, c[0], c[2] - 1, 9, { color: 0x8fc46a });
+  // pp: a painted location's set — blossoms where the painting has them, dust motes indoors, nothing drifting through a city street
+  life(c, pp) {
+    const D = this.D; this.leaves = this.leaves || {}; const lk = c.join(',');
+    if (!this.leaves[lk]) {
+      const n = pp && pp.name, kind = !pp ? 'leaf' : pp.indoor ? 'dust' : /festival|road|shrine|rooftops|landlord|sun|oba|tama|marsh|w_|nw_street|nw_teahouse/.test(n) ? 'petal' : /sunken|seacave|e_|harbor|graves|blight|calamity/.test(n) ? 'ember' : null;
+      if (kind === 'leaf') this.leaves[lk] = D.petals(46, c[0], c[2] - 1, 9, { color: 0x8fc46a });
+      if (kind === 'petal') this.leaves[lk] = D.petals(40, c[0], c[2] - 1, 9, { color: 0xffb6d5 });
+      if (kind === 'dust') this.leaves[lk] = D.fireflies(40, c[0], c[2] - 2, 9, 4, { y0: .4, y1: 5, color: 0xffe2b0, size: 7 });
+      if (kind === 'ember') this.leaves[lk] = D.fireflies(30, c[0], c[2] - 2, 10, 4, { y0: .3, y1: 4, color: /seacave|sunken/.test(n) ? 0x7ff0ff : 0xffa860, size: 9 });
+    }
+    if (pp) { this.mistC = null; if (this.mist) this.mist.forEach(m => m.material.opacity = 0); return; }   // painted sets have their own air; the drifting mist is the bamboo road's
     if (!this.mist) {
       const cv = document.createElement('canvas'); cv.width = cv.height = 128; const g = cv.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
       gr.addColorStop(0, 'rgba(200,215,255,.35)'); gr.addColorStop(1, 'rgba(200,215,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
@@ -91,7 +104,7 @@ export class ArenaFX {
     if (e === 'fire' && D.spots) for (const s of D.spots) { const d = Math.hypot(s.x - pos.x, s.z - pos.z); if (d < 9) s.boost = Math.max(s.boost || 0, 1.4 * (1 - d / 9)); }
   }
   mark(pos, kind, size) {
-    const D = this.D, m = new T.Mesh(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ map: decal(kind), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, opacity: 0, fog: true }));
+    const D = this.D, m = new T.Mesh(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ map: decal(kind), transparent: true, depthWrite: false, depthTest: !this.flat, polygonOffset: true, polygonOffsetFactor: -2, opacity: 0, fog: true }));
     m.rotation.x = -Math.PI / 2; m.rotation.z = Math.random() * 6.3; m.position.set(pos.x + (Math.random() - .5) * .6, pos.y + .02 + this.marks.length * .001, pos.z + (Math.random() - .5) * .4);
     m.scale.set(size * (1 + Math.random() * .3), size, 1); m.renderOrder = 2; D.scene.add(m);
     this.marks.push({ m, t: 0, life: kind === 'puddle' || kind === 'frost' ? 40 : 60 });
@@ -101,7 +114,7 @@ export class ArenaFX {
     const D = this.D, g = new T.BufferGeometry(), p = new Float32Array(n * 3), v = new Float32Array(n * 3);
     for (let i = 0; i < n; i++) { p[i * 3] = pos.x + (Math.random() - .5) * .8; p[i * 3 + 1] = pos.y + .1; p[i * 3 + 2] = pos.z + (Math.random() - .5) * .5; const a = Math.random() * 6.3, s = (big ? 2.6 : 1.6) * (.4 + Math.random()); v[i * 3] = Math.cos(a) * s; v[i * 3 + 1] = .4 + Math.random() * (big ? 1.6 : .9); v[i * 3 + 2] = Math.sin(a) * s * .5; }
     g.setAttribute('position', new T.BufferAttribute(p, 3));
-    const mat = new T.PointsMaterial({ color: 0xb8b0a0, size: big ? .55 : .38, transparent: true, opacity: .55, depthWrite: false, sizeAttenuation: true });
+    const mat = new T.PointsMaterial({ color: 0xb8b0a0, size: big ? .7 : .5, map: softDot(), transparent: true, opacity: .5, depthWrite: false, sizeAttenuation: true });
     const pts = new T.Points(g, mat); D.scene.add(pts); this.dust.push({ pts, v, t: 0 });
   }
   clear() { const D = this.D; for (const o of this.marks) { D.scene.remove(o.m); o.m.geometry.dispose(); o.m.material.dispose(); } this.marks = []; for (const d of this.dust) D.scene.remove(d.pts); this.dust = []; }

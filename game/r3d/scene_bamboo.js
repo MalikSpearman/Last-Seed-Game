@@ -4,9 +4,9 @@ const BASE = new URL('./img/', import.meta.url).href;
 const I = n => BASE + n + '.webp';
 // ── the road: a walkable spine (x,z, height y, half-width w) ──
 export const P = [
-  { x: -40, z: 1.0, w: 2.6 }, { x: -32, z: 2.2, w: 2.4 }, { x: -25, z: 2.6, w: 2.0 }, { x: -20.5, z: 2.6, w: 1.5 },
-  { x: -19.6, z: 2.6, y: .9, w: .2, br: 1 }, { x: -17.8, z: 2.6, y: 1.5, w: .2, br: 1 }, { x: -16, z: 2.6, y: 1.67, w: .2, br: 1 }, { x: -14.2, z: 2.6, y: 1.5, w: .2, br: 1 }, { x: -12.4, z: 2.6, y: .9, w: .2, br: 1 },
-  { x: -11.5, z: 2.6, w: 1.5 }, { x: -6, z: 3.6, w: 2.4 }, { x: 0, z: 1.4, w: 2.6 }, { x: 6, z: 3.4, w: 2.4 }, { x: 12, z: 1.6, w: 2.6 },
+  { x: -40, z: 1.0, w: 2.6 }, { x: -32, z: 2.2, w: 2.4 }, { x: -27, z: 2.6, w: 2.0 }, { x: -24, z: 2.6, w: 1.5 },
+  { x: -21.5, z: 2.6, y: 1, w: .55, br: 1 }, { x: -19, z: 2.6, y: 1, w: .6, br: 1 }, { x: -16, z: 2.6, y: 1, w: .6, br: 1 }, { x: -13, z: 2.6, y: 1, w: .6, br: 1 }, { x: -10.5, z: 2.6, y: 1, w: .55, br: 1 },
+  { x: -8, z: 2.6, w: 1.5 }, { x: -4.5, z: 3.4, w: 2.4 }, { x: 0, z: 1.4, w: 2.6 }, { x: 6, z: 3.4, w: 2.4 }, { x: 12, z: 1.6, w: 2.6 },
   { x: 18, z: 2.6, w: 2.4 }, { x: 23.5, z: 1.4, w: 2.2 }, { x: 27, z: .2, w: 1.7 },
   { x: 27, z: -6.8, y: 3, w: 1.7, st: 1 }, { x: 27, z: -8.5, y: 3, w: 3.2 }, { x: 27, z: -15, y: 3, w: 5 },
 ];
@@ -29,19 +29,30 @@ export function nearest(x, z, paths = PATHS) {
 
 // ── a real 3D arched bridge over the stream: wooden deck that follows the walkable arch, red lacquer rails and posts with gold caps, stone piers ──
 function bridge3d(D) {
-  const N = [[-20.6, 0], [-19.6, .9], [-17.8, 1.5], [-16, 1.67], [-14.2, 1.5], [-12.4, .9], [-11.4, 0]], z0 = 2.6, half = 1.05;
+  // a long, gently raised deck: short ramps up from each bank and a flat span the fighters stand on, high above the stream
+  const N = [[-24, 0], [-21.5, 1], [-10.5, 1], [-8, 0]], z0 = 2.6, half = 1.3;
   const yAt = x => { for (let i = 0; i < N.length - 1; i++) { const [a, ya] = N[i], [b, yb] = N[i + 1]; if (x >= a && x <= b) { const u = (x - a) / (b - a), s = u * u * (3 - 2 * u); return ya + (yb - ya) * s; } } return 0; };
-  const wood = new T.MeshStandardMaterial({ color: 0x6e4b33, roughness: .85 }), lac = new T.MeshStandardMaterial({ color: 0xa8242a, roughness: .45 }), gold = new T.MeshStandardMaterial({ color: 0xd9a441, metalness: .6, roughness: .35 }), stone = new T.MeshStandardMaterial({ color: 0x6c6a64, roughness: .95 });
+  // weathered planks, drawn once: dark seams between boards, grain streaks, a little wear
+  const pc = document.createElement('canvas'); pc.width = 256; pc.height = 256; const px = pc.getContext('2d');
+  px.fillStyle = '#7a5538'; px.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 4; i++) { const x = i * 64; px.fillStyle = `hsl(25,${30 + i * 4}%,${24 + (i % 2) * 5}%)`; px.fillRect(x + 2, 0, 60, 256);
+    for (let k = 0; k < 14; k++) { px.strokeStyle = `rgba(30,18,10,${.15 + Math.random() * .2})`; px.lineWidth = 1; px.beginPath(); const gx = x + 6 + Math.random() * 52; px.moveTo(gx, 0); px.bezierCurveTo(gx + 4, 80, gx - 4, 170, gx + 2, 256); px.stroke(); }
+    px.fillStyle = 'rgba(15,8,4,.9)'; px.fillRect(x, 0, 2, 256); px.fillStyle = 'rgba(20,12,6,.8)'; px.beginPath(); px.arc(x + 32, 40 + i * 37, 2.2, 0, 7); px.arc(x + 32, 216 - i * 21, 2.2, 0, 7); px.fill(); }
+  const ptex = new T.CanvasTexture(pc); ptex.colorSpace = T.SRGBColorSpace; ptex.anisotropy = 4;
+  const wood = new T.MeshStandardMaterial({ color: 0xffffff, map: ptex, roughness: .8 }), lac = new T.MeshStandardMaterial({ color: 0xa8242a, roughness: .45 }), gold = new T.MeshStandardMaterial({ color: 0xd9a441, metalness: .6, roughness: .35 }), stone = new T.MeshStandardMaterial({ color: 0x6c6a64, roughness: .95 });
   const g = new T.Group(); const add = (geo, mat, x, y, z, rz = 0) => { const m = new T.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.z = rz; m.castShadow = m.receiveShadow = true; g.add(m); return m; };
-  const x0 = N[0][0], x1 = N[N.length - 1][0], steps = 28;
+  const x0 = N[0][0], x1 = N[N.length - 1][0], steps = 40, onDeck = x => x > -21.2 && x < -10.8;
   for (let i = 0; i < steps; i++) {
     const a = x0 + (x1 - x0) * i / steps, b = x0 + (x1 - x0) * (i + 1) / steps, ya = yAt(a), yb = yAt(b), L = Math.hypot(b - a, yb - ya), rz = Math.atan2(yb - ya, b - a), mx = (a + b) / 2, my = (ya + yb) / 2;
-    add(new T.BoxGeometry(L * 1.04, .1, half * 2), wood, mx, my - .05, z0, rz);                       // planks
-    for (const s of [-1, 1]) { add(new T.BoxGeometry(L * 1.04, .2, .12), lac, mx, my - .12, z0 + s * half, rz);   // side beams
-      add(new T.BoxGeometry(L * 1.04, .07, .09), lac, mx, my + .82, z0 + s * half, rz); add(new T.BoxGeometry(L * 1.04, .05, .06), lac, mx, my + .45, z0 + s * half, rz); }   // top + mid rails
+    add(new T.BoxGeometry(L * 1.04, .12, half * 2), wood, mx, my - .06, z0, rz);                                       // planks
+    for (const s of [-1, 1]) { add(new T.BoxGeometry(L * 1.04, .24, .14), lac, mx, my - .14, z0 + s * half, rz);    // side beams
+      if (s > 0 && onDeck(mx)) continue;                                                                            // the near rail stops at the deck: nothing stands between you and the fight
+      add(new T.BoxGeometry(L * 1.04, .08, .1), lac, mx, my + .86, z0 + s * half, rz); add(new T.BoxGeometry(L * 1.04, .05, .06), lac, mx, my + .47, z0 + s * half, rz); }
   }
-  for (let i = 0; i <= 8; i++) { const x = x0 + .25 + (x1 - x0 - .5) * i / 8, y = yAt(x); for (const s of [-1, 1]) { add(new T.BoxGeometry(.13, .95, .13), lac, x, y + .38, z0 + s * half); add(new T.SphereGeometry(.09, 10, 8), gold, x, y + .9, z0 + s * half); } }
-  for (const x of [-17.8, -14.2]) for (const s of [-1, 1]) add(new T.BoxGeometry(.32, 1.9, .32), stone, x, yAt(x) - 1.1, z0 + s * (half - .15));
+  for (let i = 0; i <= 12; i++) { const x = x0 + .3 + (x1 - x0 - .6) * i / 12, y = yAt(x); for (const s of [-1, 1]) { if (s > 0 && onDeck(x) && Math.abs(x + 21.2) > .4 && Math.abs(x + 10.8) > .4) continue; add(new T.BoxGeometry(.15, 1, .15), lac, x, y + .4, z0 + s * half); add(new T.SphereGeometry(.1, 10, 8), gold, x, y + .95, z0 + s * half); } }
+  // stone piers on both banks and in the stream, and a lantern post at each end of the deck
+  for (const x of [-21, -18.4, -13.6, -11]) for (const s of [-1, 1]) add(new T.BoxGeometry(.38, 2.2, .38), stone, x, yAt(x) - 1.2, z0 + s * (half - .18));
+  for (const x of [-21.4, -10.6]) { add(new T.BoxGeometry(.22, 1.9, .22), lac, x, 1 + .95, z0 - half); add(new T.CylinderGeometry(.24, .24, .46, 16), new T.MeshStandardMaterial({ color: 0xffb060, emissive: 0xff7a30, emissiveIntensity: 1.6, roughness: .6 }), x, 2.12, z0 - half); add(new T.CylinderGeometry(.27, .27, .06, 16), lac, x, 2.38, z0 - half); add(new T.CylinderGeometry(.27, .27, .06, 16), lac, x, 1.86, z0 - half); D.lantern(x, 2.2, z0 - half + .2, { distance: 8, intensity: 12, glow: .6 }); }
   D.scene.add(g); return g;
 }
 export async function build(D) {
@@ -86,8 +97,13 @@ D.ribbon([{ x: -13.1, z: -40, w: .5 }, { x: -13.1, z: 40, w: .5 }], I('t_dirt'),
   }
   for (let x = -40; x < 40; x += rnd(6, 9)) { if (Math.abs(x + 16) < 4) continue; await A(R() < .5 ? 'bamboo3' : 'rfg_bamboo', x, 8.6 + R() * 2, rnd(6.5, 8), { fadeNear: 1, flip: R() < .5, sway: .01, blobW: .25 }); }
   for (let x = -38; x < 24; x += 3.1) { const z = 6.2 + R() * 1.5; if (Math.abs(x + 16) < 4) continue; await A('ferns', x, z, rnd(.7, 1.1), { flip: R() < .5 }); }
+  for (let z = -3; z > -26; z -= 1.9) { await A(R() < .5 ? 'bamboo3' : 'rfg_bamboo', -19.6 - R() * 1.2, z, rnd(7, 9.5), { flip: R() < .5, sway: .012, blobW: .25, tint: z < -10 ? 0xb8c4d8 : 0xffffff }); await A(R() < .5 ? 'bamboo3' : 'bamboo1', -12.4 + R() * 1.2, z - .9, rnd(7, 9.5), { flip: R() < .5, sway: .012, blobW: .25, tint: z < -10 ? 0xb8c4d8 : 0xffffff }); }
+  for (let x = -18.8; x < -13; x += 1.3) await A(R() < .5 ? 'bamboo3' : 'rfg_bamboo', x + R() * .6, -24 - R() * 2, rnd(8, 10), { flip: R() < .5, sway: .01, blobW: .2, tint: 0xa8b4d0 });
+  await A('rocks', -17.6, -12, 1.4); await A('rocks', -14.2, -15, 1.6, { flip: 1 }); await A('ferns', -18.6, -7, 1); await A('ferns', -13.4, -9, 1.1, { flip: 1 });
+  await A('sakura', -20.8, -9.5, 4.6); D.petals(50, -16, -6, 5);
+  D.fireflies(40, -16, -8, 3, 8, { y0: .4, y1: 3 });
   // stone lanterns along the road, each one a real light
-  const toro = [[-34, -.6], [-24, -.4], [-8, .6], [5.6, -1.6], [10, 6.4], [16, -.5], [24.4, -1.6]];
+  const toro = [[-34, -.6], [-25.5, -.4], [-6.4, .6], [5.6, -1.6], [10, 6.4], [16, -.5], [24.4, -1.6]];
   for (const [x, z] of toro) { await A('toro', x, z, 2.3); D.lantern(x, 1.62, z + .15, { distance: 9, intensity: 16 }); }
   await A('toro_s', -29, 5.4, 1.2); D.lantern(-29, .72, 5.55, { distance: 6, intensity: 8, glow: .7 });
   await A('toro_s', 20, 5.4, 1.2, { flip: 1 }); D.lantern(20, .72, 5.55, { distance: 6, intensity: 8, glow: .7 });
