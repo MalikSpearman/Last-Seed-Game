@@ -1,5 +1,18 @@
 [
  {
+  "version": "0.3.7",
+  "date": "Nov 24, 2026",
+  "title": "The voice update",
+  "items": [
+   "About 1,570 missing voice lines are now recorded: the Neon Ward calamities and road enemies, Wukong and Gogo's full kits, and the new match-ups, each in the character's own voice",
+   "Every fighter has two new opening lines. Match-up lines now play about half the time; otherwise each side picks an opener and never repeats the one from the last fight",
+   "Subtitles now match what's spoken. Fixed rivals showing their old quote under a different intro line, card lines showing only the card name, and lines with no subtitle at all",
+   "Script pass: Kuro is no longer talked about like a dog, Sol is addressed as a woman, Hana's quote and several confusing or contradicting lines were rewritten and re-recorded, and reply lines no longer play before the line they answer",
+   "Fixed: pressing Back on fighter select after a fight now goes to the main menu instead of the finished fight",
+   "Desktop: the game window now remembers its size and position (needs the new installer)"
+  ]
+ },
+ {
   "version": "0.3.6",
   "date": "Nov 24, 2026",
   "title": "Element finishers and new Kaede art",
