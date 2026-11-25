@@ -3,7 +3,8 @@
 // flank the stairs, two white fox guardians in red bibs sit on pedestals at the foot, autumn maples blaze red and orange
 // on both slopes, a rope of paper streamers hangs across, and the shrine hall glows at the top.
 import { T } from './diorama.js';
-import { kit, rng, sky, pbr, stoneLantern, torii, pagoda, hills, scatter, decals, drift, dress } from './kit.js';
+import { kit, rng, sky, pbr, stoneLantern, torii, pagoda, hills, scatter, decals, drift, dress, farPainting, IMG } from './kit.js';
+// Built at real-world scale (1 unit = 1 m): the fight camera puts the marks 1.7 m apart and a fighter stands about 1.75 m tall.
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -1.8], [-4.4, -2], [1.6, -2.8]], sum: [-5.6, .8], exposure: 1.6 };
 
@@ -24,26 +25,26 @@ export async function build(D) {
 
   // ── the ground and the landing the fight happens on ──
   { const g = new T.Mesh(new T.PlaneGeometry(220, 160), M.ground); g.rotation.x = -Math.PI / 2; g.position.set(0, -.03, -40); g.receiveShadow = true; S.add(g);
-    const f = new T.Mesh(new T.PlaneGeometry(26, 11), M.flag); f.rotation.x = -Math.PI / 2; f.position.set(0, .01, 1); f.receiveShadow = true; S.add(f); }
+    const f = new T.Mesh(new T.PlaneGeometry(14, 6.5), M.flag); f.rotation.x = -Math.PI / 2; f.position.set(0, .01, .6); f.receiveShadow = true; S.add(f); }
   // ── the stairs: a long flight straight up the hill behind the fighters, with mossy curbs and the hill rising either side ──
-  const N = 18, SH = .34, SD = .8, W = 6.4, z0 = -4.6;
+  const N = 30, SH = .17, SD = .36, W = 3.4, z0 = -2.6;   // real steps: 17 cm rise, 36 cm tread, 3.4 m wide
   for (let i = 0; i < N; i++) { box(W, SH * (i + 1), SD, M.step, 0, 0, z0 - i * SD); }
-  for (const s of [-1, 1]) for (let i = 0; i < N; i += 2) box(.6, SH * (i + 1) + .45, SD * 2, M.curb, s * (W / 2 + .3), 0, z0 - i * SD - SD / 2);
+  for (const s of [-1, 1]) for (let i = 0; i < N; i += 2) box(.32, SH * (i + 1) + .3, SD * 2, M.curb, s * (W / 2 + .16), 0, z0 - i * SD - SD / 2);
   const topY = SH * N, topZ = z0 - N * SD;
-  box(16, topY, 12, M.rock, 0, 0, topZ - 6);   // the hilltop the shrine stands on
-  for (const s of [-1, 1]) for (let i = 0; i < 10; i++) { const d = add(new T.DodecahedronGeometry(R.r(1.6, 3.4), 1), M.rock, s * R.r(5.8, 11), R.r(0, topY * .7) * (i / 10), z0 - R.r(1, N * SD + 2), { ry: R() * 6 }); d.scale.y = R.r(.6, 1.1); }
-  hills(K, [[-11.5, -15, 8, 6.5], [11.5, -15, 8, 7], [-9.5, -23, 10, 9], [10.5, -24, 10, 9.5], [-20, -12, 9, 5], [21, -13, 9, 5.5]], M.rock);   // the wooded hill either side of the flight
+  box(12, topY, 9, M.rock, 0, 0, topZ - 4.5);   // the hilltop the shrine stands on
+  for (const s of [-1, 1]) for (let i = 0; i < 10; i++) { const d = add(new T.DodecahedronGeometry(R.r(.8, 1.8), 1), M.rock, s * R.r(3, 7), R.r(0, topY * .7) * (i / 10), z0 - R.r(1, N * SD + 1), { ry: R() * 6 }); d.scale.y = R.r(.6, 1.1); }
+  hills(K, [[-7, -9, 5, 3.6], [7, -9, 5, 3.9], [-6.5, -15, 6.5, 5.6], [7, -15.5, 6.5, 5.9], [-13, -8, 6, 3], [13.5, -8.5, 6, 3.2]], M.rock);   // the wooded hill either side of the flight
   // ── the torii tunnel up the steps ──
-  for (let i = 0; i < 5; i++) { const k = 1 + i * 3.6, y = SH * Math.min(N, Math.round(k)); torii(K, 0, z0 - k * SD, 6.2 - i * .15, M.gate, { y, dark: M.black, rope: i === 0 ? M.rope : null }); }
+  for (let i = 0; i < 6; i++) { const k = 1 + i * 5, y = SH * Math.min(N, Math.round(k)); torii(K, 0, z0 - k * SD, 4.3 - i * .08, M.gate, { y, dark: M.black, rope: null }); }   // torii ~4.3 m (the painted shimenawa hangs on the first one)
   // a second line of small gates winding off along the left slope, like the painting
-  for (let i = 0; i < 9; i++) { const u = i / 8; torii(K, -7 - u * 9, -9 - u * 10, 3.6 - u * .9, M.gate, { y: 2 + u * 4.5, ry: .9 + u * .2, dark: M.black }); }
+  for (let i = 0; i < 9; i++) { const u = i / 8; torii(K, -4.2 - u * 5, -5.5 - u * 6.5, 2.6 - u * .5, M.gate, { y: 1.2 + u * 3, ry: .9 + u * .2, dark: M.black }); }
   // ── stone lanterns at the foot and up the flight ──
-  stoneLantern(D, K, -4.4, -3.6, 1.7, { mat: M.moss }); stoneLantern(D, K, 4.4, -3.6, 1.7, { mat: M.moss });
-  for (let i = 4; i < N; i += 5) for (const s of [-1, 1]) stoneLantern(D, K, s * (W / 2 + .9), z0 - i * SD, 1.1, { mat: M.moss, y: SH * (i + 1) + .4, light: i < 10 });
+  stoneLantern(D, K, -2.5, -2.2, 1, { mat: M.moss }); stoneLantern(D, K, 2.5, -2.2, 1, { mat: M.moss });   // ~2.1 m tall
+  for (let i = 7; i < N; i += 8) for (const s of [-1, 1]) stoneLantern(D, K, s * (W / 2 + .55), z0 - i * SD, .75, { mat: M.moss, y: SH * (i + 1) + .3, light: i < 16 });
   // ── the shrine hall at the top ──
-  pagoda(K, D, 2.4, topZ - 5, { w: 8, d: 5.4, h: 3.2, tiers: 2, y: topY, roof: M.roof, beam: M.beam, sd: 6 });
+  pagoda(K, D, 1.2, topZ - 3.6, { w: 6, d: 4.2, h: 2.8, tiers: 2, y: topY, roof: M.roof, beam: M.beam, sd: 6 });
   // ── the fox guardians: white kitsune on stone pedestals, red bibs, tails curled up ──
-  const fox = (x, z, flip) => { const g = new T.Group(); g.position.set(x, 0, z); g.rotation.y = flip ? -.5 : .5; S.add(g);
+  const fox = (x, z, flip) => { const g = new T.Group(); g.position.set(x, 0, z); g.rotation.y = flip ? -.5 : .5; g.scale.setScalar(.62); S.add(g);   // pedestal ~.8 m, fox ~1 m
     const ped = new T.Mesh(new T.BoxGeometry(1.5, 1.3, 1.3), M.moss); ped.position.y = .65; ped.castShadow = ped.receiveShadow = true; g.add(ped);
     const cap = new T.Mesh(new T.BoxGeometry(1.7, .16, 1.5), M.moss); cap.position.y = 1.38; g.add(cap);
     const part = (geo, mat, px, py, pz, o = {}) => { const m = new T.Mesh(geo, mat); m.position.set(px, 1.46 + py, pz); if (o.s) m.scale.set(...o.s); if (o.r) m.rotation.set(...o.r); m.castShadow = true; g.add(m); return m; };
@@ -58,26 +59,30 @@ export async function build(D) {
     const t = new T.Mesh(new T.TubeGeometry(tail, 16, .17, 10), M.fox); t.position.y = 1.46; t.castShadow = true; g.add(t);
     part(new T.ConeGeometry(.42, .42, 14, 1, true), M.bib, 0, .72, .1, { r: [-.25, 0, 0] });        // red bib
     return g; };
-  fox(-5.8, -3.2, false); fox(5.8, -3.2, true);
+  void fox;   // painted guardians instead of the blockout
+  await D.prop(IMG('rg_kitsune'), -3.4, -2.3, 1.95, { flip: true, blobW: .3 }); await D.prop(IMG('rg_kitsune'), 3.4, -2.3, 1.95, { blobW: .3 });
   // ── autumn maples on both slopes and framing the foreground corners ──
-  const maple = (x, y, z, s) => { const tr = add(new T.CylinderGeometry(.18 * s, .32 * s, 4.2 * s, 8), M.bark, x, y + 2.1 * s, z);
-    for (const [dx, rz] of [[-.9, .7], [.9, -.6], [.2, .1]]) add(new T.CylinderGeometry(.06 * s, .13 * s, 2.2 * s, 6), M.bark, x + dx * s * .6, y + 4 * s, z, { rz });
-    for (let k = 0; k < 9; k++) { const m = add(new T.IcosahedronGeometry(1, 0), leafM[(R() * leafM.length) | 0], x + R.r(-2, 2) * s, y + R.r(3.8, 6) * s, z + R.r(-1.2, 1.2) * s, { cast: true }); m.scale.set(R.r(1, 1.7) * s, R.r(.6, .95) * s, R.r(.9, 1.4) * s); m.rotation.set(R() * 3, R() * 3, R() * 3); } };
-  maple(-11, 0, -2, 1.25); maple(12, 0, -3, 1.3); maple(-8.6, 2, -9, 1); maple(8.8, 2.2, -10, 1.05); maple(-6, topY * .7, -16, .9); maple(7, topY * .75, -17, .95);
-  maple(-17, 0, -6, 1.4); maple(18, 0, -7, 1.4); maple(-4.2, topY, -25, 1.1); maple(9, topY, -24, 1.2);
-  // red spider lilies and low red shrubs along the curbs
-  for (let i = 0; i < 70; i++) { const s = R() < .5 ? -1 : 1, x = s * R.r(W / 2 + .8, 6.4), z = R.r(-3, z0 - N * SD + 2), stepI = Math.max(0, Math.min(N - 1, Math.round((z0 - z) / SD))), y = z < z0 ? SH * (stepI + 1) * .8 : 0;
-    const b = add(new T.IcosahedronGeometry(.28, 0), leafM[(R() * 3) | 0], x, y + .2, z, { cast: false }); b.scale.set(R.r(.8, 1.6), R.r(.5, .9), R.r(.8, 1.4)); }
+  const maple = (x, y, z, s) => D.prop(IMG('rg_maple'), x, z, 5.6 * s, { y, flip: R() < .5, sway: .012, blob: false });
+  for (const [x, y, z, sc] of [[-6.2, 0, -1.6, 1], [6.6, 0, -2.2, 1.05], [-5, 1.6, -6.5, .85], [5.2, 1.8, -7, .9], [-3.6, topY * .7, -10.5, .8], [4.2, topY * .75, -11, .8],
+    [-10, 0, -4, 1.15], [10.5, 0, -4.5, 1.15], [-3.2, topY, -16.5, .9], [5.5, topY, -16, 1], [-8, .8, -8.5, .9], [8.6, 1, -9, .95]]) await maple(x, y, z, sc);
+  // red spider lilies and red-orange bushes along both sides of the flight and at the landing's back corners
+  for (let i = 0; i < 26; i++) { const sd = R() < .5 ? -1 : 1, z = R.r(-2.2, z0 - N * SD + 1), st = Math.max(0, Math.min(N - 1, Math.round((z0 - z) / SD))), y = z < z0 ? SH * (st + 1) * .82 : 0, x = sd * R.r(W / 2 + .5, 4.2);
+    if (R() < .55) await D.prop(IMG('rg_mbush'), x, z, R.r(.7, 1.2), { y, flip: R() < .5, blob: false }); else await D.prop(IMG('rg_lily'), x, z, R.r(.45, .7), { y, flip: R() < .5, blob: false, sway: .02 }); }
+  for (const [x, z] of [[-4.6, -1.4], [4.8, -1.6], [-5.6, .4], [5.8, .2]]) await D.prop(IMG('rg_mbush'), x, z, R.r(.8, 1.1), { flip: R() < .5, blob: false });
+  // the shimenawa rope on the first gate and a few fallen-leaf drifts at the landing's edges
+  await D.prop(IMG('rg_shimenawa'), 0, z0 - SD - .05, 1.15, { y: SH * 1 + 2.55, blob: false, shadow: false });
+  for (const [x, z] of [[-4.2, 1.6], [3.9, 2.2], [-2.8, -1.6], [2.6, -1.4]]) await D.prop(IMG('rg_leaves'), x, z, R.r(.22, .3), { flip: R() < .5, blob: false, shadow: false });
   // ── a rope of paper streamers strung between the front maples, over the landing's back edge ──
-  { const c = new T.CatmullRomCurve3([new T.Vector3(-10, 6.2, -2.4), new T.Vector3(-4, 5.2, -3.2), new T.Vector3(0, 5.6, -4.2), new T.Vector3(4, 5.2, -3.2), new T.Vector3(10.5, 6.4, -2.6)]);
-    add(new T.TubeGeometry(c, 40, .04, 5), M.rope, 0, 0, 0, { cast: false });
-    for (let i = 1; i < 14; i++) { const p = c.getPoint(i / 14), s = add(new T.PlaneGeometry(.32, .7), M.paper, p.x, p.y - .42, p.z, { cast: false }); D.updaters.push(t => { s.rotation.y = Math.sin(t * 1.1 + i) * .3; }); } }
+  { const c = new T.CatmullRomCurve3([new T.Vector3(-6, 3.9, -1.8), new T.Vector3(-2.6, 3.3, -2.3), new T.Vector3(0, 3.5, -2.9), new T.Vector3(2.6, 3.3, -2.3), new T.Vector3(6.4, 4, -2)]);
+    add(new T.TubeGeometry(c, 40, .025, 5), M.rope, 0, 0, 0, { cast: false });
+    for (let i = 1; i < 14; i++) { const p = c.getPoint(i / 14), s = add(new T.PlaneGeometry(.2, .42), M.paper, p.x, p.y - .26, p.z, { cast: false }); D.updaters.push(t => { s.rotation.y = Math.sin(t * 1.1 + i) * .3; }); } }
   // ── far hills and the sunset haze ──
   hills(K, [[-60, -90, 40, 16], [-10, -110, 50, 22], [50, -95, 45, 18], [90, -120, 60, 26]], new T.MeshStandardMaterial({ color: 0x5a3a6a, roughness: 1 }));
-  D.glow(-60, 14, -130, 40, 0xff9a5a);
+  farPainting(D, 'shrine', { v0: 0, v1: .5, z: -70, yb: -4, h: 56, w: 200, tint: 0xf0e0f0 });   // the stage's own painting as the far backdrop
+  D.glow(-40, 10, -66, 24, 0xff9a5a);
   // ── falling maple leaves and petals, floor dressing ──
-  scatter(D, rng(61), { area: [-13, 13, -3, 5.4], leaves: 70, leaf: 0xd8401e, petals: 30, petal: 0xff8aa8, pebbles: 12 });
-  decals(D, rng(612), { area: [-13, 13, -3, 5.4], list: [['moss', 3, [1.4, 2.6]], ['stain', 2, [1.2, 2]], ['crack', 2, [1, 1.8]]] });
-  drift(D, 50, 0, -2, 16, 8, 0xff7a3a, { y0: .5, y1: 8, size: 6 });
-  await dress(D, rng(733), { area: [-14, 14, -6, 4], items: [['wooden_bucket_01', 1, [.55, .7]], ['rock_moss_set_01', 2, [.6, .9]]] });
+  scatter(D, rng(61), { area: [-7, 7, -2, 3.8], leaves: 70, leaf: 0xd8401e, petals: 30, petal: 0xff8aa8, pebbles: 12 });
+  decals(D, rng(612), { area: [-7, 7, -2, 3.8], list: [['moss', 3, [1.4, 2.6]], ['stain', 2, [1.2, 2]], ['crack', 2, [1, 1.8]]] });
+  drift(D, 40, 0, -2, 9, 5, 0xff7a3a, { y0: .3, y1: 4.5, size: 5 });
+  await dress(D, rng(733), { area: [-7, 7, -3, 3], lane: [-4.3, 4.3, -1.8, 1.4], front: 1.4, items: [['wooden_bucket_01', 1, [.55, .7]], ['rock_moss_set_01', 2, [.6, .9]]] });
 }

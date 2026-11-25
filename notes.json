@@ -1,5 +1,15 @@
 [
  {
+  "version": "0.3.48",
+  "date": "Nov 25, 2026",
+  "title": "Mixed combos, paper border fix",
+  "items": [
+   "Physical and spirit attacks now chain into the same combo; a Finisher cashes in any chain, and Rush reads it the same way",
+   "Paper mode: launched fighters, awakened forms and kneels keep the same border thickness as the base sprites",
+   "Fields: the field badge now shows the effect, whose field it is and the turns left"
+  ]
+ },
+ {
   "version": "0.3.47",
   "date": "Nov 25, 2026",
   "title": "Slam words and impact frames",
