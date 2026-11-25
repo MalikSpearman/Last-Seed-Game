@@ -1,5 +1,15 @@
 [
  {
+  "version": "0.3.43",
+  "date": "Nov 25, 2026",
+  "title": "Training mode",
+  "items": [
+   "New Training mode on the main menu: pick your fighter, any fighter as the dummy, and a stage",
+   "The dummy never takes a turn, never counters and can't be knocked out; its HP refills each turn and its statuses still tick",
+   "Training bar: last and best turn damage, Reset dummy, Fill Spirit, +3 Energy, End training"
+  ]
+ },
+ {
   "version": "0.3.42",
   "date": "Nov 25, 2026",
   "title": "True-scale 3D sets",
