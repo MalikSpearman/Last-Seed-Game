@@ -48,7 +48,7 @@ function traffic(D, K, R) {
 
 export async function build(D) {
   const K = kit(D), { S, add, box, prop } = K, R = rng(171);
-  S.fog = new T.Fog(0x3a2060, 30, 170); S.background = new T.Color(0x22164a);
+  S.fog = new T.Fog(0x3a2060, 50, 230); S.background = new T.Color(0x22164a);
   D.moonlight({ color: 0xc8b0ff, intensity: 1.8, dir: [.3, 1, .4], ambient: 0x5a4090, ambientI: 2.1, sky: 0xa070d8, ground: 0x402838 });
   sky(D, [[0, '#140a30'], [.6, '#3a1a60'], [1, '#7a2a7a']], { stars: 0 }); moon(D, 22, 54, -140, 18, [240, 70, 70], [220, 40, 80]);
   const M = { road: pbr('asphalt_02', [6, 4], { color: 0x8a80a0, rough: .15, metal: .35, ns: 1.2 }), conc: pbr('concrete_pavers', [6, .5], { nmap: 'asphalt_02', rmap: 'asphalt_02', color: 0x9a90a8 }),
@@ -67,18 +67,27 @@ export async function build(D) {
   for (let x = -24; x <= -14; x += 3) box(.12, 3.6, .12, M.metal, x, 0, -1); add(new T.PlaneGeometry(10, 3.4), M.fence, -19, 1.8, -1, { cast: false });
   // street lamps: curved arms with glowing heads
   for (const [x, z] of [[-10, -3.4], [10, -3.4], [26, -14]]) { box(.2, 7, .2, M.metal, x, 1.3, z); box(1.6, .14, .14, M.metal, x + .7, 8.2, z); box(.6, .2, .4, M.amber, x + 1.4, 8, z, { cast: false }); D.lantern(x + 1.4, 7.8, z + .4, { color: 0xffc070, intensity: 22, distance: 14, glow: 1.4 }); }
-  // ── the expressway beyond: deck segments along a curve on pillars, neon under-strips, light trails ──
-  const pts = []; for (let i = 0; i <= 30; i++) { const u = i / 30; pts.push(new T.Vector3(-40 + u * 90, 6 + u * 3, -14 - Math.sin(u * Math.PI * .8) * 26 - u * 10)); }
-  const curve = new T.CatmullRomCurve3(pts), neon = [new T.MeshBasicMaterial({ color: 0xff40c0, fog: false }), new T.MeshBasicMaterial({ color: 0x40e0ff, fog: false })];
-  for (let i = 0; i < 30; i++) { const a = curve.getPoint(i / 30), b = curve.getPoint((i + 1) / 30), L = a.distanceTo(b), ry = -Math.atan2(b.z - a.z, b.x - a.x), m = a.clone().lerp(b, .5);
-    box(L + .1, .8, 7, M.deck, m.x, m.y - .8, m.z, { ry, cast: false }); box(L + .1, .14, .14, neon[i % 2], m.x, m.y - .9, m.z + 3.5, { ry, cast: false }); box(L + .1, .6, .3, M.conc, m.x, m.y, m.z + 3.4, { ry, cast: false });
-    if (i % 3 === 0) box(1.4, m.y - .8, 1.4, M.conc, m.x, 0, m.z, { cast: false }); }
-  { const car = []; const cm = [new T.MeshBasicMaterial({ color: 0xffe0b0, fog: false }), new T.MeshBasicMaterial({ color: 0xff3040, fog: false })];
-    for (let i = 0; i < 14; i++) { const m = new T.Mesh(new T.BoxGeometry(2.6, .14, .14), cm[i % 2]); S.add(m); car.push([m, R(), i % 2 ? 1 : -1, R.r(.04, .07)]); }
-    D.updaters.push((t, dt) => { for (const c of car) { c[1] = (c[1] + (dt || .016) * c[3] * c[2] + 1) % 1; const p = curve.getPoint(c[1]), q = curve.getPoint(Math.min(1, c[1] + .01)); c[0].position.set(p.x, p.y - .1, p.z + (c[2] > 0 ? 1.4 : -1.4)); c[0].rotation.y = -Math.atan2(q.z - p.z, q.x - p.x); } }); }
+  // ── the elevated expressway crossing behind us: a long gentle S on concrete piers, side walls with neon under-strips,
+  //    green gantry signs, lamps along the edge, and real traffic (car bodies with head/tail lights) both ways ──
+  const pts = []; for (let i = 0; i <= 40; i++) { const u = i / 40; pts.push(new T.Vector3(-70 + u * 140, 5.6 + Math.sin(u * Math.PI) * .8, -18 - Math.sin(u * Math.PI * 2) * 3 - u * 4)); }
+  const curve = new T.CatmullRomCurve3(pts), neon = [new T.MeshBasicMaterial({ color: 0xff40c0 }), new T.MeshBasicMaterial({ color: 0x40e0ff })];
+  const gsign = new T.MeshBasicMaterial({ map: ctex(cvs(256, 96, (g, W, H) => { g.fillStyle = '#0c6a3a'; g.fillRect(0, 0, W, H); g.strokeStyle = '#f4f4f4'; g.lineWidth = 4; g.strokeRect(5, 5, W - 10, H - 10); g.fillStyle = '#f4f4f4'; for (let k = 0; k < 4; k++) g.fillRect(20 + k * 40, 22, 28, 22); g.fillRect(20, 56, 120, 12); g.beginPath(); g.moveTo(200, 70); g.lineTo(200, 30); g.lineTo(186, 44); g.moveTo(200, 30); g.lineTo(214, 44); g.lineWidth = 6; g.stroke(); })) });
+  for (let i = 0; i < 40; i++) { const a = curve.getPoint(i / 40), b = curve.getPoint((i + 1) / 40), L = a.distanceTo(b), ry = -Math.atan2(b.z - a.z, b.x - a.x), m = a.clone().lerp(b, .5);
+    box(L + .1, .9, 9, M.deck, m.x, m.y - .9, m.z, { ry, cast: false }); box(L + .1, 1.1, .35, M.conc, m.x, m.y, m.z + 4.4, { ry, cast: false }); box(L + .1, 1.1, .35, M.conc, m.x, m.y, m.z - 4.4, { ry, cast: false });
+    box(L + .1, .16, .16, neon[(i >> 2) % 2], m.x, m.y - 1.05, m.z + 4.6, { ry, cast: false }); box(L + .1, .06, .06, M.amber, m.x, m.y + 1.12, m.z + 4.4, { ry, cast: false });
+    if (i % 3 === 0) { box(2, m.y - .9, 2.4, M.conc, m.x, 0, m.z, { cast: false }); box(4, .8, 3, M.conc, m.x, m.y - 1.7, m.z, { cast: false }); }
+    if (i % 4 === 2) { box(.16, 2.6, .16, M.metal, m.x, m.y, m.z + 4.6, { cast: false }); D.glow(m.x, m.y + 2.7, m.z + 4.6, 1.2, 0xffc070); }
+    if (i % 9 === 4) { for (const dz of [-4.6, 4.6]) box(.3, 4.4, .3, M.metal, m.x, m.y, m.z + dz, { cast: false }); box(.3, .3, 9.6, M.metal, m.x, m.y + 4.3, m.z, { cast: false }); add(new T.PlaneGeometry(5, 1.9), gsign, m.x, m.y + 3.4, m.z + 4.9, { cast: false }); } }
+  D.lantern(-12, 7, -14, { color: 0xffc070, intensity: 16, distance: 18, glow: 0 }); D.lantern(14, 7, -16, { color: 0xffc070, intensity: 16, distance: 18, glow: 0 });
+  { const cm = [0xc81e3a, 0x1e5ac8, 0xf0f0f4, 0x1a1a22, 0xe0b020].map(c => new T.MeshStandardMaterial({ color: c, metalness: .6, roughness: .3 })), hl = new T.MeshBasicMaterial({ color: 0xfff4d8 }), tl = new T.MeshBasicMaterial({ color: 0xff2030 }), traffic = [];
+    for (let i = 0; i < 18; i++) { const g = new T.Group(), body = new T.Mesh(new T.BoxGeometry(4, .9, 1.8), cm[i % cm.length]); body.position.y = .75; g.add(body); const cab = new T.Mesh(new T.BoxGeometry(2, .6, 1.6), new T.MeshStandardMaterial({ color: 0x0a0a14, metalness: .9, roughness: .1 })); cab.position.set(-.2, 1.45, 0); g.add(cab);
+      const dir = i % 2 ? 1 : -1; for (const s of [-.6, .6]) { const h = new T.Mesh(new T.BoxGeometry(.06, .16, .3), hl), t2 = new T.Mesh(new T.BoxGeometry(.06, .16, .3), tl); h.position.set(2.02, .8, s); t2.position.set(-2.02, .8, s); g.add(h, t2); }
+      const tr = new T.Mesh(new T.PlaneGeometry(9, .5), new T.MeshBasicMaterial({ color: dir > 0 ? 0xfff0c0 : 0xff3040, transparent: true, opacity: .35, blending: T.AdditiveBlending, depthWrite: false })); tr.position.set(-5, .7, 0); g.add(tr);
+      S.add(g); traffic.push([g, R(), dir, R.r(.025, .045)]); }
+    D.updaters.push((t, dt) => { for (const c of traffic) { c[1] = (c[1] + (dt || .016) * c[3] * c[2] + 1) % 1; const p = curve.getPoint(c[1]), q = curve.getPoint(Math.min(.999, c[1] + .005)); c[0].position.set(p.x, p.y, p.z + (c[2] > 0 ? 2.2 : -2.2)); c[0].rotation.y = -Math.atan2(q.z - p.z, q.x - p.x) + (c[2] < 0 ? Math.PI : 0); } }); }
   // ── skyline with the two big screens, cherry tree left ──
-  billboard(K, D, -14, 22, -44, 10, 16, 'face'); billboard(K, D, 22, 24, -50, 10, 16, 'koi');
-  neonTower(K, -14, -50, 12, 10, 34, 2); neonTower(K, 22, -56, 12, 10, 38, 5);
+  billboard(K, D, -16, 20, -46, 10, 16, 'face'); billboard(K, D, 24, 22, -52, 10, 16, 'koi');
+  neonTower(K, -16, -52, 12, 10, 34, 2); neonTower(K, 24, -58, 12, 10, 38, 5);
   skyline(K, D, R, { zNear: -50, zFar: -140, n: 44 });
   for (let i = 0; i < 3; i++) await prop('sakura', -16 + i * 1.6, -1 + i * .6, R.r(8, 10), { flip: R() < .5, sway: .01, blob: false });
   // ── traffic in the near lane: every so often a car (sometimes a truck) tears across the foreground, with real pass-by sound and horns ──
@@ -89,6 +98,7 @@ export async function build(D) {
   const R2 = rng(467);
   farPainting(D, 'nw_express', { v1: .45, z: -145 });
   groundFill(D, pbr('asphalt_02', [30, 30], { color: 0x3a3450, rough: .3, metal: .3 }), { z0: -6, z1: -150 });
-  cityBlocks(K, D, R2, { x0: -50, x1: 50, z0: -16, z1: -42, n: 24, hMin: 7, hMax: 22 });
+  cityBlocks(K, D, R2, { x0: -60, x1: 60, z0: -28, z1: -36, n: 22, hMin: 4, hMax: 8 });   // low shop row under the expressway
+  cityBlocks(K, D, R2, { x0: -70, x1: 70, z0: -40, z1: -60, n: 22, hMin: 12, hMax: 34 });
   scatter(D, R2, { area: [-14, 14, -2, 8], puddles: 12, pebbles: 40, stone: 0x3a3440, petals: 40, petal: 0xff7ad0 });
 }

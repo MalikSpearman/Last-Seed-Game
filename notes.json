@@ -1,5 +1,15 @@
 [
  {
+  "version": "0.3.25",
+  "date": "Nov 25, 2026",
+  "title": "Gunfire, cleaner counters",
+  "items": [
+   "Valka's Rifle Burst now fires like a gun: she aims, and every shot has a muzzle flash at the barrel, a tracer, impact sparks, recoil and a gunshot sound",
+   "In the counter window, Take the Hit now sits in the middle of the screen right above your cards",
+   "Poise Break stars no longer hang around after a match ends or show up on the character select screen"
+  ]
+ },
+ {
   "version": "0.3.24",
   "date": "Nov 25, 2026",
   "title": "Counter poses: the full roster",

@@ -280,7 +280,7 @@ export function cityBlocks(K, D, R, { x0 = -40, x1 = 40, z0 = -16, z1 = -40, n =
     const win = towerMat(i * 5 + 1, [Math.max(1, Math.round(w / 5)), Math.max(1, Math.round(h / 10))]);
     K.add(new T.BoxGeometry(w, h, d), [win, win, roof, roof, win, win], x, y + h / 2, z, { cast: false });
     const shop = shojiMat(i, [Math.max(1, Math.round(w / 3)), 1], { lit: .95, frame: '#20141c' }); K.add(new T.PlaneGeometry(w * .92, 2.4), shop, x, y + 1.3, z + d / 2 + .02, { cast: false });
-    K.add(new T.BoxGeometry(w + .3, .2, 1.2), new T.MeshStandardMaterial({ color: [0xb02030, 0x203a8a, 0x2a2a2a][i % 3] }), x, y + 2.7, z + d / 2 + .5, { cast: false, rx: .3 });
+    if (R() < .6) K.add(new T.BoxGeometry(w * R.r(.4, .8), .16, 1.1), new T.MeshStandardMaterial({ color: [0x7a2030, 0x203a6a, 0x2a2a30, 0x2a4a3a, 0x6a4a20][i % 5], roughness: .8 }), x + R.r(-w / 5, w / 5), y + 2.7, z + d / 2 + .5, { cast: false, rx: .3 });
     const sh = R.r(3, 6); K.add(new T.PlaneGeometry(1, sh), signMat(i), x + R.r(-w / 3, w / 3), y + Math.min(h - 1, 3.4 + sh / 2 + R.r(0, 3)), z + d / 2 + .6, { cast: false });
     if (R() < .6) K.box(1.2, .9, .8, ac, x + R.r(-w / 3, w / 3), y + h, z + R.r(-d / 3, d / 3), { cast: false });
     if (R() < .35) { K.add(new T.CylinderGeometry(.9, .9, 1.6, 12), ac, x + R.r(-w / 4, w / 4), y + h + 1.6, z, { cast: false }); for (const dx of [-.6, .6]) K.box(.1, .8, .1, ac, x + dx, y + h, z, { cast: false }); }

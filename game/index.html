@@ -1697,7 +1697,7 @@ svg line.lk{stroke:rgba(160,160,160,.35)!important;stroke-dasharray:.04rem .08re
 .cdu.late .cd-tm b{color:#ff8a6a;animation:cdPulse .35s ease-in-out infinite alternate}
 .cdu .cd-bar{width:1.47rem;height:.053rem;border-radius:.027rem;background:#2b2233;overflow:hidden}
 .cdu .cd-bar u{display:block;height:100%;transform-origin:left;background:linear-gradient(90deg,#ff6a2b,#f2c14e)}
-.cdu .cd-div{position:absolute;left:0;right:0;top:43.5%;display:flex;justify-content:center;align-items:center;gap:.12rem;pointer-events:none}
+.cdu .cd-div{position:absolute;left:0;right:0;top:39.5%;display:flex;justify-content:center;align-items:center;gap:.12rem;pointer-events:none}
 .cdu .cd-div i{height:.014rem;width:3.47rem;max-width:30vw;background:linear-gradient(90deg,rgba(242,193,78,0),#f2c14e)}.cdu .cd-div i:last-child{transform:scaleX(-1)}
 .cdu .cd-div b{font:400 .293rem/1 'Anton',sans-serif;letter-spacing:.09em;color:#f2c14e;white-space:nowrap}
 .cdu .cd-tip{position:absolute;left:50%;top:48%;transform:translateX(-50%);width:min(90%,5.2rem);font-size:.12rem;line-height:1.35;text-align:center;background:rgba(0,0,0,.65);border:1px solid #f2c14e;border-radius:.06rem;padding:.05rem .1rem}
@@ -1732,13 +1732,15 @@ svg line.lk{stroke:rgba(160,160,160,.35)!important;stroke-dasharray:.04rem .08re
 .cdu .cd-side{position:absolute;right:.64rem;bottom:.47rem;display:flex;flex-direction:column;align-items:flex-end;gap:.093rem}
 .cdu .cd-leg{display:flex;align-items:center;gap:.053rem;font-size:.133rem;font-weight:700;color:#ded6ea;pointer-events:none}
 .cdu .cd-leg i{width:.08rem;height:.08rem;border-radius:50%}.cdu .cd-leg i.phys{background:#ff9a3c}.cdu .cd-leg i.tech{background:#4ee0a0}.cdu .cd-leg i.spirit{background:#a98bff}
+.cdu{--hk:1}.cdu.many{--hk:.82}.portrait .cdu{--hk:.64}.portrait .cdu.many{--hk:.5}
 .cdu .cd-skip{all:unset;cursor:pointer;display:flex;align-items:center;gap:.08rem;font-size:.16rem;font-weight:700;letter-spacing:.09em;padding:.08rem .2rem;border-radius:.27rem;border:.013rem solid #6b6277;background:rgba(0,0,0,.4);color:#e6dff0}
 .cdu .cd-skip:hover{border-color:#cfc6dc;color:#fff}
+.cdu .cd-skip{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(.27rem + 3.13rem*var(--hk) + .24rem);z-index:3;white-space:nowrap;background:rgba(0,0,0,.62)}
 .cdu .cd-skip kbd{font:600 .1rem/1 'Barlow Condensed',sans-serif;letter-spacing:.04em;padding:.02rem .04rem;border-radius:.03rem;border:1px solid #6b6277;color:#b9aecb}
 .cdu .cd-prompt{position:absolute;left:0;right:0;top:9%;display:none;flex-direction:column;align-items:center;font:400 .34rem/1 'Anton',sans-serif;letter-spacing:.06em;color:#fff;text-shadow:0 0 .12rem var(--c);white-space:nowrap;pointer-events:none}
 .cdu .cd-prompt small{font:600 .13rem/1.6 'Barlow Condensed',sans-serif;letter-spacing:.12em;color:#d9cfe8;text-shadow:none}
 .cdu.timing .cd-dim{background:rgba(7,4,12,.18);-webkit-backdrop-filter:grayscale(.3) brightness(.8);backdrop-filter:grayscale(.3) brightness(.8)}
-.cdu.timing .cd-top,.cdu.timing .cd-div,.cdu.timing .cd-poise,.cdu.timing .cd-side,.cdu.timing .cd-tip,.cdu.timing .cd-glow{opacity:0;transition:opacity .18s;pointer-events:none}
+.cdu.timing .cd-top,.cdu.timing .cd-div,.cdu.timing .cd-poise,.cdu.timing .cd-side,.cdu.timing .cd-skip,.cdu.timing .cd-tip,.cdu.timing .cd-glow{opacity:0;transition:opacity .18s;pointer-events:none}
 .cdu.timing .cd-prompt{display:flex;animation:cdPop .3s cubic-bezier(.2,1.6,.3,1) both}
 @keyframes cdPop{from{opacity:0;transform:scale(1.8)}}
 .cdu.timing .cd-card:not(.picked){opacity:0;transform:translateY(150%) rotate(var(--r,0deg));pointer-events:none}
@@ -1772,7 +1774,7 @@ svg line.lk{stroke:rgba(160,160,160,.35)!important;stroke-dasharray:.04rem .08re
 .portrait .cdu.many .cd-hand{--k:.5;gap:.02rem}
 .portrait .cdu .cd-poise{left:.2rem;bottom:2.62rem;flex-direction:row;align-items:center;gap:.06rem}.portrait .cdu .cd-poise em{display:none}
 .portrait .cdu .cd-side{right:.2rem;bottom:2.55rem}.portrait .cdu .cd-leg{display:none}
-.portrait .cdu .cd-skip{font-size:.14rem;padding:.06rem .14rem}.portrait .cdu .cd-skip kbd{display:none}
+.portrait .cdu .cd-skip{font-size:.14rem;padding:.06rem .14rem;bottom:calc(.3rem + 3.13rem*var(--hk) + .2rem)}.portrait .cdu .cd-skip kbd{display:none}
 .portrait .cd-key{display:none}
 .portrait .cdu .cd-prompt{font-size:.26rem;top:16%}
 .portrait .cd-rstamp{font-size:.46rem}.portrait .cd-rstamp.big{font-size:.58rem}
@@ -5074,7 +5076,7 @@ function toast(t){ const e=h('div','toast',t); overlay.appendChild(e); setTimeou
 
 // ── screens ──
 let cur=null;
-function show(el,music){ const old=cur; if(old&&old!==el&&!OPT().rm){ const w=document.createElement('div'); w.className='wipe'; w.innerHTML='<i></i><i></i><i></i>'; document.body.appendChild(w); setTimeout(()=>w.remove(),760); } if(old&&old!==el){ old.classList.add('out'); setTimeout(()=>{ if(cur!==old) old.remove(); },300); } cur=el; el.classList.remove('out'); screenEl.appendChild(el); app.classList.toggle('inbattle',el.classList.contains('battle')); if(music) Snd.music(music); if(!el.classList.contains('battle')){ petals(el); document.querySelectorAll('.fgc').forEach(x=>x.remove()); } hideTip(); setTimeout(csFit,60); return el; }
+function show(el,music){ try{ overlay&&overlay.querySelectorAll('.pbstars').forEach(x=>x.remove()); }catch(_){} const old=cur; if(old&&old!==el&&!OPT().rm){ const w=document.createElement('div'); w.className='wipe'; w.innerHTML='<i></i><i></i><i></i>'; document.body.appendChild(w); setTimeout(()=>w.remove(),760); } if(old&&old!==el){ old.classList.add('out'); setTimeout(()=>{ if(cur!==old) old.remove(); },300); } cur=el; el.classList.remove('out'); screenEl.appendChild(el); app.classList.toggle('inbattle',el.classList.contains('battle')); if(music) Snd.music(music); if(!el.classList.contains('battle')){ petals(el); document.querySelectorAll('.fgc').forEach(x=>x.remove()); } hideTip(); setTimeout(csFit,60); return el; }
 function modal(title,sub,bodyEl,acts){ return new Promise(res=>{ const m=h('div','modal'); const s=h('div','sheet'); s.appendChild(h('h2',null,title+(sub?`<small>${sub}</small>`:''))); const b=h('div','body'); if(typeof bodyEl==='string') b.innerHTML=bodyEl; else b.appendChild(bodyEl); s.appendChild(b);
     const a=h('div','acts'); (acts||[['Close','alt']]).forEach(([lbl,cls,val])=>{ const bt=h('button','btn sm '+(cls||''),lbl); bt.onclick=()=>{ Snd.sfx('click'); m.remove(); res(val); }; a.appendChild(bt); }); s.appendChild(a); m.appendChild(s);
     m.addEventListener('click',e=>{ if(e.target===m&&!acts){ m.remove(); res(); } }); if(document.querySelector('.roam')){ m.classList.add('over-roam'); document.body.appendChild(m); } else overlay.appendChild(m); m._close=v=>{ m.remove(); res(v); }; modal.last=m; }); }
@@ -6450,7 +6452,7 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
   const PBS={};
   function pbStars(side,on){ const o=PBS[side]; if(!on){ if(o){ cancelAnimationFrame(o.raf); o.el.classList.add('out'); setTimeout(()=>o.el.remove(),320); delete PBS[side]; } return; } if(o) return;
     const el=h('div','pbstars'+(side==='e'?' e':''),'<i></i><i></i><i></i><i></i>'), st=[...el.children]; overlay.appendChild(el); const t0=performance.now(), S={el,raf:0}; PBS[side]=S;
-    const tick=()=>{ const fe=F[side]; if(!fe||!fe.isConnected){ pbStars(side,false); return; }
+    const tick=()=>{ const fe=F[side]; if(!el.isConnected){ cancelAnimationFrame(S.raf); if(PBS[side]===S) delete PBS[side]; return; } if(!fe||!fe.isConnected||!fe.offsetParent&&!fe.getClientRects().length){ pbStars(side,false); return; }
       const ps=$('.spr .pose',fe), im=$('.spr img',fe), r=(ps||im).getBoundingClientRect(), o2=overlay.getBoundingClientRect(); if(r.width<2){ S.raf=requestAnimationFrame(tick); return; }
       const hx=r.left+r.width*(side==='e'?.44:.56)-o2.left, hy=r.top+r.height*.06-o2.top, rx=Math.max(26,r.width*.24), ry=rx*.28, t=(performance.now()-t0)/1000*(Math.PI*1.25);
       st.forEach((s2,i)=>{ const a=t+i*Math.PI/2, z=Math.sin(a), sc=.72+.28*(z+1)/2; s2.style.transform=`translate(${hx+Math.cos(a)*rx}px,${hy+z*ry}px) translate(-50%,-50%) scale(${sc.toFixed(3)}) rotate(${(a*57.3*1.6)%360|0}deg)`; s2.style.opacity=(.55+.45*(z+1)/2).toFixed(2); s2.style.zIndex=z>0?2:1; });
@@ -9007,7 +9009,7 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
     // Jo — gambler
     loaded_dice:['proj','dice'], slot_machine:['proj','coin'], jackpot:['proj','dice'],
     // Valka — mecha
-    beam_saber:['slash','h'], rifle_burst:['proj','bolt'], crossfire:['iai'],
+    beam_saber:['slash','h'], rifle_burst:['gun'], crossfire:['iai'],
     // Tetsu — smith
     hammer_blow:['slam'], redhot_hammer:['slam',null,{big:1}],
     // Sol — duelist
@@ -9121,6 +9123,14 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
         a.pose(tk?'hand':(mv[1]==='kunai'||mv[1]==='needle'||mv[1]==='card'||mv[1]==='dice'||mv[1]==='coin'||mv[1]==='can'||mv[1]==='ball')?'jab':'spirit'); a.S.sq=.05; a.aura=0;
         const p=tk?[a.wx(a.gap-H*.2),a.wy(H*1.4)]:a.lead(); if(p&&!tk) a.ring(p[0],p[1],false); sfx(mv[1]==='bolt'?'whoosh_h':'whoosh_l');
         a.go({x:-H*.05,ease:E3o},120); await X.proj(mv[1]||'orb',mv[1]==='bolt'?110:mv[1]==='ball'?260:220,p); return; }
+      case 'gun': {   // firearm: aim, then every hit is a shot — muzzle flash, tracer, sparks, recoil and a gun report
+        if(first){ a.pose('spirit'); a.aura=0; await a.go({x:-H*.03,ease:E3o},120); }
+        a.pose('spirit'); a.aura=0; const n=o.shots||1;
+        for(let k=0;k<n;k++){ const p=a.lead(), mx=(p?p[0]:a.wx(H*.3))-a.dir*H*.01, my=a.wy(a.S.z)-H*.78, tx=a.wx(a.gap), ty=a.wy(H*(.42+Math.random()*.16));
+          try{ Snd.fxFile('gun_shot',.8,.93+Math.random()*.14); }catch(e){}
+          gunFx(a,mx,my,tx,ty); const x0=a.S.x; a.S.x=x0-H*.022; a.go({x:x0,ease:E3o},90);
+          if(k<n-1) await a.wait(80); }
+        await a.wait(70); return; }
       case 'rain': { if(first){ a.pose(o.tk?'hand':'spirit'); a.aura=3; sfx('charge'); await a.go({x:-H*.04,ease:E3o},160); } a.pose(o.tk?'hand':'spirit'); a.aura=0; await X.fall('rain',200); return; }
       case 'fall': { if(first){ a.pose(o.tk?'hand':'spirit'); a.aura=3; sfx('charge'); await a.go({x:-H*.04,ease:E3o},big?220:140); } a.pose(o.tk?'hand':'spirit'); a.aura=0; await X.fall(mv[1]||'bolt',mv[1]==='box'?320:150); if(mv[1]==='box') X.shock(a.gap,true); return; }
       case 'erupt': { if(first){ a.pose('spirit'); a.aura=3; sfx('charge'); a.dust(0); await a.go({x:-H*.04,z:-H*.02,ease:E3o},160); } a.pose('spirit'); a.aura=0; X.shock(a.gap,false); await X.erupt(mv[1]||'pillar',620); return; }
@@ -9128,6 +9138,22 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
     }
     await gDash(a,ev,c,tier,id); }
 
+  // gunfire: a hot star-shaped muzzle flash with a forward cone, a fast tracer to the rival, and a spark pop on impact
+  function gunFx(a,mx,my,tx,ty){ const H=a.H, d=a.dir, rot=(Math.random()-.5)*.6;
+    a.fx((u,cx)=>{ const al=1-u, r=H*.16*(1-u*.4); cx.save(); cx.globalCompositeOperation='lighter'; cx.translate(mx,my);
+      const cone=cx.createLinearGradient(0,0,d*r*2.2,0); cone.addColorStop(0,`rgba(255,250,215,${al})`); cone.addColorStop(.45,`rgba(255,190,70,${.85*al})`); cone.addColorStop(1,'rgba(255,90,0,0)');
+      cx.fillStyle=cone; cx.beginPath(); cx.moveTo(0,-r*.22); cx.lineTo(d*r*2.2,0); cx.lineTo(0,r*.22); cx.closePath(); cx.fill();
+      cx.rotate(rot); for(let i=0;i<6;i++){ const an=i/6*Math.PI*2, L=r*(i%2?.55:1.05); cx.fillStyle=`rgba(255,215,120,${.9*al})`; cx.beginPath(); cx.moveTo(Math.cos(an+.18)*r*.16,Math.sin(an+.18)*r*.16); cx.lineTo(Math.cos(an)*L,Math.sin(an)*L); cx.lineTo(Math.cos(an-.18)*r*.16,Math.sin(an-.18)*r*.16); cx.fill(); }
+      const g=cx.createRadialGradient(0,0,0,0,0,r*.55); g.addColorStop(0,`rgba(255,255,255,${al})`); g.addColorStop(.5,`rgba(255,220,140,${.8*al})`); g.addColorStop(1,'rgba(255,140,30,0)'); cx.fillStyle=g; cx.beginPath(); cx.arc(0,0,r*.55,0,7); cx.fill();
+      cx.restore(); },90);
+    a.fx((u,cx)=>{ const h=Math.min(1,u*1.6), t0=Math.max(0,h-.35), al=u<.6?1:1-(u-.6)/.4; cx.save(); cx.globalCompositeOperation='lighter'; cx.lineCap='round';
+      const x0=mx+(tx-mx)*t0, y0=my+(ty-my)*t0, x1=mx+(tx-mx)*h, y1=my+(ty-my)*h;
+      for(const [w,c] of [[H*.025,`rgba(255,170,60,${.45*al})`],[H*.009,`rgba(255,245,200,${al})`]]){ cx.strokeStyle=c; cx.lineWidth=Math.max(1,w); cx.beginPath(); cx.moveTo(x0,y0); cx.lineTo(x1,y1); cx.stroke(); }
+      cx.restore(); },110);
+    setTimeout(()=>{ a.fx((u,cx)=>{ const al=1-u; cx.save(); cx.globalCompositeOperation='lighter'; const r=H*.09*(.5+u);
+        const g=cx.createRadialGradient(tx,ty,0,tx,ty,r); g.addColorStop(0,`rgba(255,255,230,${al})`); g.addColorStop(1,'rgba(255,150,40,0)'); cx.fillStyle=g; cx.beginPath(); cx.arc(tx,ty,r,0,7); cx.fill();
+        cx.strokeStyle=`rgba(255,220,140,${al})`; cx.lineWidth=1.5; for(let i=0;i<7;i++){ const an=Math.PI*(d>0?.6:-.4)+(Math.random()-.5)*1.6+(d>0?Math.PI:0)*0, L=H*.14*(.4+Math.random()*.6)*Math.min(1,u*3); cx.beginPath(); cx.moveTo(tx,ty); cx.lineTo(tx-d*Math.abs(Math.cos(an))*L,ty+Math.sin(an)*L); cx.stroke(); }
+        cx.restore(); },180); },70*(typeof speed==='number'?speed:1)); }
   // impact effects
   // hit impact for regular super hits: a burst of curling flame tongues + hot core (no blossom — that is reserved for the Secret Art)
   function kFlameStar(a,x,y,r,col){ const N=9, base=Math.random()*6, cw=(Math.random()<.5?1:-1);
@@ -9635,7 +9661,7 @@ const VINTRO={"ito":{"_intro": "Ito. Just Ito. The hand that made me forgot my l
         <div class="cd-div"><i></i><b>YOUR ANSWER</b><i></i></div>${run.tut?'<div class="cd-tip">Your rival is attacking. Spend a card from your <i>next hand</i> to answer it. A card with <i>ADVANTAGE</i> on the type triangle cancels the attack outright. Then tap when the rings meet.</div>':''}
         <div class="cd-hand"></div>
         <div class="cd-poise"><b>POISE</b><div>${pips}</div><em>A counter spends ${COUNTER.poiseCost}</em></div>
-        <div class="cd-side"><div class="cd-leg"><i class="spirit"></i>beats<i class="phys"></i>beats<i class="tech"></i>beats<i class="spirit"></i></div><button class="cd-skip" type="button">TAKE THE HIT<kbd>Esc</kbd></button></div>
+        <div class="cd-side"><div class="cd-leg"><i class="spirit"></i>beats<i class="phys"></i>beats<i class="tech"></i>beats<i class="spirit"></i></div></div><button class="cd-skip" type="button">TAKE THE HIT<kbd>Esc</kbd></button>
         <div class="cd-prompt">TAP WHEN THE RINGS MEET<small>or press Space</small></div>`);
       root.style.setProperty('--c',CT_COL[at]); document.body.appendChild(root); ctrMode('p','#ffd34d',true); ctrThreat('e',CT_COL[at]); root.style.pointerEvents='auto'; Snd.sfx('clashOpen',true); impactFrame();
       const handEl=$('.cd-hand',root), secEl=$('.cd-tm b span',root); let fin=false, to, hbStop=null, phase='pick', judgeFn=null; setTimeout(()=>{ if(fin) return; const ks=[]; for(let i=1;i<=16;i++) if(!CW_OFF.includes(i)&&Snd.has('ann','cw'+i)&&'cw'+i!==window.__lastCw) ks.push('cw'+i); if(!ks.length) return; const k=ks[(Math.random()*ks.length)|0]; window.__lastCw=k; Snd.voice('ann',k,{pri:true,exact:true}); },350*speed);
@@ -9818,7 +9844,7 @@ const VINTRO={"ito":{"_intro": "Ito. Just Ito. The hand that made me forgot my l
   function hitLayer(c,ev,x,y,t,big){ const col=ELC[c.fx]||'#fff'; const heavy=big||ev.amount>=12;
     vib(heavy?[28,18,36]:14); shockRing(x,y,col,heavy); if(c.fx==='slash'||/blade|sword|slash|cut|cleave|saber|kunai|tanto|odachi|iaido/.test(c.id)){ if(!slashSheet(c,ev,x,y,t,heavy)) slashArc(x,y,t.h*.55,col,ev.from==='p',heavy); }
     if(c.fx==='bolt') boltStrike(x,y,t.h*1.4); whiteHit(ev.side);
-    const tr=ev._tier||0; Snd.fx3(['hit_l','hit_m','hit_h','hit_c'][tr],[.8,.9,1,1.1][tr]); const r2=/rifle|crossfire|burst|shot|gun/.test(c.id)?'shot':/beam|laser/.test(c.id)?'laser':null; if(r2==='shot'&&(c.owner==='valka'||/rifle|gun/.test(c.id))){ const A=sprC(ev.from), d=ev.from==='p'?1:-1; sheetFx('mz_long_01',A.x+d*A.w*.62,A.y-A.h*.12,A.h*.55,{flipX:d<0,filter:tintF('#ffb347',1.4),blend:'screen',dur:140}); sheetFx('mz_front_03',A.x+d*A.w*.42,A.y-A.h*.12,A.h*.28,{rot:rnd(0,90),filter:tintF('#ffd27a',1.5),blend:'screen',dur:120}); } if(r2&&Snd.fx2) Snd.fx2(r2,.7); else { const el=c.el||(FIGHTERS[c.owner]||{}).el; const ek=c.fx==='slash'?(tr>=2?'slash_h':'slash_l'):/rapier|needle|thrust|pierce|lance|kunai/.test(c.id)?'pierce':({fire:'fire',ice:'ice',bolt:'bolt',water:'water',poison:'poison',shadow:'shadow',ghost:'shadow',gold:'gold',heal:'life'})[c.fx]||({blood:'blood',metal:'metal',sound:'sound',life:'life',venom:'poison',storm:'bolt'})[el]; if(ek) Snd.fx3(ek,.75); }
+    const tr=ev._tier||0; Snd.fx3(['hit_l','hit_m','hit_h','hit_c'][tr],[.8,.9,1,1.1][tr]); const GUNM=String(c.id||'').replace(/\+$/,'')==='rifle_burst', r2=GUNM?null:/rifle|crossfire|burst|shot|gun/.test(c.id)?'shot':/beam|laser/.test(c.id)?'laser':null; if(r2==='shot'&&(c.owner==='valka'||/rifle|gun/.test(c.id))){ const A=sprC(ev.from), d=ev.from==='p'?1:-1; sheetFx('mz_long_01',A.x+d*A.w*.62,A.y-A.h*.12,A.h*.55,{flipX:d<0,filter:tintF('#ffb347',1.4),blend:'screen',dur:140}); sheetFx('mz_front_03',A.x+d*A.w*.42,A.y-A.h*.12,A.h*.28,{rot:rnd(0,90),filter:tintF('#ffd27a',1.5),blend:'screen',dur:120}); } if(GUNM){ try{ Snd.fx3&&Snd.fx3('metal',.35); }catch(e){} } else if(r2&&Snd.fx2) Snd.fx2(r2,.7); else { const el=c.el||(FIGHTERS[c.owner]||{}).el; const ek=c.fx==='slash'?(tr>=2?'slash_h':'slash_l'):/rapier|needle|thrust|pierce|lance|kunai/.test(c.id)?'pierce':({fire:'fire',ice:'ice',bolt:'bolt',water:'water',poison:'poison',shadow:'shadow',ghost:'shadow',gold:'gold',heal:'life'})[c.fx]||({blood:'blood',metal:'metal',sound:'sound',life:'life',venom:'poison',storm:'bolt'})[el]; if(ek) Snd.fx3(ek,.75); }
     if(big&&ev.hitN===0&&Snd.fx2&&!(ev._tier>=3)){ Snd.fx2('smash',.7); }
     comboHit(ev.from,(ev.hitN||0)+1); }
   const HTIER=(ev,big)=>{ const a=ev.amount||0; return a>=20||(big&&a>=14)?3:big||a>=14?2:a>=8?1:0; };
@@ -10030,7 +10056,7 @@ const VINTRO={"ito":{"_intro": "Ito. Just Ito. The hand that made me forgot my l
       case 'retarget': await showFoe(true); break;
       case 'wave': await sleep(350); await waveIn(ev.n,ev.of); shownF=null; s.querySelectorAll('.gpk').forEach(c=>c.remove()); await showFoe(true); break;
       case 'ko': { const wa=!!AIR[side]; if(wa) airClear(side); F[side].dataset.koair=wa?'1':''; await ko(side); break; } } } }
-  async function ko(side){ hud(b.snap()); intentEl.style.display='none'; Snd.sfx('ko'); await koMoment(side); flash(); const t=sprC(side); { const lc=CARDS[LASTP[side==='p'?'e':'p']]||{}, kc=fireOf(lc.id)||lc.fx==='impact'||lc.fx==='gold'||!lc.fx?null:ELC[lc.fx]; void kc; } Fx.burst(t.x,t.y,'gold',90,2.2); Fx.burst(t.x,t.y,'impact',60,1.6); shake(26,700);
+  async function ko(side){ try{ pbStars('p',false); pbStars('e',false); }catch(_){} hud(b.snap()); intentEl.style.display='none'; Snd.sfx('ko'); await koMoment(side); flash(); const t=sprC(side); { const lc=CARDS[LASTP[side==='p'?'e':'p']]||{}, kc=fireOf(lc.id)||lc.fx==='impact'||lc.fx==='gold'||!lc.fx?null:ELC[lc.fx]; void kc; } Fx.burst(t.x,t.y,'gold',90,2.2); Fx.burst(t.x,t.y,'impact',60,1.6); shake(26,700);
     stageEl.animate([{transform:'scale(1)'},{transform:'scale(1.09)'},{transform:'scale(1)'}],{duration:2000*speed,easing:'ease-out'}); const sp=$('.spr',F[side]); { const H=poseSrc(phxWho(side)); sp.style.setProperty('--kr',H&&H.full.down&&!F[side].classList.contains('awk')?'0deg':side==='p'?'-78deg':'78deg'); } sp.classList.add('ko'); $('.shield',F[side]).classList.remove('on'); $('.aura',F[side]).classList.remove('on');
     const k=h('div','',''); { const A=KOART, kk=A&&A.evs===window.__CUREVS&&A.side!==side?{super:'ko_sup',ult:'ko_ult',crit:'ko_crit'}[A.k]:null; Snd.voice('ann',kk&&Snd.has('ann',kk)?kk:'ko',{pri:true}); } setTimeout(()=>{ if(side==='p') Snd.voice(HERO,'_lose',{pri:true}); else if(opp.tint) Snd.voice(opp.sprite,'_lose',{pri:true,rate:.85}); else Snd.voice(opp.sprite||opp.id,'_lose',{pri:true}); },1500*speed); const w=side==='p'?'e':'p'; gEndAll(); { const H=poseSrc(phxWho(w)); if(H&&H.full.win) pose(w,[['win',60000,{pop:1}]]); } $('.spr',F[w]).animate([{transform:'translateX(-50%)'},{transform:'translateX(-50%) translateY(-7%)'},{transform:'translateX(-50%)'}],{duration:500,delay:500,iterations:2}); await sleep(1600); k.remove(); }
   async function finish(){ if(done) return; done=true; document.querySelectorAll('.cdu,.cd-rstamp').forEach(x=>x.remove()); ls3dCall('stop'); app.classList.remove('hd3dload'); document.body.classList.remove('ctrmode'); app.classList.remove('frzbg'); coachClose(); if(run.stats){ const S=run.stats; S.fights++; if(b.over==='p') S.won++; S.turns+=b.turn; } if(run.tut){ run.tut=false; store.tutDone=1; save(); } for(const sd of ['p','e']){ clearTimeout(fgT[sd]); clearTimeout(fgL[sd]); FGN[sd]=0; FGCH[sd]=null; if(FGC[sd]){ FGC[sd].remove(); FGC[sd]=null; } } hand.classList.remove('ctr-phase'); document.querySelectorAll('.clash,.ctrring,.staggertag').forEach(e=>e.remove()); abortBattle=null; devSkip=null; closeArts(); clearInterval(awTimers.p); clearInterval(awTimers.e); removeEventListener('keydown',onKey); onFit=null; uninspect(); clearInterval(intT); Snd.intense&&Snd.intense(false); if(b.over==='e') run.lastFoe=opp.name; if(b.over==='p'&&!run.quick&&!custom) fmXP(HERO,1); if(b.over==='p'&&fmLv(HERO)>=4){ const sp=$('.spr',F.p); if(sp) sp.animate([{translate:'0 0',scale:'1'},{translate:'0 -14%',scale:'1.04',offset:.35},{translate:'0 0',scale:'1.06',offset:.7},{translate:'0 0',scale:'1'}],{duration:900*speed,easing:'cubic-bezier(.2,.9,.3,1)',composite:'add'}); } if(b.over==='p') cheer(1.4); run.hp=Math.max(custom?1:0,b.p.hp); if(b.over==='p'&&mentorOf()==='kagari'&&run.hp>0){ run.hp=Math.min(run.maxHp,run.hp+4); setTimeout(()=>toast('Lantern-Light: +4 HP'),700); } if(b.p.kuro) run.life=b.p.life; run.spirit=Math.floor(b.p.spirit*SPIRIT.carry); if(!custom) run.conds=[]; if(b.newCurses&&b.newCurses.length){ const nc=b.newCurses.slice(); nc.forEach(c=>run.deck.push(c)); setTimeout(()=>toast('Lasting curse: '+nc.map(c=>CARDS[c].name).join(' and ')+' stay'+(nc.length>1?'':'s')+' in your deck. A coach, the stalls or the shrine can lift it.'),900); } if(custom&&custom.bg) bgEl.style.backgroundImage=''; await sleep(300); resolve(b.over==='p'); }
