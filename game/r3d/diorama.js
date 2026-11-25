@@ -110,7 +110,7 @@ export class Diorama {
     m.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map, alphaTest: 0.4 });
     const root = new THREE.Group(); root.add(m); this.scene.add(root);
     const shadow = this.blob(0, 0, 0.55); root.add(shadow); shadow.position.set(0, 0.03, 0);
-    const A = { root, mesh: m, map, frames, k: 1 / pxPerUnit, face: 1, anim: 'idle', t: 0, fps: o.fps || 10,
+    const A = { root, mesh: m, map, frames, k: 1 / pxPerUnit, face: 1, anim: 'idle', t: 0, fps: o.fps || 10, glide: o.glide || null, gb: 0, gt: 0,
       set(anim) { if (this.anim !== anim) { this.anim = anim; this.t = 0; } },
       draw() {
         const img = map.image; if (!img || !img.naturalWidth) return;
@@ -118,6 +118,10 @@ export class Diorama {
         const [x, y, w, h, ax, ay] = f, W = img.naturalWidth, H = img.naturalHeight, k = this.k;
         m.scale.set(w * k, h * k, 1);
         m.position.set((w / 2 - ax) * k * this.face, h * k / 2 - (h - ay) * k, 0); // feet (frame row ay) at y=0
+        // hovering glide (e.g. Ito drifting on her strings): lift off the ground, bob, lean into the move, dress sway; the shadow stays down
+        if (this.glide) { const G = this.glide[this.anim], dt = 1 / 60; this.gt += dt; if (G) this.cur = G; this.gb += ((G ? 1 : 0) - this.gb) * .1; const g = this.gb, C = this.cur;
+          if (C && g > .002) { const s = Math.sin(this.gt * 4.2); m.position.y += g * (C.lift + C.bob * s); m.rotation.z = -this.face * g * (C.lean + C.sway * Math.sin(this.gt * 2.1)); m.scale.x *= 1 + .03 * g * Math.sin(this.gt * 5.3); shadow.scale.setScalar(1 - .25 * g); shadow.material.opacity = 1 - .35 * g; }
+          else { m.rotation.z = 0; shadow.scale.setScalar(1); shadow.material.opacity = 1; } }
         if (this.face < 0) { map.offset.set((x + w) / W, 1 - (y + h) / H); map.repeat.set(-w / W, h / H); }
         else { map.offset.set(x / W, 1 - (y + h) / H); map.repeat.set(w / W, h / H); }
       } };

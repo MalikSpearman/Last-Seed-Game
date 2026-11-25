@@ -223,11 +223,11 @@ const WEATHER = [['clear', .45], ['rain', .22], ['fog', .18], ['snow', .15]];
 function pickWeather() { const w = window.__ls3dWeather; if (w) return w; let r = Math.random(); for (const [k, p] of WEATHER) { if ((r -= p) < 0) return k; } return 'clear'; }
 export async function start(host, k) {
   ensure(); k = k || window.__ls3dKey; key = PRESETS[k] ? k : Object.keys(PRESETS)[Math.random() * 3 | 0]; P = PRESETS[key]; fit = null;
-  if (cv.parentNode !== host) host.appendChild(cv);
+  if (cv.parentNode !== host) host.appendChild(cv); cv.style.display = '';
   document.getElementById('app').classList.add('hd3d');
   D.restore(); D.resize(); D.paused = false; await built; if (FX) { FX.clear(); FX.life(P.c); FX.weather(pickWeather(), P.c); } requestAnimationFrame(() => { cv.style.opacity = 1; });
 }
-export function stop() { if (!D) return; cv.style.opacity = 0; document.getElementById('app').classList.remove('hd3d'); fz = 1; document.getElementById('app').style.removeProperty('--fz3d'); clearLights(); for (const k in lits) delete lits[k]; for (const s in casters) casters[s].m.visible = false; setTimeout(() => { if (cv.style.opacity === '0') D.release(); }, 900); }
+export function stop() { if (!D) return; cv.style.opacity = 0; document.getElementById('app').classList.remove('hd3d'); fz = 1; document.getElementById('app').style.removeProperty('--fz3d'); clearLights(); for (const k in lits) delete lits[k]; for (const s in casters) casters[s].m.visible = false; setTimeout(() => { if (cv.style.opacity === '0') { D.release(); cv.style.display = 'none'; } }, 900); }   // off-screen: no compositor layer left behind on menus
 export function hit(side, big) { hitK = big ? 1.3 : .8; hitSide = side === 'e' ? 1 : -1; shake = big ? .08 : .04; }
 // a hit lands on 'p' or 'e': camera push + shake, then the arena reacts at their feet (light, dust, cracks, element marks)
 export function impact(side, o = {}) {

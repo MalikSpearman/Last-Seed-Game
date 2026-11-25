@@ -105,7 +105,7 @@ export async function createRoam(host, cfg) {
   }
   // ── hero ──
   const idleH = (cfg.frames.idle && cfg.frames.idle[0][3]) || 400;
-  const hero = D.actor(cfg.atlas, cfg.frames, idleH / 1.75, { fps: 10 });
+  const hero = D.actor(cfg.atlas, cfg.frames, idleH / 1.75, { fps: 10, glide: cfg.glide });
   const pos = new T.Vector3(START.x, 0, START.z), vel = new T.Vector2(); let face = 1, atkT = 0, busy = false, paused = false, gone = false;
 
   // ── HUD ──

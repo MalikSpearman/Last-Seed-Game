@@ -1,5 +1,18 @@
 [
  {
+  "version": "0.3.11",
+  "date": "Nov 24, 2026",
+  "title": "Ito's new supers",
+  "items": [
+   "Ito's Ultimate, Grand Guignol, is a full cinematic: she weaves a giant cat's-cradle web of red string, then it closes on the rival, hoists them into the air and cinches three times",
+   "Ito's Critical, Final Curtain, is a full cinematic: awakened Ito snips every string with giant scissors, the rival collapses like a puppet with its strings cut, and a curtain falls",
+   "New voice lines, art and sound for both",
+   "Ito now hovers when she moves, gliding on her strings with her feet off the ground (free roam and fights)",
+   "Shields have a lighter look: a thin glowing rim, with the hex pattern only flashing when a hit lands",
+   "Less flicker: the 3D arena is fully hidden between fights"
+  ]
+ },
+ {
   "version": "0.3.10",
   "date": "Nov 24, 2026",
   "title": "Living 3D arenas",
