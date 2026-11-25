@@ -1,5 +1,17 @@
 [
  {
+  "version": "0.3.45",
+  "date": "Nov 25, 2026",
+  "title": "New stage select",
+  "items": [
+   "Stage select is now a fighting-game style carousel in the main menu's look: slanted stage tiles, region tabs (Bamboo, Festival, Marshes, Coast, Neon Ward, Boss) and both fighters shown up top",
+   "Pick the weather before the fight: Any sky, Clear, Rain, Fog or Snow",
+   "Arrows or swipe to browse, Q/E to change region, V to look around the stage in 3D, R for random",
+   "It remembers the last stage and weather you picked",
+   "On phones and upright screens, a grid of stage thumbnails sits under the main card for quick picks"
+  ]
+ },
+ {
   "version": "0.3.44",
   "date": "Nov 25, 2026",
   "title": "Rush tweaks",

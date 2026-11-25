@@ -162,49 +162,77 @@ function rideMarks(V0, V1) {
   OTS.own = true; }
 function releaseMarks() { if (!OTS.own) return; OTS.own = false; for (const sd of ['p', 'e']) { const f0 = OTS.F0 && OTS.F0[sd]; if (!f0) continue; f0.f.style.transform = ''; f0.f.style.transformOrigin = ''; f0.f.style.zIndex = ''; f0.f.style.transition = ''; } OTS.F0 = null; OTS.R0 = null; }
 
-// ── silhouettes in 3D that only cast shadows ──
+// ── 2D people in a 3D place: each fighter's CURRENT frame (base art, awakened art, kneel, attack/launch pose) is laid on the
+//    ground as a dark silhouette, sheared away from the set's light. Rebuilt from whatever is on screen every frame, so the
+//    shadow follows the pose; a fighter in the air leaves the shadow on the ground under them, fainter and further out. ──
+const SHIMG = {};
+function poseFrame(f) { const pe = f && f.querySelector('.spr .pose'); if (!pe || !pe._pf) return null; const r = pe.getBoundingClientRect(); if (r.width < 4) return null;
+  const pf = pe._pf; let im = SHIMG[pf.src]; if (!im) { im = SHIMG[pf.src] = new Image(); im.src = pf.src; } if (!im.complete || !im.naturalWidth) return null; return { pf, im, r }; }
 function caster(side, fd) {
   let c = casters[side];
   if (!c) {
-    const tex = new T.Texture(); tex.colorSpace = T.SRGBColorSpace;
-    const m = new T.Mesh(new T.PlaneGeometry(1, 1).translate(0, .5, 0), new T.MeshBasicMaterial({ map: tex, alphaTest: .5, colorWrite: false, depthWrite: false, side: T.DoubleSide }));
-    m.castShadow = true; m.customDepthMaterial = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking, map: tex, alphaTest: .5, side: T.DoubleSide });
-    D.scene.add(m); c = casters[side] = { m, tex, src: '' };
+    const cnv = document.createElement('canvas'); cnv.width = cnv.height = 4;
+    const tex = new T.CanvasTexture(cnv); tex.colorSpace = T.SRGBColorSpace;
+    const m = new T.Mesh(new T.PlaneGeometry(1, 1).translate(0, .5, 0), new T.MeshBasicMaterial({ map: tex, color: 0x000000, transparent: true, opacity: .42, alphaTest: .02, depthWrite: false, side: T.DoubleSide, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4, fog: true }));
+    m.matrixAutoUpdate = false; m.renderOrder = 2; m.castShadow = false; m.receiveShadow = false;
+    D.scene.add(m); c = casters[side] = { m, tex, cnv, src: '', key: '' };
   }
-  if (fd.img.complete && fd.img.naturalWidth && c.src !== fd.img.currentSrc) { c.src = fd.img.currentSrc; c.tex.image = fd.img; c.tex.needsUpdate = true; }
+  // the source: the pose frame when one is showing, else the sprite image itself
+  const pf = fd.f && poseFrame(fd.f), im = fd.img, hid = im && getComputedStyle(im).visibility === 'hidden';
+  let key, draw;
+  if (pf) { const q = pf.pf; key = q.src + '|' + q.x + ',' + q.y + ',' + q.w + ',' + q.h; draw = g => g.drawImage(pf.im, q.x, q.y, q.w, q.h, 0, 0, c.cnv.width, c.cnv.height); c.wh = [q.w, q.h]; c.rect = pf.r; }
+  else if (im && !hid && im.complete && im.naturalWidth) { key = im.currentSrc || im.src; draw = g => g.drawImage(im, 0, 0, c.cnv.width, c.cnv.height); c.wh = [im.naturalWidth, im.naturalHeight]; c.rect = im.getBoundingClientRect(); }
+  else { c.rect = null; return c; }
+  if (key !== c.key) { const k = Math.min(1, 256 / Math.max(c.wh[0], c.wh[1])); c.cnv.width = Math.max(4, Math.round(c.wh[0] * k)); c.cnv.height = Math.max(4, Math.round(c.wh[1] * k));
+    const g = c.cnv.getContext('2d'); g.clearRect(0, 0, c.cnv.width, c.cnv.height); g.filter = 'blur(1.5px)'; draw(g); g.filter = 'none'; c.tex.needsUpdate = true; c.key = key; c.src = key; }
   return c;
 }
+// lay a silhouette on the ground: feet at base, sprite width along the camera's right, sprite height sheared along the shadow direction
+const SHD = { dir: new T.Vector3(.8, 0, -.6), len: .78 };
+function shadowDir() { const cam = D.camera, R = new T.Vector3(1, 0, 0).applyQuaternion(cam.quaternion); R.y = 0; R.normalize(); const Bk = new T.Vector3(0, 0, -1).applyQuaternion(cam.quaternion); Bk.y = 0; Bk.normalize();
+  const L = cur && cur.moon ? cur.moon.position.clone().sub(cur.moon.target.position).normalize() : (D.moon ? D.moon.position.clone().normalize() : new T.Vector3(.35, 1, .3));
+  const away = new T.Vector3(-L.x, 0, -L.z); const sx = away.lengthSq() > 1e-4 ? Math.sign(away.dot(R)) || 1 : 1;
+  // always mostly sideways and a little into the set, so the shadow reads on the ground instead of hiding behind the 2D sprite
+  SHD.dir.copy(R).multiplyScalar(.82 * sx).addScaledVector(Bk, .57).normalize(); const el = Math.asin(Math.min(1, Math.max(.05, L.y))); SHD.len = Math.min(.95, Math.max(.55, .35 / Math.tan(el) + .3)); SHD.R = R; }
+function layShadow(c, base, hw, ww, mir, lift, vis) {
+  const m = c.m; m.visible = vis; if (!vis) return; const R = SHD.R || new T.Vector3(1, 0, 0);
+  const X = R.clone().multiplyScalar(ww * (mir ? -1 : 1)), Y = SHD.dir.clone().multiplyScalar(hw * SHD.len), Z = new T.Vector3(0, 1, 0);
+  const at = base.clone().addScaledVector(SHD.dir, lift * SHD.len).add(new T.Vector3(0, .015, 0)); const o = at;
+  m.matrix.makeBasis(X, Y, Z); m.matrix.setPosition(o); m.matrixWorldNeedsUpdate = true; m.position.copy(base);
+  m.material.opacity = .42 * Math.max(.25, 1 - lift / Math.max(1e-3, hw) * 1.6); }
 function placeExtraCasters(X) {
   const cam = D.camera, seen = new Set();
   for (const fd of X) {
     const c = caster(fd.key, fd); seen.add(fd.key);
     const base = groundAt(fd.x, fd.y, P.c[1] + (fd.f && +fd.f.closest('.gpk,.smn')?.dataset.y3 || 0)); if (!base) { c.m.visible = false; continue; }
-    const dist = cam.position.distanceTo(base), hw = fd.h / innerHeight * 2 * dist * Math.tan(cam.fov * Math.PI / 360);
-    c.m.visible = fd.op > .15 && !!c.src;
-    c.m.position.copy(base); c.m.scale.set(hw * fd.w / fd.h * (fd.mir ? -1 : 1), hw, 1);
-    c.m.rotation.y = Math.atan2(cam.position.x - base.x, cam.position.z - base.z);
+    const dist = cam.position.distanceTo(base), k = 2 * dist * Math.tan(cam.fov * Math.PI / 360) / innerHeight;
+    layShadow(c, base, fd.h * k, fd.w * k, fd.mir, 0, fd.op > .15 && !!c.rect);
   }
   for (const k in casters) if (k !== 'p' && k !== 'e' && !seen.has(k)) { casters[k].m.visible = false; if (!document.querySelector(`[data-l3="${k}"]`)) { D.scene.remove(casters[k].m); casters[k].tex.dispose(); delete casters[k]; } }
 }
 function placeCasters(F) {
-  const [cx, cy, cz] = P.c, cam = D.camera;
+  const [cx, cy, cz] = P.c, cam = D.camera; shadowDir();
   for (const side of ['p', 'e']) {
     const fd = F[side], c = fd && caster(side, fd); if (!c) { if (casters[side]) casters[side].m.visible = false; continue; }
-    const hidden = getComputedStyle(fd.img).visibility === 'hidden' || +getComputedStyle(fd.f).opacity < .1;
-    c.m.visible = !hidden && !!c.src;
+    const r = c.rect, hidden = !r || +getComputedStyle(fd.f).opacity < .1;
     // world point under the feet: the clearing mark for that side, nudged to follow lunges/knockback on screen
     const base = new T.Vector3(cx + (side === 'p' ? -gapNow() : gapNow()), cy, cz);
-    const sp = base.clone().project(cam), [nx] = ndc(fd.x, fd.y), dist = cam.position.distanceTo(base);
-    const wPerNdc = dist * Math.tan(cam.fov * Math.PI / 360) * cam.aspect;
-    base.x += (nx - sp.x) * wPerNdc;
-    const hw = fd.h / innerHeight * 2 * dist * Math.tan(cam.fov * Math.PI / 360);
-    c.m.position.copy(base); c.m.scale.set(hw * fd.w / fd.h * (side === 'e' ? -1 : 1), hw, 1);
-    c.m.rotation.y = Math.atan2(cam.position.x - base.x, cam.position.z - base.z);
+    if (hidden) { c.m.visible = false; continue; }
+    const sp = base.clone().project(cam), [nx] = ndc(r.left + r.width / 2, fd.y), dist = cam.position.distanceTo(base);
+    const wPerNdc = dist * Math.tan(cam.fov * Math.PI / 360) * cam.aspect; base.x += (nx - sp.x) * wPerNdc;
+    const k = 2 * dist * Math.tan(cam.fov * Math.PI / 360) / innerHeight, lift = Math.max(0, fd.y - r.bottom) * k;
+    layShadow(c, base, r.height * k, r.width * k, side === 'e', lift, true);
   }
 }
 
 // ── the set's light on the sprites: cool moonlight, warm lantern glow from the lantern side, dappled bamboo shade ──
-const CSS = `#app.hd3d .fighter .aura{opacity:0!important}
+const CSS = `/* 3D sets with cast shadows: the flat drop-shadow behind each sprite goes; the silhouette on the ground replaces it */
+#app.hd3d.hd3dsh .scr.battle .fighter .spr img,#app.hd3d.hd3dsh .scr.battle .fighter.paper .spr img,#app.hd3d.hd3dsh .scr.battle .spr .pose{filter:none}
+#app.hd3d.hd3dsh.paperon .scr.battle .fighter .spr img:not([src*="/pp_"]),#app.hd3d.hd3dsh.paperon .scr.battle .spr .pose{filter:drop-shadow(var(--ppw) 0 0 #f7f2e6) drop-shadow(calc(var(--ppw)*-1) 0 0 #f7f2e6) drop-shadow(0 var(--ppw) 0 #f7f2e6) drop-shadow(0 calc(var(--ppw)*-1) 0 #f7f2e6) drop-shadow(calc(var(--ppw)*.71) calc(var(--ppw)*.71) 0 #f7f2e6) drop-shadow(calc(var(--ppw)*-.71) calc(var(--ppw)*.71) 0 #f7f2e6) drop-shadow(calc(var(--ppw)*.71) calc(var(--ppw)*-.71) 0 #f7f2e6) drop-shadow(calc(var(--ppw)*-.71) calc(var(--ppw)*-.71) 0 #f7f2e6) drop-shadow(calc(var(--ppw)*.12) 0 0 #6e645a)}
+#app.hd3d.hd3dsh .scr.battle .fighter .shadow{opacity:0}
+#app.hd3d.hd3dsh .scr.battle .fighter.awk .spr img{filter:drop-shadow(0 0 .06rem var(--a2)) drop-shadow(0 0 .22rem var(--a1))}
+#app.hd3d.hd3dsh.paperon .scr.battle .fighter.awk .spr img:not([src*="/pp_"]){filter:drop-shadow(var(--ppw) 0 0 #f7f2e6) drop-shadow(calc(var(--ppw)*-1) 0 0 #f7f2e6) drop-shadow(0 var(--ppw) 0 #f7f2e6) drop-shadow(0 calc(var(--ppw)*-1) 0 #f7f2e6) drop-shadow(calc(var(--ppw)*.71) calc(var(--ppw)*.71) 0 #f7f2e6) drop-shadow(calc(var(--ppw)*-.71) calc(var(--ppw)*.71) 0 #f7f2e6) drop-shadow(calc(var(--ppw)*.71) calc(var(--ppw)*-.71) 0 #f7f2e6) drop-shadow(calc(var(--ppw)*-.71) calc(var(--ppw)*-.71) 0 #f7f2e6) drop-shadow(0 0 .06rem var(--a2)) drop-shadow(0 0 .22rem var(--a1))}
+#app.hd3d .fighter .aura{opacity:0!important}
 #app.hd3d .scr.battle .fighter,#app.hd3d .scr.battle .gpk,#app.hd3d .scr.battle .smn{scale:var(--fz3d,1)}
 #app.hd3d .scr.battle .fighter.p{left:calc(50% - var(--fxo,25%) * var(--fz3d,1))}
 #app.hd3d .scr.battle .fighter.e{left:calc(50% + var(--fxo,25%) * var(--fz3d,1))}
@@ -386,7 +414,7 @@ export function start(host, k, bgUrl) {
     else { cx = await bambooCtx(); key = PRESETS[k] ? k : Object.keys(PRESETS)[Math.random() * 3 | 0]; P = PRESETS[key]; cx.P = P; }
     if (g0 !== gen) return; fit = null;
     if (cv.parentNode !== host) host.appendChild(cv); cv.style.display = '';
-    document.getElementById('app').classList.add('hd3d'); spriteLight(cx); litSvg(); litSet(cx);
+    document.getElementById('app').classList.add('hd3d', 'hd3dsh'); spriteLight(cx); litSvg(); litSet(cx);
     D.restore(); D.resize(); D.paused = false;
     if (FX) { FX.clear(); FX.life(P.c, cx.painted ? P : null); setWeather(cx, weatherFor(cx)); }
     requestAnimationFrame(() => { cv.style.opacity = 1; });
@@ -401,7 +429,7 @@ const NEXT = { w_graves: 'w_mill', w_mill: 'w_village', w_village: 'road', road:
   mountain_pass: 'rooftops', rooftops: 'nw_roof', ring: 'festival' };
 export function nextStage() { return (D && !D.paused && NEXT[key]) || null; }
 export function transition(host) { const n = nextStage(); if (!n || !host) return Promise.resolve(null); return start(host, n, null).then(() => n, () => null); }
-export function stop() { window.__ls3dSet = false; releaseMarks(); OTS.on = false; OTS.k = 0; gen++; if (!D) return; cv.style.opacity = 0; document.getElementById('app').classList.remove('hd3d'); fz = 1; document.getElementById('app').style.removeProperty('--fz3d'); clearLights(); for (const k in lits) delete lits[k]; for (const s in casters) casters[s].m.visible = false; setTimeout(() => { if (cv.style.opacity === '0') { D.release(); cv.style.display = 'none'; } }, 900); }
+export function stop() { window.__ls3dSet = false; releaseMarks(); OTS.on = false; OTS.k = 0; gen++; if (!D) return; cv.style.opacity = 0; document.getElementById('app').classList.remove('hd3d', 'hd3dsh'); fz = 1; document.getElementById('app').style.removeProperty('--fz3d'); clearLights(); for (const k in lits) delete lits[k]; for (const s in casters) casters[s].m.visible = false; setTimeout(() => { if (cv.style.opacity === '0') { D.release(); cv.style.display = 'none'; } }, 900); }
 export function hit(side, big) { hitK = big ? 1.3 : .8; hitSide = side === 'e' ? 1 : -1; shake = big ? .08 : .04; }
 // a hit lands on 'p' or 'e': camera push + shake, then the arena reacts at their feet (light, dust, cracks, element marks)
 export function impact(side, o = {}) {

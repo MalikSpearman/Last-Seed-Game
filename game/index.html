@@ -2796,7 +2796,7 @@ body.portrait .rm-hp{width:2.25rem}
 .hb-vs{position:absolute;left:50%;top:40%;z-index:3;transform:translate(-50%,-50%) skewX(8deg) rotate(-8deg);font:400 .48rem/1 'Anton';color:#fff;-webkit-text-stroke:.025rem #12091c;paint-order:stroke fill;text-shadow:.04rem .05rem 0 #ff4d3d,-.04rem -.03rem 0 #4d7bff;pointer-events:none}
 .hb-row{grid-column:1/4;display:grid;grid-template-columns:repeat(7,1fr);gap:.12rem}
 .scr.battle.training .intent,.scr.battle.training .efast{display:none!important}
-.trainbar{position:absolute;left:50%;top:.62rem;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:.08rem;padding:.06rem .1rem;border-radius:.3rem;background:rgba(10,6,14,.72);border:.013rem solid rgba(255,90,74,.6);box-shadow:0 .03rem .12rem rgba(0,0,0,.6);white-space:nowrap}
+.trainbar{position:absolute;left:50%;top:22%;transform:translateX(-50%);z-index:12;display:flex;align-items:center;gap:.08rem;padding:.06rem .1rem;border-radius:.3rem;background:rgba(10,6,14,.72);border:.013rem solid rgba(255,90,74,.6);box-shadow:0 .03rem .12rem rgba(0,0,0,.6);white-space:nowrap}
 .trainbar .tb-t{font-family:'Anton';font-size:.18rem;letter-spacing:.12em;color:#ff5a4a;padding:0 .06rem}
 .trainbar .tb-st{font-size:.13rem;color:#e6dff0;opacity:.9;padding-right:.06rem}.trainbar .tb-st b{color:#ffd34d}
 .trainbar button{all:unset;cursor:pointer;font-size:.13rem;font-weight:700;letter-spacing:.06em;color:#fff;padding:.05rem .12rem;border-radius:.2rem;background:rgba(255,255,255,.1);border:.012rem solid rgba(255,255,255,.22)}
@@ -5882,7 +5882,8 @@ const stageOf=k=>STAGE_ALL.find(s=>s.k===k)||null;
 // a picked stage as the battle's round settings (bamboo spots go through the roam key; painted ones through their backdrop)
 function stageCustom(k,base){ const S=stageOf(k); if(!S) return base||null; const c=Object.assign({},base||{});
   if(k.startsWith('bamboo:')){ c.hd3d=true; c._k3=k.slice(7); } else { c.bg='img/bg_'+k+'.webp'; c.stageLock=1; c.hd3dAny=true; } return c; }
-async function stageBattle(opp,stage,custom){ const k3=custom&&custom._k3; if(k3) window.__ls3dKey=k3; try{ return await battle(opp,stage,custom); } finally { if(k3) window.__ls3dKey=null; } }
+let STG_WX=null;
+async function stageBattle(opp,stage,custom){ const k3=custom&&custom._k3; if(k3) window.__ls3dKey=k3; const wx=!(custom&&custom.net)&&STG_WX&&STG_WX!=='any'?STG_WX:null; if(wx) window.__ls3dWeather=wx; try{ return await battle(opp,stage,custom); } finally { if(k3) window.__ls3dKey=null; if(wx) window.__ls3dWeather=undefined; } }
 let STG_CSS=false;
 function stageCss(){ if(STG_CSS) return; STG_CSS=true; const st=document.createElement('style'); st.textContent=`
 .stgpick{position:fixed;inset:0;z-index:2147482000;background:radial-gradient(ellipse at 50% 0%,#2a1840,#0b0712 70%);color:#fff;display:flex;flex-direction:column;font-family:inherit}
@@ -5930,20 +5931,136 @@ function stageView(k,pickLabel){ stageCss(); return new Promise(async res=>{ let
   const close=v=>{ clearInterval(tour); removeEventListener('keydown',key,true); try{ M&&M.stop(); }catch(_){ } o.remove(); res(v); };
   $('.back',o).onclick=()=>close(null); $('.go',o).onclick=()=>close(STAGE_ALL[i].k);
   show(); }); }
-// the stage grid: tap a stage to pick it, or View to walk around it in 3D first. extra: [[key,label]] tiles at the front (Random / Auto)
-function stagePick(cur,o){ o=o||{}; stageCss(); return new Promise(res=>{ const extra=o.extra||[['random','Random']];
-  const el=h('div','stgpick',`<header><button class="b back" type="button">← Back</button><h2>${o.title||'Choose a stage'}<small>Every stage is a 3D set · View to look around it first</small></h2></header><div class="stgbody"></div>`);
-  const body=$('.stgbody',el);
-  { const g=h('div','grid'); extra.forEach(([k,lb])=>{ const t=h('div','tile rnd'+(cur===k?' on':''),`<span>${lb}</span>`); t.tabIndex=0; t.onclick=()=>done(k); g.appendChild(t); }); body.appendChild(g); }
-  STAGES.forEach(([grp,L])=>{ body.appendChild(h('h3',null,grp)); const g=h('div','grid');
-    L.forEach(([k,n,th])=>{ const t=h('div','tile'+(cur===k?' on':''),`<b>${n}</b><button class="eye" type="button">View</button>`); t.style.backgroundImage=`url(img/bg_${th||k}.webp)`; t.tabIndex=0;
-      t.onclick=e=>{ if(e.target.classList.contains('eye')) return; done(k); };
-      t.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); done(k); } };
-      $('.eye',t).onclick=async e=>{ e.stopPropagation(); el.style.visibility='hidden'; const v=await stageView(k,o.pickLabel); el.style.visibility=''; if(v) done(v); };
-      g.appendChild(t); }); body.appendChild(g); });
-  const key=e=>{ if(e.key==='Escape'&&!document.querySelector('.stgview')){ e.preventDefault(); e.stopPropagation(); done(null); } }; addEventListener('keydown',key,true);
-  const done=v=>{ removeEventListener('keydown',key,true); el.remove(); res(v); };
-  $('.back',el).onclick=()=>done(null); document.body.appendChild(el); }); }
+// the stage select: a carousel of slanted stage tiles per region (menu style). ◀▶ stage · Q/E region · V look around · R random · Enter fight
+const STG_RG=[['竹','Bamboo','#59e08a'],['祭','Festival','#ff4d3d'],['沼','Marshes','#4ec9b0'],['海','Coast','#4d9bff'],['夜','Neon Ward','#c46bff'],['鬼','Boss','#ff3d6a']];
+let SS_CSS=false;
+function ssCss(){ if(SS_CSS) return; SS_CSS=true; const st=document.createElement('style'); st.textContent=`
+.ssel{position:fixed;inset:0;z-index:2147482000;background:#07050f;color:#fff;overflow:hidden;font-family:'Barlow Condensed',sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+.ssel .ss-bg{position:absolute;inset:-.3rem;background:center/cover;opacity:.2;filter:blur(.04rem) saturate(.8);transition:background-image .3s}
+.ssel .ss-vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 48%,transparent 30%,#07050f 85%);pointer-events:none}
+.ssel .ss-brk{display:none}
+.ssel .ss-top{position:absolute;left:.5rem;right:.5rem;top:.15rem;display:flex;align-items:center;gap:.08rem;z-index:6}
+.ssel .ss-logo{font:400 .42rem/.85 'Anton';text-transform:uppercase;transform:skewX(-9deg);text-shadow:.03rem .04rem 0 #12091c;margin-right:.12rem;white-space:nowrap}
+.ssel .ss-logo i{font-style:normal;background:linear-gradient(#fff6d8,#ffb04a 55%,#e0472c);-webkit-background-clip:text;background-clip:text;color:transparent;margin-left:.06rem}
+.ssel .ss-chip{display:flex;align-items:center;gap:.05rem;padding:.07rem .13rem;transform:skewX(-12deg);background:rgba(14,11,26,.85);border:.02rem solid rgba(255,201,61,.45);color:#fff;font:700 .14rem/1 'Barlow Condensed';letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;cursor:pointer}
+.ssel .ss-chip b{color:var(--g,#ffc93d)}
+.ssel .ss-chip:hover,.ssel .ss-chip:focus-visible{border-color:#ffd36b;background:rgba(48,32,96,.9);outline:none}
+.ssel .ss-chip.on{border-color:#ffc93d;background:rgba(48,32,96,.9)}
+.ssel .ss-chip.fx{cursor:default}
+.ssel .ss-rgs{position:absolute;left:0;right:0;top:.88rem;display:flex;justify-content:center;gap:.09rem;z-index:6;padding:0 .3rem}
+.ssel .ss-rg{display:flex;align-items:center;gap:.08rem;padding:.08rem .15rem;transform:skewX(-12deg);background:rgba(14,11,26,.85);border:.02rem solid rgba(255,255,255,.16);font:700 .145rem/1 'Barlow Condensed';letter-spacing:.14em;text-transform:uppercase;color:#bdb3d6;white-space:nowrap;cursor:pointer;transition:background .15s,color .15s}
+.ssel .ss-rg i{font-style:normal;font-family:'Noto Serif JP','Yu Mincho',serif;font-weight:900;font-size:.17rem;color:var(--rc)}
+.ssel .ss-rg:hover{border-color:#ffd36b}
+.ssel .ss-rg.on{background:linear-gradient(90deg,#ffd36b,#ff9a3d);color:#1a0d06;border-color:#fff;box-shadow:.04rem .045rem 0 #12091c}.ssel .ss-rg.on i{color:#8a0f18}
+.ssel .ss-car{position:absolute;left:0;right:0;top:1.62rem;height:3.98rem;z-index:2}
+.ssel .ss-card{position:absolute;left:50%;top:0;width:7.06rem;height:3.98rem;margin-left:-3.53rem;cursor:pointer;transition:transform .42s cubic-bezier(.2,.9,.25,1),opacity .3s;transform-origin:50% 50%}
+.ssel .ss-box{position:absolute;inset:0;overflow:hidden;border:.027rem solid rgba(255,255,255,.18);background:#16102c;box-shadow:.06rem .07rem 0 #12091c;transform:skewX(-8deg);transition:border-color .2s,box-shadow .25s,filter .3s}
+.ssel .ss-art{position:absolute;inset:-6% -12%;background:center/cover;transform:skewX(8deg)}
+.ssel .ss-box::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(7,5,15,.96) 4%,rgba(7,5,15,.3) 40%,transparent 65%),linear-gradient(90deg,color-mix(in srgb,var(--rc) 30%,transparent),transparent 55%)}
+.ssel .ss-card.on{z-index:3}
+.ssel .ss-card.on .ss-box{border-color:#fff;box-shadow:0 0 0 .033rem var(--rc),0 0 .4rem color-mix(in srgb,var(--rc) 55%,transparent),.06rem .07rem 0 #12091c}
+.ssel .ss-card.on .ss-box::before{content:'';position:absolute;inset:0;z-index:2;background:linear-gradient(115deg,transparent 38%,rgba(255,240,210,.2) 50%,transparent 62%);background-size:260% 100%;animation:hbShine 4s ease-in-out infinite}
+.ssel .ss-card:not(.on) .ss-box{filter:brightness(.5) saturate(.8)}
+.ssel .ss-card:not(.on):hover .ss-box{filter:brightness(.7)}
+.ssel .ss-tx{position:absolute;left:.3rem;right:.3rem;bottom:.2rem;z-index:3;pointer-events:none}
+.ssel .ss-tx small{display:inline-block;padding:.02rem .05rem;background:rgba(7,5,15,.72);font:700 .12rem/1 'Barlow Condensed';letter-spacing:.26em;color:var(--rc);text-transform:uppercase}
+.ssel .ss-tx b{display:block;margin-top:.04rem;font:400 .64rem/.92 'Anton';text-transform:uppercase;letter-spacing:.02em;text-shadow:.03rem .04rem 0 #12091c,0 0 .12rem rgba(0,0,0,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ssel .ss-badge{position:absolute;right:.22rem;top:.15rem;z-index:4;padding:.03rem .08rem;background:var(--rc);color:#12091c;font:700 .11rem/1 'Barlow Condensed';letter-spacing:.14em;text-transform:uppercase;opacity:0;transition:opacity .2s}
+.ssel .ss-card.on .ss-badge{opacity:1}
+.ssel .ss-eye{position:absolute;right:.3rem;bottom:.2rem;z-index:4;opacity:0;pointer-events:none;transition:opacity .2s}
+.ssel .ss-card.on .ss-eye{opacity:1;pointer-events:auto}
+.ssel .ss-arw{position:absolute;top:3.25rem;z-index:5;font:400 .72rem/1 'Anton';color:#ffc93d;text-shadow:.03rem .04rem 0 #12091c;transform:translateY(-50%) skewX(-9deg);background:none;border:0;cursor:pointer;padding:.1rem;transition:transform .15s}
+.ssel .ss-arw:hover{transform:translateY(-50%) skewX(-9deg) scale(1.15)}
+.ssel .ss-arw.l{left:.35rem}.ssel .ss-arw.r{right:.35rem}
+.ssel .ss-dots{position:absolute;left:50%;top:5.78rem;transform:translateX(-50%);display:flex;gap:.05rem;z-index:5}
+.ssel .ss-dots i{width:.2rem;height:.06rem;background:#ffffff30;transform:skewX(-20deg);cursor:pointer;transition:width .25s,background .25s}.ssel .ss-dots i.on{width:.42rem;background:#ffc93d}
+.ssel .ss-bot{position:absolute;left:.5rem;right:.5rem;bottom:.17rem;display:flex;align-items:center;gap:.16rem;z-index:6}
+.ssel .ss-hint{flex:1;display:flex;gap:.2rem;font:700 .12rem/1 'Barlow Condensed';letter-spacing:.2em;color:#8d84a8;text-transform:uppercase;white-space:nowrap;overflow:hidden}
+.ssel .ss-hint b{color:#ffc93d}
+.ssel .ss-wx{display:flex;gap:.05rem}
+.ssel .ss-wx button{font:700 .13rem/1 'Barlow Condensed';padding:.08rem .12rem;transform:skewX(-12deg);background:rgba(14,11,26,.85);border:.02rem solid rgba(255,255,255,.16);letter-spacing:.14em;text-transform:uppercase;color:#bdb3d6;cursor:pointer}
+.ssel .ss-wx button:hover{border-color:#ffd36b}
+.ssel .ss-wx button.on{border-color:#ffc93d;color:#ffc93d}
+.ssel .ss-go{display:inline-flex;align-items:center;gap:.09rem;padding:.1rem .24rem;transform:skewX(-12deg);background:linear-gradient(90deg,#ffd36b,#ff9a3d);color:#1a0d06;font:400 .23rem/1 'Anton';letter-spacing:.05em;text-transform:uppercase;box-shadow:.05rem .05rem 0 #12091c;border:0;cursor:pointer;animation:hbPulse 2.2s ease-in-out infinite;white-space:nowrap}
+.ssel .ss-go:hover{filter:brightness(1.08)}
+body.portrait .ssel .ss-top{left:.14rem;right:.14rem;top:.16rem;flex-wrap:wrap;row-gap:.1rem}
+body.portrait .ssel .ss-logo{font-size:.34rem;margin-left:.06rem}
+body.portrait .ssel .ss-top .ss-chip.fx,body.portrait .ssel .ss-top .ss-chip.ex{font-size:.12rem}
+body.portrait .ssel .ss-brk{display:block;flex-basis:100%;height:0}
+body.portrait .ssel .ss-rgs{top:1.32rem;justify-content:flex-start;overflow-x:auto;padding:.05rem .2rem;scrollbar-width:none}
+body.portrait .ssel .ss-rgs::-webkit-scrollbar{display:none}
+body.portrait .ssel .ss-car{top:2.15rem;height:auto}
+body.portrait .ssel .ss-card{left:0;right:0;margin:0 auto;width:min(4.4rem,84vw);height:auto;aspect-ratio:16/9}
+body.portrait .ssel .ss-tx{left:.18rem;right:.18rem;bottom:.12rem}
+body.portrait .ssel .ss-tx b{font-size:.34rem}
+body.portrait .ssel .ss-eye{right:auto;left:.2rem;top:.12rem;bottom:auto}
+body.portrait .ssel .ss-badge{right:.18rem;top:.12rem}
+body.portrait .ssel .ss-arw{top:calc(2.15rem + min(4.4rem,84vw) * .5625 + .38rem);font-size:.46rem}
+body.portrait .ssel .ss-arw.l{left:.3rem}body.portrait .ssel .ss-arw.r{right:.3rem}
+body.portrait .ssel .ss-dots{top:calc(2.15rem + min(4.4rem,84vw) * .5625 + .34rem);max-width:2.6rem;flex-wrap:wrap;justify-content:center;row-gap:.06rem}
+body.portrait .ssel .ss-hint{display:none}
+.ssel .ss-th{display:none}
+body.portrait .ssel .ss-th{display:grid;position:absolute;left:.2rem;right:.2rem;top:calc(2.15rem + min(4.4rem,84vw) * .5625 + .66rem);bottom:1.5rem;grid-template-columns:repeat(auto-fill,minmax(1.25rem,1fr));grid-auto-rows:max-content;align-content:start;gap:.1rem .12rem;overflow-y:auto;padding:.04rem .08rem .2rem;scrollbar-width:none;z-index:4;-webkit-mask-image:linear-gradient(#000 82%,transparent);mask-image:linear-gradient(#000 82%,transparent)}
+body.portrait .ssel .ss-th::-webkit-scrollbar{display:none}
+body.portrait .ssel .ss-th button{position:relative;aspect-ratio:16/9;transform:skewX(-8deg);border:.02rem solid rgba(255,255,255,.18);background:#16102c center/cover;box-shadow:.03rem .04rem 0 #12091c;cursor:pointer;padding:0;overflow:hidden;filter:brightness(.6)}
+body.portrait .ssel .ss-th button.on{filter:none;border-color:#fff;box-shadow:0 0 0 .02rem var(--rc),0 0 .14rem var(--rc)}
+body.portrait .ssel .ss-th span{position:absolute;left:0;right:0;bottom:0;padding:.1rem .05rem .03rem;background:linear-gradient(transparent,#07050fe0);font:400 .11rem/1.05 'Anton';text-transform:uppercase;color:#fff;transform:skewX(8deg);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.portrait .ssel .ss-bot{left:.14rem;right:.14rem;bottom:.34rem;flex-direction:column;gap:.2rem}
+body.portrait .ssel .ss-wx button{font-size:.12rem;padding:.08rem .09rem}
+body.portrait .ssel .ss-go{font-size:.3rem;padding:.13rem .44rem}`; document.head.appendChild(st); }
+function stagePick(cur,o){ o=o||{}; stageCss(); ssCss(); return new Promise(res=>{ const extra=o.extra||[['random','Random']];
+  let gi=Math.max(0,STAGES.findIndex(([g,L])=>L.some(x=>x[0]===cur))), si=Math.max(0,STAGES[gi][1].findIndex(x=>x[0]===cur)); if(!STAGES.some(([g,L])=>L.some(x=>x[0]===cur))){ gi=Math.min(1,STAGES.length-1); si=0; }
+  let wx=store.stgWx||'any';
+  const vs=o.vs&&o.vs[0]&&FIGHTERS[o.vs[0]]&&FIGHTERS[o.vs[1]]?o.vs:null, nm=id=>FIGHTERS[id].name.replace('Ghost of ','');
+  const T=String(o.title||'Choose a stage');
+  const el=h('div','ssel',`<div class="ss-bg"></div><div class="ss-vig"></div>
+   <div class="ss-top"><button class="ss-chip back" type="button">◀ <b>Back</b></button><div class="ss-logo">Stage<i>Select</i></div><i class="ss-brk"></i>${vs?`<div class="ss-chip fx">P1 · <b style="color:#ff6a4a">${nm(vs[0])}</b></div><div class="ss-chip fx">P2 · <b style="color:#6aa8ff">${nm(vs[1])}</b></div>`:(T!=='Choose a stage'?`<div class="ss-chip fx">${T}</div>`:'')}${extra.map(([k,lb])=>`<button class="ss-chip ex${cur===k?' on':''}" type="button" data-k="${k}">${k==='random'?'? ':''}<b>${lb}${k==='random'?' stage':''}</b></button>`).join('')}</div>
+   <div class="ss-rgs"></div><div class="ss-car"></div>
+   <button class="ss-arw l" type="button" aria-label="Previous stage">‹</button><button class="ss-arw r" type="button" aria-label="Next stage">›</button>
+   <div class="ss-dots"></div><div class="ss-th"></div>
+   <div class="ss-bot"><div class="ss-hint"><span><b>◀ ▶</b> · Stage</span><span><b>Q E</b> · Region</span><span><b>V</b> · Look around</span><span><b>R</b> · Random</span><span><b>Esc</b> · Back</span></div>
+    <div class="ss-wx">${['any','clear','rain','fog','snow'].map(w=>`<button type="button" data-w="${w}">${w==='any'?'Any sky':w}</button>`).join('')}</div>
+    <button class="ss-go" type="button">▶ ${o.pickLabel||'Fight here'}</button></div>`);
+  const th=$('.ss-th',el), car=$('.ss-car',el), rgs=$('.ss-rgs',el), dots=$('.ss-dots',el), bg=$('.ss-bg',el);
+  const rg=i=>STG_RG[i]||['◆',STAGES[i][0],'#ffc93d'];
+  rgs.innerHTML=STAGES.map((G,i)=>`<button class="ss-rg" type="button" data-i="${i}" style="--rc:${rg(i)[2]}"><i>${rg(i)[0]}</i>${rg(i)[1]}</button>`).join('');
+  const L=()=>STAGES[gi][1], K=()=>L()[si][0];
+  const build=()=>{ const rc=rg(gi)[2], n=L().length;
+    car.innerHTML=L().map(([k,nn,th],j)=>`<div class="ss-card" data-j="${j}" style="--rc:${rc}"><div class="ss-box"><div class="ss-art" style="background-image:url(img/bg_${th||k}.webp)"></div></div><div class="ss-badge">${k.startsWith('bamboo:')?'Full 3D':'3D set'} · ${String(j+1).padStart(2,'0')} / ${String(n).padStart(2,'0')}</div><div class="ss-tx"><small>${STAGES[gi][0].replace(/ \(.*\)/,'')}</small><b>${nn}</b></div><button class="ss-chip ss-eye" type="button">◉ <b>Look around</b></button></div>`).join('');
+    dots.innerHTML=L().map((_,j)=>`<i data-j="${j}"></i>`).join('');
+    th.innerHTML=L().map(([k,nn,t2],j)=>`<button type="button" data-j="${j}" style="--rc:${rc};background-image:url(img/bg_${t2||k}.webp)"><span>${nn}</span></button>`).join('');
+    th.querySelectorAll('button').forEach(b=>b.onclick=()=>{ si=+b.dataset.j; lay(); });
+    rgs.querySelectorAll('.ss-rg').forEach(b=>b.classList.toggle('on',+b.dataset.i===gi));
+    const on=rgs.querySelector('.ss-rg.on'); if(on&&on.scrollIntoView) try{ on.scrollIntoView({block:'nearest',inline:'center'}); }catch(_){ }
+    car.querySelectorAll('.ss-card').forEach(c=>{ c.onclick=e=>{ if(e.target.closest('.ss-eye')) return; const j=+c.dataset.j; if(j===si) done(K()); else { si=j; lay(); } }; $('.ss-eye',c).onclick=e=>{ e.stopPropagation(); look(); }; });
+    dots.querySelectorAll('i').forEach(d=>d.onclick=()=>{ si=+d.dataset.j; lay(); });
+    lay(); };
+  const lay=()=>{ const n=L().length, P=document.body.classList.contains('portrait');
+    car.querySelectorAll('.ss-card').forEach(c=>{ let d=+c.dataset.j-si; if(n>2){ if(d>n/2) d-=n; if(d<-n/2) d+=n; } const a=Math.abs(d);
+      c.classList.toggle('on',d===0); c.style.zIndex=d===0?3:2-a;
+      c.style.transform=d===0?'none':P?`translateX(${d*86}%) scale(.6)`:`translateX(${d*4.8}rem) scale(.53)`; c.style.opacity=a>1?0:1; c.style.pointerEvents=a>1?'none':''; });
+    dots.querySelectorAll('i').forEach((x,j)=>x.classList.toggle('on',j===si)); th.querySelectorAll('button').forEach((x,j)=>x.classList.toggle('on',j===si));
+    bg.style.backgroundImage=`url(img/bg_${L()[si][2]||K()}.webp)`; try{ Snd.sfx('hover'); }catch(_){ } };
+  const step=d=>{ const n=L().length; si=(si+d+n)%n; lay(); };
+  const region=d=>{ gi=(gi+d+STAGES.length)%STAGES.length; si=0; build(); };
+  const setWx=w=>{ wx=w; el.querySelectorAll('.ss-wx button').forEach(b=>b.classList.toggle('on',b.dataset.w===wx)); };
+  const look=async()=>{ el.style.visibility='hidden'; removeEventListener('keydown',key,true); const v=await stageView(K(),o.pickLabel); addEventListener('keydown',key,true); el.style.visibility=''; if(v) done(v); };
+  const rand=()=>{ if(extra.some(x=>x[0]==='random')) done('random'); else { gi=(Math.random()*STAGES.length)|0; si=(Math.random()*L().length)|0; build(); } };
+  rgs.querySelectorAll('.ss-rg').forEach(b=>b.onclick=()=>{ gi=+b.dataset.i; si=0; build(); });
+  $('.ss-arw.l',el).onclick=()=>step(-1); $('.ss-arw.r',el).onclick=()=>step(1);
+  el.querySelectorAll('.ss-wx button').forEach(b=>b.onclick=()=>setWx(b.dataset.w)); setWx(wx);
+  el.querySelectorAll('.ss-chip.ex').forEach(b=>b.onclick=()=>done(b.dataset.k));
+  $('.ss-chip.back',el).onclick=()=>done(null); $('.ss-go',el).onclick=()=>done(K());
+  let px=null; car.addEventListener('pointerdown',e=>{ px=e.clientX; }); car.addEventListener('pointerup',e=>{ if(px==null) return; const dx=e.clientX-px; px=null; if(Math.abs(dx)>40){ step(dx<0?1:-1); e.stopPropagation(); } },true);
+  let wt=0; el.addEventListener('wheel',e=>{ const t=performance.now(); if(t-wt<220) return; wt=t; step((e.deltaY||e.deltaX)>0?1:-1); },{passive:true});
+  const key=e=>{ if(document.querySelector('.stgview')) return; const k=e.key; let hit=true;
+    if(k==='ArrowLeft'||k==='a'||k==='A') step(-1); else if(k==='ArrowRight'||k==='d'||k==='D') step(1);
+    else if(k==='q'||k==='Q'||k==='ArrowUp'||k==='PageUp') region(-1); else if(k==='e'||k==='E'||k==='ArrowDown'||k==='PageDown'||k==='Tab') region(e.shiftKey&&k==='Tab'?-1:1);
+    else if(k==='v'||k==='V') look(); else if(k==='r'||k==='R') rand(); else if(k==='Enter'||k===' ') done(K()); else if(k==='Escape'||k==='Backspace') done(null); else hit=false;
+    if(hit){ e.preventDefault(); e.stopPropagation(); } };
+  addEventListener('keydown',key,true);
+  const done=v=>{ removeEventListener('keydown',key,true); if(v){ STG_WX=wx; store.stgWx=wx; if(stageOf(v)) store.stgLast=v; try{ save(); }catch(_){ } } el.remove(); res(v); };
+  document.body.appendChild(el); build(); }); }
 // ── Versus extras: every fight deals each side a few random cards from their own toolkit, and you bring a second mentor who suits your style ──
 const VS_MENTOR={kaede:['kagari','kagari_thousand'],shura:['tetsu','redhot_hammer'],rasetsu:['hagane','hagane_breach'],maya:['orin','absolute_zero'],nia:['rei','volt_rush'],jin:['hagane','hagane_drill'],bruna:['ryo','ryo_patience'],suzu:['hotaru','hotaru_swarm'],nyx:['akatsuki','aka_rope'],orin:['maya','glacier_slam'],varro:['akatsuki','aka_sunrise'],rei:['hotaru','hotaru_glow'],azami:['gogo','ap_five'],mirei:['kagari','kagari_oil'],shio:['orin','absolute_zero'],gozen:['hagane','hagane_drill'],jo:['ryo','ryo_lastbell'],valka:['rei','volt_rush'],maximo:['kagari','kagari_oil'],rhea:['mirei','soul_drain'],kaiko:['rei','volt_rush'],ito:['nyx','shadow_step'],hana:['hotaru','hotaru_glow'],uzume:['hotaru','firefly_waltz'],akane:['duelist','sept_etoiles'],kuro:['nyx','shadow_step'],wukong:['ryo','ryo_lastbell'],gogo:['azami','black_lotus'],duelist:['hagane','hagane_breach'],lyra:['suzu','thunder_drumroll'],tetsu:['kagari','lantern_vigil']};
 function vsMentor(id){ const m=VS_MENTOR[id]; if(!m||!CARDS[m[1]]) return null; const [who,card]=m, st=(typeof MENTORS!=='undefined'&&MENTORS[who])||who==='ryo'; return {card,name:st?(who==='ryo'?'Ryo':MENTORS[who].name):FIGHTERS[who].name.replace('Ghost of ',''),sprite:who,gh:!st}; }
@@ -6212,7 +6329,7 @@ async function olMatch(me,them,stg,lo,gim){
 async function quickBattle(){ let id=null, oppId=null, stage=1, stg=null, lo=null; const VS={sm:'Versus mode · test battle',all:1};
   for(;;){ if(!id){ id=await pickHero(Object.assign({ti:'Choose your fighter'},VS)); if(!id){ __toMenu(); return; } }
     if(!oppId){ const ro=await pickHero(Object.assign({ti:'Choose your opponent',go:'Face ',exclude:id,start:Object.keys(HEROES).find(x=>x!==id)},VS)); if(!ro){ id=null; continue; } oppId=ro; stg=null; }
-    if(!stg){ const sp=await stagePick(null,{title:'Choose a stage',pickLabel:'Fight here'}); if(!sp){ oppId=null; continue; } stg=sp; }
+    if(!stg){ const sp=await stagePick(store.stgLast||null,{title:'Choose a stage',pickLabel:'Fight here',vs:[id,oppId]}); if(!sp){ oppId=null; continue; } stg=sp; }
     if(!lo){ lo=await vsLoadout(id,{sub:'Versus · vs '+FIGHTERS[oppId].name}); if(!lo){ stg=null; continue; } }
     HERO=id; const k=FIGHTERS[HERO], HH=HEROES[HERO];
     run={n:store.runs+1,hero:HERO,hp:vsHP(HERO),maxHp:vsHP(HERO),deck:lo.deck.slice(),mentor:lo.mentor,quick:1,inn:[HERO,lo.ins],stage:0,ghostDef:null,hype:0,fatigue:0,mon:10,conds:[],coach:null,bond:null,quests:[],perks:{guard:0,spirit:0,energy:0},intel:{},tut:!store.tutDone,stats:{t0:Date.now(),dmg:0,taken:0,big:0,combo:0,ctr:0,pctr:0,fights:0,won:0,turns:0},spirit:0,quick:true,tut:false};
