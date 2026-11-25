@@ -1,5 +1,14 @@
 [
  {
+  "version": "0.3.46",
+  "date": "Nov 25, 2026",
+  "title": "Stronger shadows",
+  "items": [
+   "On 3D stages the fighters' ground shadows are much darker and no longer wash out in fog",
+   "Fighters in the air still leave a lighter shadow, but it stays visible"
+  ]
+ },
+ {
   "version": "0.3.45",
   "date": "Nov 25, 2026",
   "title": "New stage select",

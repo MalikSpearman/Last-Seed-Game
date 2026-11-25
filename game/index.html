@@ -1689,6 +1689,17 @@ svg line.lk{stroke:rgba(160,160,160,.35)!important;stroke-dasharray:.04rem .08re
 .tbadge.off{display:none}.tbadge.theirs{box-shadow:inset 0 0 0 .016rem var(--k),0 0 .14rem rgba(255,70,90,.5)}
 .tbadge .torb{width:.2rem;height:.2rem;border-radius:50%;background:radial-gradient(circle at 38% 32%,#fff,var(--k) 55%,#000);box-shadow:0 0 .08rem var(--k)}
 .tbadge>b{font:800 .13rem/1 'Barlow Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff}
+/* the field indicator: name, what it does, whose it is and the turns left, readable at a glance */
+.tbadge{gap:.1rem!important;padding:.06rem .16rem .06rem .07rem!important;border-radius:.1rem!important;background:linear-gradient(180deg,rgba(14,16,30,.95),rgba(8,9,18,.92))!important}
+.tbadge .torb{width:.3rem!important;height:.3rem!important;flex:none}
+.tbadge .tbt{display:flex;flex-direction:column;gap:.025rem;text-align:left}
+.tbadge .tbt b{font:800 .21rem/1 'Barlow Condensed',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#fff;text-shadow:0 0 .08rem var(--k)}
+.tbadge .tbt em{font:600 .13rem/1.1 'Barlow Condensed',sans-serif;font-style:normal;letter-spacing:.03em;color:#e8f1ff;opacity:.92;white-space:nowrap}
+.tbadge .tside{display:flex;flex-direction:column;align-items:center;gap:.035rem;padding-left:.1rem;border-left:.012rem solid rgba(255,255,255,.18)}
+.tbadge .tside small{font:800 .1rem/1 'Barlow Condensed',sans-serif;letter-spacing:.16em;color:var(--k)}
+.tbadge.theirs .tside small{color:#ff8a9a}
+.tbadge .tpp u{width:.15rem!important;height:.08rem!important}
+
 .tpp{display:flex;gap:.025rem}.tpp u{width:.1rem;height:.06rem;border-radius:.01rem;background:#1c2230;box-shadow:inset 0 0 0 .008rem rgba(255,255,255,.2)}.tpp u.on{background:var(--k);box-shadow:0 0 .05rem var(--k)}.tpp u.wide{width:auto;height:auto;padding:.01rem .04rem;font:700 .07rem/1 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-decoration:none;color:#1a1020;border-radius:.02rem}
 .terbanner{position:absolute;left:50%;top:30%;z-index:70;display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-50%) skewX(-8deg);padding:.05rem .4rem;background:linear-gradient(90deg,transparent,rgba(10,12,22,.9) 20%,rgba(10,12,22,.9) 80%,transparent);pointer-events:none;animation:clpop .35s cubic-bezier(.2,1.4,.3,1) both,clout 1.5s .05s both}
 .terbanner small{font:700 .1rem/1 'Barlow Condensed',sans-serif;letter-spacing:.4em;color:var(--k)}
@@ -4034,7 +4045,7 @@ const SOULSCAPE = false;   // soulscapes are off for now: awakening shows the fi
 const DOMAIN_FX = {guard:4, heal:2};   // while a fighter is Awakened their Domain is the terrain: they gain 4 Guard and heal 2 each turn; reactions can't overwrite it
 const TERRAIN_TURNS = 3, TERRAIN_GUARD = 2;
 const TERRAIN = {steam:{k:'scald'},smoke:{k:'miasma'},toxic:{k:'miasma'},shatter:{k:'rime'},hemorrhage:{k:'bloodmoon'}};   // reaction -> the terrain it leaves behind
-const TERRAIN_FX = {scald:{name:'Scalding Mist',st:'burn',dmg:2,text:'At the start of their turn, anyone Burning takes 2.'},miasma:{name:'Miasma',st:'poison',dmg:2,text:'At the start of their turn, anyone Poisoned takes 2.'},rime:{name:'Rime Field',st:'chill',dmg:2,text:'At the start of their turn, anyone Chilled takes 2.'},bloodmoon:{name:'Blood Moon',st:'bleed',dmg:2,text:'At the start of their turn, anyone Bleeding takes 2.'}};
+const TERRAIN_FX = {scald:{name:'Scalding Mist',short:'Burning fighters take 2 each turn',st:'burn',dmg:2,text:'At the start of their turn, anyone Burning takes 2.'},miasma:{name:'Miasma',short:'Poisoned fighters take 2 each turn',st:'poison',dmg:2,text:'At the start of their turn, anyone Poisoned takes 2.'},rime:{name:'Rime Field',short:'Chilled fighters take 2 each turn',st:'chill',dmg:2,text:'At the start of their turn, anyone Chilled takes 2.'},bloodmoon:{name:'Blood Moon',short:'Bleeding fighters take 2 each turn',st:'bleed',dmg:2,text:'At the start of their turn, anyone Bleeding takes 2.'}};
 const WOUND = {max:3, hit:8, guard:.2, heal:.25};   // Wound: a heavy unblocked hit (8+) or any finisher that lands. Each Wound: -20% Guard gained, -25% healing.
 const SPIRIT_ARTS = {ward:{name:'Spirit Ward',cost:3,guard:7,text:'Gain 7 Guard.'},wind:{name:'Second Wind',cost:3,text:'Discard your hand and draw that many new cards.'},focus:{name:'Focus',cost:2,energy:1,text:'Gain 1 Energy.'},purify:{name:'Purify',cost:2,text:'Cleanse every Wound and ailment.'}};
 const SPIRIT = {max:18, bar:6, perCard:1, perSignature:2, perBigHit:2, bigHit:8, carry:0.5};
@@ -6947,11 +6958,11 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
   async function useInnate(k){ if(busy||done||!b.innateReady('p',k)){ if(!busy&&!done) Snd.sfx('deny'); return; } busy=true; hideTip(); select(null); refresh(); intentEl.style.display='none'; b.useInnate('p',k); await runEv(b.flush()); if(b.over) return finish(); busy=false; refresh(); }
   // ── Terrain: arena-wide field left by reactions (or an Awakened fighter's Domain) ──
   const TCOL={scald:'#ffa14a',miasma:'#a6e04a',rime:'#8fe4ff',bloodmoon:'#ff4d6a'}; let tCur=null;
-  function setTerrain(T){ const key=T?T.k+':'+T.owner+':'+(T.id||'')+':'+T.turns:''; let bd=$('.tbadge',stageEl), fd=$('.tfield',stageEl); if(!T){ if(bd) bd.classList.add('off'); if(fd) fd.classList.add('off'); tCur=null; return; }
+  function setTerrain(T){ const key=T?T.k+':'+T.owner+':'+(T.id||'')+':'+T.turns:''; let bd=$('.tbadge',stageEl), fd=$('.tfield',stageEl); if(!T){ if(bd) bd.classList.add('off'); if(fd) fd.classList.add('off'); tCur=null; ls3dCall('field',null); return; }
     const dom=T.k==='domain', A=dom?AWAKEN[T.id]:null, name=dom?A.domain:TERRAIN_FX[T.k].name, col=dom?A.c2:TCOL[T.k], txt=dom?'Soulscape — owner gains '+DOMAIN_FX.guard+' Guard and heals '+DOMAIN_FX.heal+' each turn, while awakened.':TERRAIN_FX[T.k].text+' The one who made it gains '+TERRAIN_GUARD+' Guard each turn.';
     if(!bd){ bd=h('div','tbadge'); stageEl.appendChild(bd); }
-    bd.className='tbadge '+(T.owner==='p'?'mine':'theirs')+(dom?' isdom':''); bd.style.setProperty('--k',col); bd.dataset.tip=`<b>${name}</b> — ${txt}`; bd.innerHTML=`<i class="torb"></i><b>${name}</b><span class="tpp">${dom?'<u class="on wide">AWAKENED</u>':[0,1,2].map(i=>`<u class="${i<T.turns?'on':''}"></u>`).join('')}</span>`;
-    if(!dom){ if(!fd){ fd=h('div','tfield'); stageEl.appendChild(fd); } fd.className='tfield '+T.k; fd.style.backgroundImage=`url(img/fx_terrain_${T.k}.webp)`; fd.style.setProperty('--k',col); } else if(fd) fd.classList.add('off');
+    bd.className='tbadge '+(T.owner==='p'?'mine':'theirs')+(dom?' isdom':''); bd.style.setProperty('--k',col); bd.dataset.tip=`<b>${name}</b> — ${txt}`; bd.innerHTML=`<i class="torb"></i><span class="tbt"><b>${name}</b><em>${dom?'Soulscape · while awakened':TERRAIN_FX[T.k].short||''}</em></span><span class="tside"><small>${T.owner==='p'?'YOURS':'RIVAL’S'}</small><span class="tpp">${dom?'<u class="on wide">AWAKENED</u>':[0,1,2].map(i=>`<u class="${i<T.turns?'on':''}"></u>`).join('')}</span></span>`;
+    if(!dom){ if(!fd){ fd=h('div','tfield'); stageEl.appendChild(fd); } fd.className='tfield '+T.k; ls3dCall('field',T.k); fd.style.backgroundImage=`url(img/fx_terrain_${T.k}.webp)`; fd.style.setProperty('--k',col); } else { if(fd) fd.classList.add('off'); ls3dCall('field',null); }
     tCur=key; }
   function iaShow(total,rate,spent){ const ic=iacEl; if(!ic) return; const e=$('em',ic); if(e.textContent!==String(total)){ e.textContent=total; ic.classList.remove('pop'); void ic.offsetWidth; ic.classList.add('pop'); } $('small',ic).textContent='+'+Math.round(total*(rate||.05)*100)+'%'; ic.classList.toggle('cap',total>=IA.soft); ic.classList.toggle('over',total>IA.soft); ic.querySelectorAll('u').forEach(()=>{}); }
   // ── Wukong's Ruyi Jingu Bang: a staff beside him that lengthens and thickens with Size (3 tiers: 0-3, 4-7, 8-10) ──

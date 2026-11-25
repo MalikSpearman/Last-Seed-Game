@@ -173,7 +173,7 @@ function caster(side, fd) {
   if (!c) {
     const cnv = document.createElement('canvas'); cnv.width = cnv.height = 4;
     const tex = new T.CanvasTexture(cnv); tex.colorSpace = T.SRGBColorSpace;
-    const m = new T.Mesh(new T.PlaneGeometry(1, 1).translate(0, .5, 0), new T.MeshBasicMaterial({ map: tex, color: 0x000000, transparent: true, opacity: .42, alphaTest: .02, depthWrite: false, side: T.DoubleSide, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4, fog: true }));
+    const m = new T.Mesh(new T.PlaneGeometry(1, 1).translate(0, .5, 0), new T.MeshBasicMaterial({ map: tex, color: 0x000000, transparent: true, opacity: .8, alphaTest: .02, depthWrite: false, side: T.DoubleSide, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4, fog: false }));
     m.matrixAutoUpdate = false; m.renderOrder = 2; m.castShadow = false; m.receiveShadow = false;
     D.scene.add(m); c = casters[side] = { m, tex, cnv, src: '', key: '' };
   }
@@ -189,6 +189,7 @@ function caster(side, fd) {
 }
 // lay a silhouette on the ground: feet at base, sprite width along the camera's right, sprite height sheared along the shadow direction
 const SHD = { dir: new T.Vector3(.8, 0, -.6), len: .78 };
+const SHA = .8; // ground silhouette strength
 function shadowDir() { const cam = D.camera, R = new T.Vector3(1, 0, 0).applyQuaternion(cam.quaternion); R.y = 0; R.normalize(); const Bk = new T.Vector3(0, 0, -1).applyQuaternion(cam.quaternion); Bk.y = 0; Bk.normalize();
   const L = cur && cur.moon ? cur.moon.position.clone().sub(cur.moon.target.position).normalize() : (D.moon ? D.moon.position.clone().normalize() : new T.Vector3(.35, 1, .3));
   const away = new T.Vector3(-L.x, 0, -L.z); const sx = away.lengthSq() > 1e-4 ? Math.sign(away.dot(R)) || 1 : 1;
@@ -199,7 +200,7 @@ function layShadow(c, base, hw, ww, mir, lift, vis) {
   const X = R.clone().multiplyScalar(ww * (mir ? -1 : 1)), Y = SHD.dir.clone().multiplyScalar(hw * SHD.len), Z = new T.Vector3(0, 1, 0);
   const at = base.clone().addScaledVector(SHD.dir, lift * SHD.len).add(new T.Vector3(0, .015, 0)); const o = at;
   m.matrix.makeBasis(X, Y, Z); m.matrix.setPosition(o); m.matrixWorldNeedsUpdate = true; m.position.copy(base);
-  m.material.opacity = .42 * Math.max(.25, 1 - lift / Math.max(1e-3, hw) * 1.6); }
+  m.material.opacity = SHA * Math.max(.3, 1 - lift / Math.max(1e-3, hw) * 1.6); }
 function placeExtraCasters(X) {
   const cam = D.camera, seen = new Set();
   for (const fd of X) {
@@ -328,6 +329,7 @@ function ensure() {
   built = Promise.resolve();
   let lastF = {};
   D.frame((dt, t) => {
+    fieldTick(t, dt);
     // a painted set is framed like its 2D painting: wide screens zoom the lens (never dolly in, which would bare the painting's edges)
     { const tq = Math.tan(Math.PI / 12) * (P.cover ? Math.min(1, P.cover / D.camera.aspect) : 1), fv = Math.atan(tq) * 360 / Math.PI; if (Math.abs(D.camera.fov - fv) > 1e-3) { D.camera.fov = fv; D.camera.updateProjectionMatrix(); } }
     const [cx, cy, cz] = P.c;
@@ -429,7 +431,61 @@ const NEXT = { w_graves: 'w_mill', w_mill: 'w_village', w_village: 'road', road:
   mountain_pass: 'rooftops', rooftops: 'nw_roof', ring: 'festival' };
 export function nextStage() { return (D && !D.paused && NEXT[key]) || null; }
 export function transition(host) { const n = nextStage(); if (!n || !host) return Promise.resolve(null); return start(host, n, null).then(() => n, () => null); }
-export function stop() { window.__ls3dSet = false; releaseMarks(); OTS.on = false; OTS.k = 0; gen++; if (!D) return; cv.style.opacity = 0; document.getElementById('app').classList.remove('hd3d', 'hd3dsh'); fz = 1; document.getElementById('app').style.removeProperty('--fz3d'); clearLights(); for (const k in lits) delete lits[k]; for (const s in casters) casters[s].m.visible = false; setTimeout(() => { if (cv.style.opacity === '0') { D.release(); cv.style.display = 'none'; } }, 900); }
+// ── FIELD EFFECTS on the 3D ground (Rime Field first): frost creeping out over the floor around both fighters, a few
+//    ice crystals breaking through at the edges, light snow drifting down. Grows in, breathes softly, melts away. ──
+const FLD = { k: null, g: null, a: 0, want: 0, t0: 0, parts: [] };
+function frostTex() { const W = 1024, H = 512, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+  const rg = g.createRadialGradient(W / 2, H / 2, 10, W / 2, H / 2, W / 2); rg.addColorStop(0, 'rgba(225,245,255,.55)'); rg.addColorStop(.55, 'rgba(190,230,255,.32)'); rg.addColorStop(1, 'rgba(190,230,255,0)');
+  g.fillStyle = rg; g.fillRect(0, 0, W, H);
+  // ferns of frost: branching hairlines, densest near the edges of the patch
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  g.strokeStyle = 'rgba(245,252,255,.55)'; g.lineCap = 'round';
+  const fern = (x, y, a, len, w, d) => { if (d > 4 || len < 6) return; const x2 = x + Math.cos(a) * len, y2 = y + Math.sin(a) * len * .5; g.lineWidth = w; g.beginPath(); g.moveTo(x, y); g.lineTo(x2, y2); g.stroke();
+    for (let i = 1; i <= 3; i++) { const t = i / 4, bx = x + (x2 - x) * t, by = y + (y2 - y) * t; fern(bx, by, a + (rnd() < .5 ? -1 : 1) * (.6 + rnd() * .5), len * .45, w * .7, d + 1); } fern(x2, y2, a + (rnd() - .5) * .5, len * .6, w * .8, d + 1); };
+  for (let i = 0; i < 46; i++) { const a = rnd() * Math.PI * 2, r = .25 + rnd() * .55, x = W / 2 + Math.cos(a) * W / 2 * r, y = H / 2 + Math.sin(a) * H / 2 * r; fern(x, y, a + (rnd() - .5) * 1.2, 40 + rnd() * 70, 1.6, 0); }
+  // soft mask so nothing ends in a hard edge
+  g.globalCompositeOperation = 'destination-in'; const m = g.createRadialGradient(W / 2, H / 2, W * .08, W / 2, H / 2, W / 2); m.addColorStop(0, 'rgba(0,0,0,.75)'); m.addColorStop(.7, 'rgba(0,0,0,1)'); m.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = m; g.fillRect(0, 0, W, H);
+  const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; t.anisotropy = 4; return t; }
+function flakeTex() { const c = document.createElement('canvas'); c.width = c.height = 32; const g = c.getContext('2d'), r = g.createRadialGradient(16, 16, 0, 16, 16, 16); r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(.4, 'rgba(235,248,255,.7)'); r.addColorStop(1, 'rgba(235,248,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 32, 32); return new T.CanvasTexture(c); }
+function buildRime() {
+  const [cx, cy, cz] = P.c, gap = gapNow(), grp = new T.Group(); grp.position.set(cx, cy, cz);
+  // the frost patch: a wide oval reaching past both fighters
+  const fr = new T.Mesh(new T.PlaneGeometry(gap * 4.2, gap * 2.1), new T.MeshBasicMaterial({ map: frostTex(), transparent: true, depthWrite: false, opacity: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, fog: true }));
+  fr.rotation.x = -Math.PI / 2; fr.position.y = .02; fr.renderOrder = 1; grp.add(fr);
+  // ice crystals: small clusters at the edges of the patch and just behind each fighter, never between them
+  const ice = new T.MeshStandardMaterial({ color: 0xcdeeff, emissive: 0x2f7fc0, emissiveIntensity: .45, roughness: .12, metalness: .05, transparent: true, opacity: .82, flatShading: true });
+  const crystals = []; let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const spots = [[-1.55, -.35], [-1.25, .55], [-.75, -.62], [1.6, -.3], [1.2, .6], [.8, -.6], [0, -.85], [-2, .1], [2.05, .15]];
+  for (const [sx, sz] of spots) { const cl = new T.Group(); cl.position.set(sx * gap, 0, sz * gap); const n = 2 + (rnd() * 3 | 0);
+    for (let i = 0; i < n; i++) { const h = gap * (.08 + rnd() * .16), m = new T.Mesh(new T.ConeGeometry(h * .16, h, 5), ice); m.position.set((rnd() - .5) * gap * .12, h * .45, (rnd() - .5) * gap * .1); m.rotation.set((rnd() - .5) * .7, rnd() * 6, (rnd() - .5) * .7); cl.add(m); }
+    cl.scale.setScalar(.001); grp.add(cl); crystals.push({ cl, d: rnd() * .5 }); }
+  // light snow drifting through the space around the fighters
+  const N = 260, pos = new Float32Array(N * 3), vel = []; for (let i = 0; i < N; i++) { pos[i * 3] = (rnd() - .5) * gap * 5; pos[i * 3 + 1] = rnd() * gap * 2.4; pos[i * 3 + 2] = (rnd() - .5) * gap * 2.6; vel.push(.08 + rnd() * .1, rnd() * 6); }
+  const pg = new T.BufferGeometry(); pg.setAttribute('position', new T.BufferAttribute(pos, 3));
+  const snow = new T.Points(pg, new T.PointsMaterial({ map: flakeTex(), size: gap * .035, transparent: true, opacity: 0, depthWrite: false, color: 0xeaf6ff, fog: true }));
+  grp.add(snow);
+  const lt = new T.PointLight(0x8fd8ff, 0, gap * 3, 2); lt.position.set(0, gap * .35, 0); grp.add(lt);
+  return { grp, fr, crystals, snow, vel, lt, gap }; }
+function fieldTick(t, dt) {
+  if (!FLD.k && !FLD.g) return; FLD.a += (FLD.want - FLD.a) * Math.min(1, dt * (FLD.want ? 1.6 : 2.4));
+  let F = FLD.g; if (!F) return; if (F.P !== P && FLD.k === 'rime') { F.grp.removeFromParent(); F = FLD.g = buildRime(); }   // the stage changed under it (Rushdown chase): rebuild at the new clearing
+  F.P = P; if (F.grp.parent !== D.scene) D.scene.add(F.grp);
+  const a = FLD.a, br = 1 + .06 * Math.sin(t * 1.3);
+  F.fr.material.opacity = .9 * a; F.fr.scale.setScalar(.55 + .45 * Math.min(1, a * 1.15));
+  for (const c of F.crystals) { const k = Math.max(0, Math.min(1, (a - c.d * .6) / .5)); c.cl.scale.setScalar(Math.max(.001, k * k * (3 - 2 * k))); }
+  F.snow.material.opacity = .75 * a; const p = F.snow.geometry.attributes.position, top = F.gap * 2.4;
+  for (let i = 0; i < p.count; i++) { let y = p.getY(i) - F.vel[i * 2] * F.gap * dt * .45; if (y < 0) y += top; p.setY(i, y); p.setX(i, p.getX(i) + Math.sin(t * .8 + F.vel[i * 2 + 1]) * F.gap * dt * .02); } p.needsUpdate = true;
+  F.lt.intensity = 2.2 * a * br;
+  if (!FLD.want && a < .01) { F.grp.removeFromParent(); F.fr.material.map.dispose(); F.grp.traverse(o => { if (o.geometry) o.geometry.dispose(); }); FLD.g = null; FLD.k = null; } }
+// kind: a field's key ('rime', ...) or null to clear. Only Rime Field is built in 3D so far; others keep the 2D overlay.
+export function field(kind) {
+  if (!D || D.paused) return false; const has = false && kind === 'rime';   // the 3D Rime Field look was rejected; fields stay 2D until a new direction is chosen
+  if (!has) { FLD.want = 0; return false; }
+  if (FLD.k === kind && FLD.g) { FLD.want = 1; return true; }
+  if (FLD.g) { FLD.g.grp.removeFromParent(); FLD.g = null; }
+  FLD.k = kind; FLD.g = buildRime(); FLD.a = 0; FLD.want = 1; D.scene.add(FLD.g.grp); return true; }
+export function fieldKinds() { return ['rime']; }
+export function stop() { if (FLD.g) { FLD.g.grp.removeFromParent(); FLD.g = null; FLD.k = null; FLD.a = 0; FLD.want = 0; } window.__ls3dSet = false; releaseMarks(); OTS.on = false; OTS.k = 0; gen++; if (!D) return; cv.style.opacity = 0; document.getElementById('app').classList.remove('hd3d', 'hd3dsh'); fz = 1; document.getElementById('app').style.removeProperty('--fz3d'); clearLights(); for (const k in lits) delete lits[k]; for (const s in casters) casters[s].m.visible = false; setTimeout(() => { if (cv.style.opacity === '0') { D.release(); cv.style.display = 'none'; } }, 900); }
 export function hit(side, big) { hitK = big ? 1.3 : .8; hitSide = side === 'e' ? 1 : -1; shake = big ? .08 : .04; }
 // a hit lands on 'p' or 'e': camera push + shake, then the arena reacts at their feet (light, dust, cracks, element marks)
 export function impact(side, o = {}) {
