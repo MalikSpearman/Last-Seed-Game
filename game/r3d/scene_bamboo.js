@@ -11,10 +11,15 @@ export const P = [
   { x: 27, z: -6.8, y: 3, w: 1.7, st: 1 }, { x: 27, z: -8.5, y: 3, w: 3.2 }, { x: 27, z: -15, y: 3, w: 5 },
 ];
 P.forEach(p => p.y = p.y || 0);
-export function nearest(x, z) {
+// the road goes on: a western stretch before the grove and an eastern road past the shrine stairs
+export const PW = [{ x: -96, z: 1.6, w: 2.4 }, { x: -86, z: 2.8, w: 2.6 }, { x: -74, z: 1.2, w: 2.5 }, { x: -62, z: 2.6, w: 2.6 }, { x: -50, z: 1.4, w: 2.5 }, { x: -40, z: 1.0, w: 2.6 }];
+export const PE = [{ x: 23.5, z: 1.4, w: 2.2 }, { x: 32, z: 2.2, w: 2.4 }, { x: 42, z: 1.2, w: 2.6 }, { x: 54, z: 2.6, w: 2.5 }, { x: 66, z: 1.4, w: 2.6 }, { x: 78, z: 2.2, w: 2.4 }];
+PW.forEach(p => p.y = 0); PE.forEach(p => p.y = 0);
+export const PATHS = [P, PW, PE];
+export function nearest(x, z, paths = PATHS) {
   let best = null;
-  for (let i = 0; i < P.length - 1; i++) {
-    const a = P[i], b = P[i + 1], dx = b.x - a.x, dz = b.z - a.z, L2 = dx * dx + dz * dz;
+  for (const Q of paths) for (let i = 0; i < Q.length - 1; i++) {
+    const a = Q[i], b = Q[i + 1], dx = b.x - a.x, dz = b.z - a.z, L2 = dx * dx + dz * dz;
     let t = ((x - a.x) * dx + (z - a.z) * dz) / L2; t = Math.max(0, Math.min(1, t));
     const px = a.x + dx * t, pz = a.z + dz * t, d = Math.hypot(x - px, z - pz), w = a.w + (b.w - a.w) * t, y = a.y + (b.y - a.y) * t;
     const over = d - w; if (!best || over < best.over) best = { over, px, pz, d, w, y, i, t };
@@ -22,6 +27,23 @@ export function nearest(x, z) {
   return best;
 }
 
+// ── a real 3D arched bridge over the stream: wooden deck that follows the walkable arch, red lacquer rails and posts with gold caps, stone piers ──
+function bridge3d(D) {
+  const N = [[-20.6, 0], [-19.6, .9], [-17.8, 1.5], [-16, 1.67], [-14.2, 1.5], [-12.4, .9], [-11.4, 0]], z0 = 2.6, half = 1.05;
+  const yAt = x => { for (let i = 0; i < N.length - 1; i++) { const [a, ya] = N[i], [b, yb] = N[i + 1]; if (x >= a && x <= b) { const u = (x - a) / (b - a), s = u * u * (3 - 2 * u); return ya + (yb - ya) * s; } } return 0; };
+  const wood = new T.MeshStandardMaterial({ color: 0x6e4b33, roughness: .85 }), lac = new T.MeshStandardMaterial({ color: 0xa8242a, roughness: .45 }), gold = new T.MeshStandardMaterial({ color: 0xd9a441, metalness: .6, roughness: .35 }), stone = new T.MeshStandardMaterial({ color: 0x6c6a64, roughness: .95 });
+  const g = new T.Group(); const add = (geo, mat, x, y, z, rz = 0) => { const m = new T.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.z = rz; m.castShadow = m.receiveShadow = true; g.add(m); return m; };
+  const x0 = N[0][0], x1 = N[N.length - 1][0], steps = 28;
+  for (let i = 0; i < steps; i++) {
+    const a = x0 + (x1 - x0) * i / steps, b = x0 + (x1 - x0) * (i + 1) / steps, ya = yAt(a), yb = yAt(b), L = Math.hypot(b - a, yb - ya), rz = Math.atan2(yb - ya, b - a), mx = (a + b) / 2, my = (ya + yb) / 2;
+    add(new T.BoxGeometry(L * 1.04, .1, half * 2), wood, mx, my - .05, z0, rz);                       // planks
+    for (const s of [-1, 1]) { add(new T.BoxGeometry(L * 1.04, .2, .12), lac, mx, my - .12, z0 + s * half, rz);   // side beams
+      add(new T.BoxGeometry(L * 1.04, .07, .09), lac, mx, my + .82, z0 + s * half, rz); add(new T.BoxGeometry(L * 1.04, .05, .06), lac, mx, my + .45, z0 + s * half, rz); }   // top + mid rails
+  }
+  for (let i = 0; i <= 8; i++) { const x = x0 + .25 + (x1 - x0 - .5) * i / 8, y = yAt(x); for (const s of [-1, 1]) { add(new T.BoxGeometry(.13, .95, .13), lac, x, y + .38, z0 + s * half); add(new T.SphereGeometry(.09, 10, 8), gold, x, y + .9, z0 + s * half); } }
+  for (const x of [-17.8, -14.2]) for (const s of [-1, 1]) add(new T.BoxGeometry(.32, 1.9, .32), stone, x, yAt(x) - 1.1, z0 + s * (half - .15));
+  D.scene.add(g); return g;
+}
 export async function build(D) {
 // ── world ──
 D.moonlight({ intensity: 2.6, ambientI: 2.2 });
@@ -44,7 +66,7 @@ D.ribbon([{ x: -13.1, z: -40, w: .5 }, { x: -13.1, z: 40, w: .5 }], I('t_dirt'),
 
 
   const A = (n, x, z, h, o) => D.prop(I(n), x, z, h, o);
-  await A('bridge', -16, 2.95, 3.05, { blobW: .1, shadow: false });
+  bridge3d(D);
   await A('shrine', 27, -20, 4.6, { y: 3, blobW: .35 }); D.lantern(25.6, 5.6, -19.6, { distance: 7, intensity: 10, glow: .5 }); D.lantern(28.4, 5.6, -19.6, { distance: 7, intensity: 10, glow: .5 });
   await A('offering', 27, -17.6, .8, { y: 3 });
   await A('lanternline', -1.5, -1.6, 2.6); [-3.1, -2.2, -1.4, -.6, .2].forEach(x => D.lantern(x, 2.05, -1.45, { color: 0xff5030, intensity: 3, distance: 4, glow: .35, flicker: true }));
@@ -58,7 +80,7 @@ D.ribbon([{ x: -13.1, z: -40, w: .5 }, { x: -13.1, z: 40, w: .5 }], I('t_dirt'),
       const z = -1.6 - row * 3.2 - R() * 2.2, xx = x + R() * 1.4;
       if (Math.abs(xx + 16) < 3.4) continue;                         // stream
       if (xx > 18.5 && xx < 36 && z < -1) continue;                 // stairs + plateau
-      const n = nearest(xx, z); if (n.over < 1) continue;
+      const n = nearest(xx, z, [P]); if (n.over < 1) continue;
       const big = R() < .55, one = R() < .3; await A(one ? 'bamboo1' : big ? 'bamboo3' : 'rfg_bamboo', xx, z, big ? rnd(7, 9) : rnd(5.5, 7), { flip: R() < .5, sway: .012, blobW: .25, tint: row ? 0xb8c4d8 : 0xffffff });
     }
   }
@@ -82,5 +104,21 @@ D.ribbon([{ x: -13.1, z: -40, w: .5 }, { x: -13.1, z: 40, w: .5 }], I('t_dirt'),
   await A('sakura', -27, -4.5, 4.4); await A('sakura', 8, -3.2, 3.6, { flip: 1 });
   D.petals(70, -27, -3, 4); D.petals(60, 27, -16, 7); D.petals(40, 8, -2, 3.5);
   D.fireflies(140, 0, 1, 40, 6); D.fireflies(40, 27, -14, 7, 5, { y0: 3.3, y1: 6.5 });
+  // a towering back row (about three fighters tall) so zoomed-out fights, big enemies and crews still sit inside the grove
+  for (let x = -46; x < 48; x += 2.2) { const xx = x + R() * 1.6, z = -12.6 - R() * 3; if (Math.abs(xx + 16) < 3.6) continue; if (xx > 17.5 && xx < 37) continue;
+    await A(R() < .5 ? 'bamboo3' : 'bamboo1', xx, z, rnd(12, 16), { flip: R() < .5, sway: .008, blobW: .2, tint: 0x9aa8c4 }); }
+  for (let x = 17; x < 38; x += 2.4) await A('bamboo3', x + R(), -28 - R() * 2, rnd(13, 17), { y: 3, sway: .008, blobW: .2, tint: 0x9aa8c4, flip: R() < .5 });
+  // the western stretch and the eastern road
+  D.ribbon(PW, I('t_dirt'), { texLen: 5 }); D.ribbon(PE, I('t_dirt'), { texLen: 5 });
+  for (const [x0, x1] of [[-104, -44], [46, 86]]) {
+    for (let x = x0; x < x1; x += 1.6) for (let row = 0; row < 3; row++) { const z = -1.6 - row * 3.2 - R() * 2.2, xx = x + R() * 1.4; const n = nearest(xx, z); if (n.over < 1) continue;
+      const big = R() < .55; await A(big ? 'bamboo3' : 'rfg_bamboo', xx, z, big ? rnd(7, 9) : rnd(5.5, 7), { flip: R() < .5, sway: .012, blobW: .25, tint: row ? 0xb8c4d8 : 0xffffff }); }
+    for (let x = x0; x < x1; x += rnd(6, 9)) await A(R() < .5 ? 'bamboo3' : 'rfg_bamboo', x, 8.6 + R() * 2, rnd(6.5, 8), { fadeNear: 1, flip: R() < .5, sway: .01, blobW: .25 });
+    for (let x = x0; x < x1; x += 3.1) await A('ferns', x, 6.2 + R() * 1.5, rnd(.7, 1.1), { flip: R() < .5 });
+    for (let x = x0; x < x1; x += 2.2) { const xx = x + R() * 1.6; await A(R() < .5 ? 'bamboo3' : 'bamboo1', xx, -12.6 - R() * 3, rnd(12, 16), { flip: R() < .5, sway: .008, blobW: .2, tint: 0x9aa8c4 }); }
+  }
+  for (const [x, z] of [[-92, -.6], [-80, 5.6], [-68, -.4], [-56, 5.2], [-46, -.6], [36, -.6], [48, 5.4], [60, -.4], [72, 5.2]]) { await A('toro', x, z, 2.3); D.lantern(x, 1.62, z + .15, { distance: 9, intensity: 16 }); }
+  await A('sakura', -84, -4, 4.2); await A('sakura', 58, -3.6, 4, { flip: 1 }); await A('sign', -95, -.6, 1.7); await A('sign', 77, -.4, 1.7, { flip: 1 });
+  D.petals(50, -84, -3, 4); D.petals(40, 58, -3, 4); D.fireflies(90, -70, 1, 26, 6); D.fireflies(80, 60, 1, 22, 6);
   // things to find
 }

@@ -10061,5 +10061,5 @@ window.LSQ=(function(){ const css=document.createElement('style'); css.textConte
     const sfx=big=>{ if(aud) return; const n=performance.now(); if(n-lastS<90) return; lastS=n; try{ Snd.sfx(fx||'impact',big); }catch(e){} };
     const ready=async()=>{ wr.classList.add('on'); try{ if(await ap){ aud=true; await Promise.race([Snd.critPlay('sup_'+id),new Promise(r=>setTimeout(r,700))]); } }catch(e){ aud=false; } if(!aud) ST.dur=0; };
     wr.addEventListener('pointerdown',fin); setTimeout(()=>{ if(!wr.classList.contains('on')&&!ST.stop) fin(); },9000); setTimeout(()=>{ if(!ST.stop) fin(); },Math.max(25000,ST.dur+6000));
-    try{ f(wr.querySelector('canvas'),riv,title||'',sfx,ready,fin,ST,(k,src)=>k==='riv'?img(src):cut(src),ok,side==='e'); }catch(e){ console.warn('LSQ',e); fin(); } }); }
+    try{ f(wr.querySelector('canvas'),riv,title||'',sfx,ready,fin,ST,(k,src)=>k==='riv'?img(src):(k==='bg'&&window.__LSQ_BG?img(window.__LSQ_BG).then(i=>i||cut(src)):cut(src)),ok,side==='e'); }catch(e){ console.warn('LSQ',e); fin(); } }); }
   return { has:id=>!!LSQ_SC[id], run, pre }; })();

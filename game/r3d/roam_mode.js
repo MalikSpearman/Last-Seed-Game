@@ -3,7 +3,7 @@
 import { Diorama, T } from './diorama.js';
 import { build, nearest } from './scene_bamboo.js';
 
-const BASE = new URL('./img/', import.meta.url).href, I = n => BASE + n + '.webp';
+const BASE = new URL('./img/', import.meta.url).href, I = n => BASE + n + '.webp', GAMEIMG = new URL('../img/', import.meta.url).href;
 const CSS = `.roam3d{position:fixed;inset:0;z-index:95;background:#05060d;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;font-family:'Barlow Condensed',system-ui,sans-serif;color:#fff}
 .roam3d.away{visibility:hidden}
 .roam3d canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
@@ -46,13 +46,35 @@ const ITEMS = [
   { img: 'rp_elixir', x: -27, z: 5.2, h: .6, kind: 'elixir', label: 'Drink the elixir' },
   { img: 'rp_scroll', x: 31, z: -10, h: .7, y: 3, kind: 'scroll', label: 'Read the technique scroll' },
   { img: 'rp_rchest', x: 23.6, z: -16.5, h: .85, y: 3, kind: 'rchest', label: 'Open the sealed offering', lock: 'nue' },
+  // the western stretch
+  { img: 'rp_pot', x: -90, z: 3.4, h: .75, kind: 'pot', label: 'Break the pot' },
+  { img: 'rp_food', x: -78, z: 4.0, h: .5, kind: 'food', label: 'Eat the onigiri' },
+  { img: 'rp_chest', x: -66, z: -.2, h: .75, kind: 'chest', label: 'Open the chest' },
+  { img: 'rp_crates', x: -54, z: 3.9, h: .9, kind: 'pot', label: 'Break the crates' },
+  { img: 'rp_barrel', x: -45, z: 3.6, h: .9, kind: 'pot', label: 'Smash the barrel' },
+  // the eastern road
+  { img: 'rp_pot', x: 38, z: 3.6, h: .75, kind: 'pot', label: 'Break the pot' },
+  { img: 'rp_elixir', x: 50, z: -.2, h: .6, kind: 'elixir', label: 'Drink the elixir' },
+  { img: 'rp_chest', x: 62, z: 4.0, h: .75, kind: 'chest', label: 'Open the chest' },
+  { img: 'rp_food', x: 70, z: 3.4, h: .5, kind: 'food', label: 'Eat the onigiri' },
+  { img: 'rp_rchest', x: 79, z: 3.2, h: .85, kind: 'rchest', label: 'Open the bandit hoard', lock: 'gasha' },
 ];
 const FOES = [
   { id: 'tanuki', x: -2, z: 2.2, h: 1.7, stage: 'road' },
   { id: 'tengu', x: 14, z: 2.4, h: 2.1, stage: 'road' },
   { id: 'nue', x: 27, z: -14, h: 2.6, y: 3, stage: 'shrine', boss: 1 },
+  // the western stretch: the old festival road's brawlers (src: the game's own free-roam art)
+  { id: 'bruiser', src: 'battle', _r: 'roam_bruiser', x: -84, z: 2.4, h: 2.2, stage: 'road' },
+  { id: 'ronin', src: 'battle', _r: 'roam_ronin', x: -71, z: 1.6, h: 2.1, stage: 'road' },
+  { id: 'kappa', src: 'battle', _r: 'roam_kappa', x: -60, z: 3.0, h: 1.6, stage: 'bridge' },
+  { id: 'bandit', src: 'battle', _r: 'roam_bandit', x: -49, z: 1.8, h: 2.0, stage: 'road' },
+  // the eastern road, with a miniboss guarding the hoard at the end
+  { id: 'komainu', src: 'battle', _r: 'roam_komainu', x: 36, z: 2.2, h: 1.8, stage: 'road' },
+  { id: 'yuki', src: 'battle', _r: 'roam_yuki', x: 47, z: 1.6, h: 2.1, stage: 'road' },
+  { id: 'spider', src: 'battle', _r: 'roam_spider', x: 58, z: 2.6, h: 1.9, stage: 'road' },
+  { id: 'gasha', src: 'battle', _r: 'roam_gasha', x: 73, z: 1.8, h: 3.4, stage: 'road', boss: 1 },
 ];
-const START = { x: -38, z: 1.6 };
+const START = { x: -94, z: 1.8 };
 
 export async function createRoam(host, cfg) {
   if (!document.getElementById('r3css')) { const st = document.createElement('style'); st.id = 'r3css'; st.textContent = CSS; document.head.appendChild(st); }
@@ -61,7 +83,7 @@ export async function createRoam(host, cfg) {
   host.classList.add('roam3d'); if (touch) host.classList.add('touch');
   host.innerHTML = `<canvas></canvas>
     <div class="r3-hud"><i class="r3-ava" style="background-image:url(${cfg.ava})"></i><div><b></b><div class="r3-hp"><i></i></div><small></small></div></div>
-    <div class="r3-zone"><b>MOONLIT BAMBOO ROAD</b><i>Cross the stream · climb to the shrine</i></div>
+    <div class="r3-zone"><b>MOONLIT BAMBOO ROAD</b><i>Walk the long road · cross the stream · climb to the shrine</i></div>
     <div class="r3-prompt"><kbd>E</kbd><span></span></div><div class="r3-banner"><b></b><span></span></div>
     <button class="r3-menu" aria-label="Pause menu"><i></i><i></i><i></i></button>
     <div class="r3-stick"><i></i></div><div class="r3-btns"><button class="act" type="button">ACT</button><button class="atk" type="button">STRIKE</button></div>
@@ -78,7 +100,8 @@ export async function createRoam(host, cfg) {
   for (const it of ITEMS) { it.done = false; it.mesh = await A(it.img, it.x, it.z, it.h, { y: it.y || 0 }); }
   for (const f of FOES) {
     Object.assign(f, { st: 'idle', t: 0, beaten: false, x0: f.x, z0: f.z });
-    f.mesh = await A('foe_' + f.id, f.x, f.z, f.h, { y: f.y || 0, flip: 1, blob: false }); f.base = f.mesh.scale.y; f.blob = D.blob(f.x, f.z, .7, f.y || 0);
+    const url = f.src ? (cfg.foeArt ? await cfg.foeArt(f.id) : GAMEIMG + 'foe_' + f.id + '.webp') : I('foe_' + f.id);
+    f.mesh = await D.prop(url, f.x, f.z, f.h, { y: f.y || 0, flip: 1, blob: false }); f.base = f.mesh.scale.y; f.blob = D.blob(f.x, f.z, f.boss ? 1 : .7, f.y || 0);
   }
   // ── hero ──
   const idleH = (cfg.frames.idle && cfg.frames.idle[0][3]) || 400;
@@ -124,7 +147,7 @@ export async function createRoam(host, cfg) {
   }
   function act() { if (busy || paused || !near) return; if (near.foe) { engage(near, 'ambush'); return; } use(near); }
   function use(it) {
-    if (it.kind === 'rchest' && FOES.some(f => f.id === it.lock && !f.beaten)) { banner('Sealed', 'Beat the shrine guardian first'); return; }
+    if (it.kind === 'rchest' && FOES.some(f => f.id === it.lock && !f.beaten)) { banner('Sealed', it.lock === 'nue' ? 'Beat the shrine guardian first' : 'Beat the Gashadokuro first'); return; }
     it.done = true; const at = it.mesh.position.clone().add(new T.Vector3(0, it.h + .3, 0));
     const r = cfg.loot(it.kind) || {}; if (r.text) pop(r.text, at, r.col);
     if (it.kind === 'chest' || it.kind === 'rchest') { it.mesh.material = it.mesh.material.clone(); it.mesh.material.color.set(0x8a8a8a); } else it.mesh.visible = false;
@@ -139,7 +162,7 @@ export async function createRoam(host, cfg) {
     const win = await cfg.engage(f.id, how, f.stage);
     if (gone) return;
     host.classList.remove('away'); D.paused = false; hud();
-    if (win) { f.beaten = true; f.st = 'down'; f.t = 0; const r = cfg.loot('win') || {}; if (r.text) pop(r.text, pos.clone().add(new T.Vector3(0, 2.3, 0)), r.col); if (f.boss) banner('Clear!', 'The sealed offering opens', 1800); }
+    if (win) { f.beaten = true; f.st = 'down'; f.t = 0; const r = cfg.loot('win') || {}; if (r.text) pop(r.text, pos.clone().add(new T.Vector3(0, 2.3, 0)), r.col); if (f.boss) banner('Clear!', f.id === 'nue' ? 'The sealed offering opens' : 'The hoard is yours to open', 1800); }
     else { f.st = 'idle'; f.x = f.x0; f.z = f.z0; f.mesh.position.set(f.x, f.y || 0, f.z); pos.set(START.x, 0, START.z); banner('K.O.', 'You wake up at the start of the road', 2200); }
     busy = false;
   }

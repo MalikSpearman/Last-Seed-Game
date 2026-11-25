@@ -70,7 +70,7 @@ export class Diorama {
     this.pool.forEach((L, i) => { const e = near[i]; if (!e) { L.intensity = 0; return; } const s = e[0];
       L.position.set(s.x, s.y, s.z); L.color.copy(s.color); L.distance = s.distance;
       const fade = Math.max(0, Math.min(1, (26 - Math.sqrt(e[1])) / 8));     // far pool slots fade instead of popping
-      L.intensity = s.intensity * fade * (0.9 + 0.06 * Math.sin(t * 7.3 + s.ph) + 0.04 * Math.sin(t * 13.1 + s.ph * 2)); });
+      L.intensity = s.intensity * fade * (1 + (s.boost || 0)) * (0.9 + 0.06 * Math.sin(t * 7.3 + s.ph) + 0.04 * Math.sin(t * 13.1 + s.ph * 2)); });
   }
   glow(x, y, z, size = 1.5, color = 0xffb060) {
     if (!Diorama._glowTex) { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'); const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(.25, 'rgba(255,255,255,.45)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); Diorama._glowTex = new THREE.CanvasTexture(c); }
@@ -92,7 +92,7 @@ export class Diorama {
     m.userData = { h, w, fadeNear: !!o.fadeNear };
     if (o.fadeNear) { mat.transparent = true; mat.alphaTest = 0.05; mat.depthWrite = false; }
     this.scene.add(m); this.billboards.push(m);
-    if (o.sway) { const ph = x * .7 + z; this.updaters.push(t => { m.rotation.z = Math.sin(t * 0.9 + ph) * o.sway; }); }
+    if (o.sway) { const ph = x * .7 + z; this.updaters.push(t => { const w = this.wind || 1; m.rotation.z = Math.sin(t * (0.9 + (w - 1) * .5) + ph) * o.sway * w; }); }
     if (o.blob !== false) this.blob(x, z, w * (o.blobW || .45), o.y || 0);
     return m;
   }
