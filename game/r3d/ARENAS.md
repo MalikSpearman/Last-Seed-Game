@@ -29,6 +29,7 @@ Set `window.__lsPainted = true` to force the old painted relief for comparison.
 - nw_pachinko: Pachinko Parlour
 - nw_casino: Star Casino
 - nw_web: Spider Roof
+- shrine → fox_shrine: Fox Shrine Stairs (real-world scale; painted 2D props rg_kitsune/maple/lily/mbush/shimenawa/leaves; the stage painting as far backdrop)
 - road: Sunset Road (the festival road at dusk)
 - tama / zoomies: Tama's room by day / 3 a.m.
 - landlord, calamity, reno

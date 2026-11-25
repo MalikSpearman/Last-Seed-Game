@@ -1,5 +1,14 @@
 [
  {
+  "version": "0.3.50",
+  "date": "Nov 25, 2026",
+  "title": "Fox Shrine Stairs in 3D",
+  "items": [
+   "Fox Shrine Stairs is now a full 3D stage at true scale: a stone landing at the foot of a long stair climbing through a tunnel of torii, lit stone lanterns, painted kitsune guardians, autumn maples, spider lilies and a shimenawa rope, with the shrine hall glowing at the top and the stage painting as the far sunset",
+   "A Rushdown on Fox Shrine Stairs carries the fight down to Festival Grounds"
+  ]
+ },
+ {
   "version": "0.3.49",
   "date": "Nov 25, 2026",
   "title": "Loading on the VS screen",

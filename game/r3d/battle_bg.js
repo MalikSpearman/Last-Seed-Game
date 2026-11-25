@@ -53,13 +53,15 @@ async function paintedCtx(name, url) {
   await cx.ready; return cx;
 }
 // modelled sets: real 3D dioramas built for a backdrop; they take over from that backdrop's painted relief
+// a backdrop whose name a bamboo spot already uses (road / shrine / bridge) maps to its modelled set here
+const BYBG = { shrine: 'fox_shrine' };
 const MODELED = { festival: () => import('./scene_festival.js'), blight: () => import('./scene_blight.js'), marsh: () => import('./scene_marsh.js'),
   seacave: () => import('./scene_seacave.js'), harbor: () => import('./scene_harbor.js'), nw_street: () => import('./scene_nw_street.js'),
   sunken: () => import('./scene_sunken.js'), mountain_pass: () => import('./scene_mountain_pass.js'), rooftops: () => import('./scene_rooftops.js'),
   nw_express: () => import('./scene_nw_express.js'), w_village: () => import('./scene_w_village.js'), w_graves: () => import('./scene_w_graves.js'),
   sakebar: () => import('./scene_sakebar.js'), nw_teahouse: () => import('./scene_nw_teahouse.js'), nw_roof: () => import('./scene_nw_roof.js'),
   e_whale: () => import('./scene_e_whale.js'), e_light: () => import('./scene_e_light.js'), e_dojo: () => import('./scene_e_dojo.js'), w_mill: () => import('./scene_w_mill.js'),
-  nw_snack: () => import('./scene_nw_snack.js'), nw_pachinko: () => import('./scene_nw_pachinko.js'), nw_casino: () => import('./scene_nw_casino.js'), nw_web: () => import('./scene_nw_web.js'),
+  nw_snack: () => import('./scene_nw_snack.js'), nw_pachinko: () => import('./scene_nw_pachinko.js'), nw_casino: () => import('./scene_nw_casino.js'), nw_web: () => import('./scene_nw_web.js'), fox_shrine: () => import('./scene_shrine.js'),
   tama: () => import('./scene_catroom.js'), zoomies: () => import('./scene_catroom.js'), landlord: () => import('./scene_landlord.js'), calamity: () => import('./scene_calamity.js'),
   weather: () => import('./scene_weather.js'), weather2: () => import('./scene_weather.js'), sun: () => import('./scene_sun.js'), sun2: () => import('./scene_sun.js'),
   rushhour: () => import('./scene_rushhour.js'), rushhour2: () => import('./scene_rushhour.js'),
@@ -411,7 +413,7 @@ export function start(host, k, bgUrl) {
     if (g0 !== gen) return; ensure(); k = k || window.__ls3dKey; const n = nameOf(bgUrl);
     let cx;
     if (k && MODELED[k]) { cx = await modeledCtx(k); P = cx.P; key = k; }   // a roam fight in one of the connected areas: fight right there
-    else if (!k && n && MODELED[n] && !window.__lsPainted) { cx = await modeledCtx(n); P = cx.P; key = n; }
+    else if (!k && n && MODELED[BYBG[n] || n] && !window.__lsPainted) { const mk = BYBG[n] || n; cx = await modeledCtx(mk); P = cx.P; key = mk; }
     else if (!k && n && n !== 'w_bamboo' && (await setsMeta())[n]) { cx = await paintedCtx(n, bgUrl); P = cx.P; key = n; }
     else { cx = await bambooCtx(); key = PRESETS[k] ? k : Object.keys(PRESETS)[Math.random() * 3 | 0]; P = PRESETS[key]; cx.P = P; }
     if (g0 !== gen) return; fit = null;
@@ -428,7 +430,7 @@ export function start(host, k, bgUrl) {
 const NEXT = { w_graves: 'w_mill', w_mill: 'w_village', w_village: 'road', road: 'festival', festival: 'sakebar', sakebar: 'nw_street', nw_street: 'nw_teahouse',
   nw_teahouse: 'nw_snack', nw_snack: 'nw_roof', nw_roof: 'nw_express', nw_express: 'harbor', harbor: 'e_dojo', e_dojo: 'e_light', e_light: 'e_whale', e_whale: 'e_light',
   nw_pachinko: 'nw_casino', nw_casino: 'nw_street', nw_web: 'nw_roof', marsh: 'sunken', sunken: 'seacave', seacave: 'harbor', blight: 'mountain_pass',
-  mountain_pass: 'rooftops', rooftops: 'nw_roof', ring: 'festival' };
+  mountain_pass: 'rooftops', rooftops: 'nw_roof', ring: 'festival', fox_shrine: 'festival' };
 export function nextStage() { return (D && !D.paused && NEXT[key]) || null; }
 export function transition(host) { const n = nextStage(); if (!n || !host) return Promise.resolve(null); return start(host, n, null).then(() => n, () => null); }
 // ── FIELD EFFECTS on the 3D ground (Rime Field first): frost creeping out over the floor around both fighters, a few
