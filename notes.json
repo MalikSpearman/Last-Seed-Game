@@ -1,5 +1,16 @@
 [
  {
+  "version": "0.3.38",
+  "date": "Nov 25, 2026",
+  "title": "Paper all the way through",
+  "items": [
+   "Paper sprites now breathe in idle just like the classic sprites",
+   "In paper mode every form is a paper cut-out: attack frames, mentors dashing in, Rising Phoenix moves, super cinematics, counter poses, kneels and the awakened form",
+   "On 3D sets the stage light now falls over the paper sprites too: dappled shade and warm lantern rim, whatever pose they're in",
+   "Bamboo bridge: the camera comes in closer so fighters stand at their true size on the bridge instead of towering over it"
+  ]
+ },
+ {
   "version": "0.3.37",
   "date": "Nov 25, 2026",
   "title": "Three more character themes",

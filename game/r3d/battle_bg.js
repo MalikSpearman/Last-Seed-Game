@@ -16,7 +16,7 @@ const PRESETS = {
             slots: [[3.9, -.2], [-.7, -1.2], [2.5, -2.6]], sum: [-2.9, 3.4] },
   shrine: { c: [27, 3, -9.2], gap: 3.3, pitch: .2, cover: 1.5,      // the torii frames the shrine hall behind them, guardian lions flanking
             slots: [[32.3, -11.8], [27.7, -12.8], [30.9, -14.2]], sum: [25.2, -8.3] },
-  bridge: { c: [-16, 1, 2.6], gap: 3.3, pitch: .2, cover: 1.5,       // both fighters up on the flat span of the red bridge, the stream running below them
+  bridge: { c: [-16, 1, 2.6], gap: 3.3, sz: .48, pitch: .2, cover: 1.5,       // both fighters up on the flat span of the red bridge, the stream running below them
             slots: [[-11.4, 2.0], [-7.2, -.2, -1], [-5.6, 1.6, -1]], sum: [-20.4, 3.0] },   // the crew: one on the deck behind the boss, two waiting on the far bank
 };
 let D = null, cv = null, built = null, P = PRESETS.road, key = 'road';
@@ -115,7 +115,8 @@ function groundAt(x, y, gy) {
 }
 
 // ── camera fit: choose distance, lateral shift and aim so the clearing's two marks sit under the fighters' feet ──
-const gapNow = () => P.cover ? P.gap * Math.min(1, D.camera.aspect / P.cover) * fz : P.gap;
+// sz: how much of the set one fighter-gap spans; under 1 brings the camera in so the set reads at the fighters' true size (no giants on a tiny bridge)
+const gapNow = () => (P.sz || 1) * (P.cover ? P.gap * Math.min(1, D.camera.aspect / P.cover) * fz : P.gap);
 function solveFit(F) {
   // exact: with the camera's angle fixed, two marks at the same depth pin its position (depth from their spacing, offset from their midpoint)
   const [cx, cy, cz] = P.c, cam = D.camera, ph = P.pitch;
@@ -255,7 +256,7 @@ function groupPlace(F) {
     const dep = ref(side) / cam.position.distanceTo(w); el.style.setProperty('--d3s', (dep / base).toFixed(3)); return dep;
   };
   const gp = [...document.querySelectorAll('.scr.battle .gpack .gpk')];
-  const at = (sl) => P.rel ? [P.c[0] + gapNow() * sl[0], P.c[2] + sl[1]] : sl;
+  const at = (sl) => P.rel ? [P.c[0] + gapNow() * sl[0], P.c[2] + sl[1]] : P.sz ? [P.c[0] + (sl[0] - P.c[0]) * P.sz, P.c[2] + (sl[1] - P.c[2]) * P.sz] : sl;   // a tighter set (sz) draws its crew in toward the fighters too
   // the crew is laid out around the main enemy as seen on screen (behind-right, behind-left, further back), then dropped onto
   // the set's ground there, so it always frames its boss and takes the depth and size of the spot it lands on, on any stage and screen
   const E = F && F.e, LAY = [[.62, .2], [-.66, .28], [.12, .38]];
@@ -306,6 +307,8 @@ function ensure() {
     if (OTS.k > 0) { for (const sd in casters) casters[sd].m.visible = false; } else placeCasters(lastF);
     litTick(t);
     groupPlace(lastF); const X = extras(); zoomFor(lastF, X); placeExtraCasters(X); lightExtras(X, t);
+    // paper sprites: the set's light also falls over the paper cut-outs (dappled shade + warm lantern rim, masked to whatever image the fighter shows: idle, counter pose, kneel, awakened)
+    if (document.getElementById('app').classList.contains('paperon') && OTS.k <= 0) lightSprites(lastF, t); else for (const sd of ['p', 'e']) if (lits[sd]) { lits[sd].a.remove(); lits[sd].b.remove(); delete lits[sd]; }
   });
   return built;
 }
