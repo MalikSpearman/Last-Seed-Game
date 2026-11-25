@@ -21,7 +21,7 @@ const PRESETS = {
 };
 let D = null, cv = null, built = null, P = PRESETS.road, key = 'road';
 // counter over-the-shoulder: on the 3D sets the camera swings behind the defender and looks down the line at the attacker (painted sets keep their framing)
-const OTS = { on: false, def: 'p', k: 0 };
+const OTS = { on: false, def: 'p', k: 0, mode: 'tight', w: 0, F0: null, R0: null, own: false };
 // every location is its own little world (scene, lights, lanterns, living scenery, effects); the bamboo road plus the
 // last painted location stay in memory, the one before that is thrown away
 const KEEP = ['scene', 'moon', 'spots', 'pool', 'billboards', 'updaters', 'backdropMesh'];
@@ -131,20 +131,34 @@ function solveFit(F) {
   return { C, f, M, depth };
 }
 
-// behind the defender's mark, a little toward the audience and above head height, aimed at the attacker's mark;
-// a view offset slides the attacker's mark under the attacker's (camera-moved) DOM sprite so they stay planted
-function otsCam(F, u) {
-  const [cx, cy, cz] = P.c, sg = OTS.def === 'p' ? -1 : 1, cam = D.camera, g = gapNow();
+// over the shoulder: behind the defender's mark and a little toward the audience, aimed past them at the attacker.
+// Sizes come from the fighters themselves (their measured height on screen at the fit camera's depth), so it frames the same on every set.
+// 'tight' is the counter window; 'wide' swings round to a three-quarter view for the outcome, so lunges read along the ground.
+const OTSP = { tight: { back: 1.25, lat: .95, up: .9, aim: .6, look: .5 }, wide: { back: 1.25, lat: 1.7, up: 1.0, aim: .5, look: .55 } };
+const lerp = (a, b, t) => a + (b - a) * t;
+function otsCam(u) {
+  const [cx, cy, cz] = P.c, cam = D.camera, g = gapNow(), F0 = OTS.F0 || {}, sg = OTS.def === 'p' ? -1 : 1;
   const Dm = new T.Vector3(cx + sg * g, cy, cz), Am = new T.Vector3(cx - sg * g, cy, cz);
-  const dirH = Am.clone().sub(Dm).setY(0).normalize();
-  const pos = Dm.clone().sub(dirH.clone().multiplyScalar(2.4)).add(new T.Vector3(0, 1.75, 1.5));
-  const look = Am.clone().add(new T.Vector3(0, .9, 0));
-  const p0 = cam.position.clone(), l0 = p0.clone().add(cam.getWorldDirection(new T.Vector3()).multiplyScalar(8));
+  // fighter height in world units, from the defender's size on screen at the fit camera
+  const fd = F0[OTS.def], z0 = Math.max(1, -Dm.clone().applyMatrix4(cam.matrixWorldInverse).z), tanH = Math.tan(cam.fov * Math.PI / 360);
+  const Hw = fd && fd.h > 4 ? fd.h / innerHeight * 2 * z0 * tanH : g * .9;
+  const A = OTSP.tight, B = OTSP.wide, w = OTS.w, q = k => lerp(A[k], B[k], w);
+  const dirH = Am.clone().sub(Dm).setY(0).normalize(), side = new T.Vector3(0, 0, 1);
+  const pos = Dm.clone().sub(dirH.clone().multiplyScalar(Hw * q('back') * 1.6)).add(side.multiplyScalar(Hw * q('lat'))).add(new T.Vector3(0, Hw * q('up'), 0));
+  const look = Dm.clone().lerp(Am, q('aim')).add(new T.Vector3(0, Hw * q('look'), 0));
+  const p0 = cam.position.clone(), l0 = p0.clone().add(cam.getWorldDirection(new T.Vector3()).multiplyScalar(z0));
   cam.position.copy(p0.lerp(pos, u)); cam.lookAt(l0.lerp(look, u)); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
-  const fa = F[OTS.def === 'p' ? 'e' : 'p'], r = cv.getBoundingClientRect(); if (!fa || !r.width) return;
-  const tx = (fa.x - r.left) / r.width * 2 - 1, ty = -((fa.y - r.top) / r.height) * 2 + 1, sp = Am.clone().project(cam);
-  cam.setViewOffset(r.width, r.height, -(tx - sp.x) * r.width / 2 * u, (ty - sp.y) * r.height / 2 * u, r.width, r.height);
 }
+// the DOM fighters ride on their marks: same ground point, scaled by its depth, for whatever angle the set's camera holds
+const MARK = sd => { const [cx, cy, cz] = P.c, g = gapNow(); return new T.Vector3(cx + (sd === 'e' ? g : -g), cy, cz); };
+function markView(cam) { const o = {}; for (const sd of ['p', 'e']) { const m = MARK(sd), v = m.clone().applyMatrix4(cam.matrixWorldInverse), s = m.clone().project(cam); o[sd] = { x: (s.x + 1) / 2 * innerWidth, y: (1 - s.y) / 2 * innerHeight, z: Math.max(.05, -v.z) }; } return o; }
+function rideMarks(V0, V1) {
+  for (const sd of ['p', 'e']) { const f0 = OTS.F0 && OTS.F0[sd], r0 = OTS.R0 && OTS.R0[sd]; if (!f0 || !r0) continue; const el = f0.f;
+    const kk = r0.k || 1, dx = (V1[sd].x - V0[sd].x) / kk, dy = (V1[sd].y - V0[sd].y) / kk, sc = Math.min(4, V0[sd].z / V1[sd].z);
+    el.style.transition = 'none'; el.style.transformOrigin = `${((f0.x - r0.left) / kk).toFixed(1)}px ${((f0.y - r0.top) / kk).toFixed(1)}px`;
+    el.style.transform = `translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px) scale(${sc.toFixed(4)})`; el.style.zIndex = V1[sd].z < V1[sd === 'p' ? 'e' : 'p'].z ? 6 : 4; }
+  OTS.own = true; }
+function releaseMarks() { if (!OTS.own) return; OTS.own = false; for (const sd of ['p', 'e']) { const f0 = OTS.F0 && OTS.F0[sd]; if (!f0) continue; f0.f.style.transform = ''; f0.f.style.transformOrigin = ''; f0.f.style.zIndex = ''; f0.f.style.transition = ''; } OTS.F0 = null; OTS.R0 = null; }
 
 // ── silhouettes in 3D that only cast shadows ──
 function caster(side, fd) {
@@ -287,7 +301,10 @@ function ensure() {
     // a painted set is framed like its 2D painting: wide screens zoom the lens (never dolly in, which would bare the painting's edges)
     { const tq = Math.tan(Math.PI / 12) * (P.cover ? Math.min(1, P.cover / D.camera.aspect) : 1), fv = Math.atan(tq) * 360 / Math.PI; if (Math.abs(D.camera.fov - fv) > 1e-3) { D.camera.fov = fv; D.camera.updateProjectionMatrix(); } }
     const [cx, cy, cz] = P.c;
-    const F = fighters(); if (F.p || F.e) lastF = F;
+    window.__ls3dSet = !P.painted;
+    const F = fighters(); const live = OTS.on && !P.painted;
+    if (live && !OTS.F0 && OTS.k === 0 && F.p && F.e) { OTS.F0 = F; OTS.R0 = {}; for (const sd of ['p', 'e']) { const el = F[sd].f, r = el.getBoundingClientRect(); OTS.R0[sd] = { left: r.left, top: r.top, k: el.offsetWidth ? r.width / el.offsetWidth : 1 }; } }
+    if (OTS.F0) lastF = OTS.F0; else if (F.p || F.e) lastF = F;
     // re-aim every frame, eased: the stage's talk/counter camera swings the fighters around and the set has to glide with them (a 4 Hz step here read as choppy)
     { const nf = solveFit(lastF), a = fit ? 1 - Math.exp(-Math.min(dt, .1) * 14) : 1; fit = fit ? { C: fit.C.lerp(nf.C, a), f: nf.f, M: nf.M, depth: fit.depth + (nf.depth - fit.depth) * a } : nf; }
     hitK = Math.max(0, hitK - dt * 2.6); shake = Math.max(0, shake - dt * .45);
@@ -300,8 +317,10 @@ function ensure() {
     const sx = (Math.random() - .5) * shake, sy = (Math.random() - .5) * shake;
     D.camera.position.copy(fit.M).add(rel).add(new T.Vector3(sx + hitSide * .12 * k, sy + Math.sin(t * .17) * .03, 0));
     D.camera.lookAt(D.camera.position.clone().add(dir)); D.camera.clearViewOffset();
-    { const dk = dt / (window.__tScale || 1); OTS.k = Math.max(0, Math.min(1, OTS.k + (OTS.on && !P.painted ? dk / .34 : -dk / .4))); }
-    if (OTS.k > 0) otsCam(lastF, ease(OTS.k));
+    { const dk = dt / (window.__tScale || 1); OTS.k = Math.max(0, Math.min(1, OTS.k + (live && OTS.F0 ? dk / .42 : -dk / .45))); OTS.w = Math.max(0, Math.min(1, OTS.w + (OTS.mode === 'wide' ? dk / .5 : -dk / .5))); }
+    D.camera.updateProjectionMatrix(); D.camera.updateMatrixWorld();
+    if (OTS.k > 0 && OTS.F0) { const V0 = markView(D.camera); otsCam(ease(OTS.k)); rideMarks(V0, markView(D.camera)); }
+    else releaseMarks();
     D.camera.updateProjectionMatrix(); D.camera.updateMatrixWorld();
     D.focus = { x: cx, z: cz }; D.followShadow(new T.Vector3(cx, cy, cz));
     if (OTS.k > 0) { for (const sd in casters) casters[sd].m.visible = false; } else placeCasters(lastF);
@@ -380,7 +399,7 @@ const NEXT = { w_graves: 'w_mill', w_mill: 'w_village', w_village: 'road', road:
   mountain_pass: 'rooftops', rooftops: 'nw_roof', ring: 'festival' };
 export function nextStage() { return (D && !D.paused && NEXT[key]) || null; }
 export function transition(host) { const n = nextStage(); if (!n || !host) return Promise.resolve(null); return start(host, n, null).then(() => n, () => null); }
-export function stop() { gen++; if (!D) return; cv.style.opacity = 0; document.getElementById('app').classList.remove('hd3d'); fz = 1; document.getElementById('app').style.removeProperty('--fz3d'); clearLights(); for (const k in lits) delete lits[k]; for (const s in casters) casters[s].m.visible = false; setTimeout(() => { if (cv.style.opacity === '0') { D.release(); cv.style.display = 'none'; } }, 900); }
+export function stop() { window.__ls3dSet = false; releaseMarks(); OTS.on = false; OTS.k = 0; gen++; if (!D) return; cv.style.opacity = 0; document.getElementById('app').classList.remove('hd3d'); fz = 1; document.getElementById('app').style.removeProperty('--fz3d'); clearLights(); for (const k in lits) delete lits[k]; for (const s in casters) casters[s].m.visible = false; setTimeout(() => { if (cv.style.opacity === '0') { D.release(); cv.style.display = 'none'; } }, 900); }
 export function hit(side, big) { hitK = big ? 1.3 : .8; hitSide = side === 'e' ? 1 : -1; shake = big ? .08 : .04; }
 // a hit lands on 'p' or 'e': camera push + shake, then the arena reacts at their feet (light, dust, cracks, element marks)
 export function impact(side, o = {}) {
@@ -392,7 +411,9 @@ export function weather(kind) { if (cur) setWeather(cur, kind); }
 // a still of the set as it looks right now (no fighters), for the Super Art cinematics to play in front of
 export function snapshot() { if (!D || D.paused || !cv) return null; try { D._render(); return cv.toDataURL('image/jpeg', .9); } catch (_) { return null; } }
 export function sweep() { supT = 0; }
-export function ots(on, def) { OTS.on = !!on; if (def) OTS.def = def; }
+export function ots(on, def, mode) { OTS.on = !!on; if (def) OTS.def = def; OTS.mode = on && mode === 'wide' ? 'wide' : 'tight'; if (!on) OTS.mode = 'tight'; }
+// the game asks whether the 3D set is steering the fighters through a counter (then it leaves their transforms alone)
+export function otsLive() { return !!(D && !D.paused && P && !P.painted); }
 export const _debug = () => ({ depth: fit && fit.depth, key, P, casters: Object.fromEntries(Object.entries(casters).map(([k, c]) => [k, { vis: c.m.visible, src: c.src.slice(-30), pos: c.m.position.toArray().map(v => +v.toFixed(2)), sc: c.m.scale.toArray().map(v => +v.toFixed(2)) }])), shadows: D && D.renderer.shadowMap.enabled });
 export const _dbg2 = () => ({ cur: cur && (cur.name || 'bamboo'), kids: D.scene.children.map(o => o.type + (o.geometry ? ':' + (o.geometry.index ? o.geometry.index.count : 0) : '')).slice(0, 12), cam: D.camera.position.toArray().map(v => +v.toFixed(2)), dir: D.camera.getWorldDirection(new T.Vector3()).toArray().map(v => +v.toFixed(2)), box: (() => { const m = D.scene.children.find(o => o.isMesh && o.geometry.index && o.geometry.index.count > 1000); if (!m) return null; m.geometry.computeBoundingBox(); const b = m.geometry.boundingBox; return [b.min.toArray().map(v => +v.toFixed(1)), b.max.toArray().map(v => +v.toFixed(1)), !!(m.material.map && m.material.map.image)]; })(), P: P && { c: P.c, gap: P.gap, pitch: P.pitch } });
 export const _surf = () => P && P.surf;

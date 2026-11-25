@@ -5935,6 +5935,159 @@ function vsMentor(id){ const m=VS_MENTOR[id]; if(!m||!CARDS[m[1]]) return null; 
 function vsDraw(f){ const own=(f.pool||[]).filter(c=>CARDS[c]&&!f.deck.includes(c)&&!CARDS[c].sig&&!CARDS[c].ult); return shuffle(own,Math.random).slice(0,2).concat(ringDraw(1,Math.random,f.deck)); }
 // ── Random battle: pick a fighter, get matched against a random opponent, loop for quick testing ──
 const __toMenu=()=>{ app.classList.remove('dim'); try{ if(!cur||!cur.classList.contains('title')){ run=null; title(); } }catch(e){ title(); } };
+
+// ── Versus loadout: every fighter brings their own cards (two of each, the signature once, up to 20) and a pack that tops the deck up to 30 ──
+const VSL_N=30, VSL_OWN=20;
+const opk=c=>new Set((c.ops||[]).flatMap(o=>Object.keys(o||{})));
+const anyK=(c,ks)=>{ const k=opk(c); return ks.some(x=>k.has(x)); };
+const STATK_=['burn','shock','poison','bleed','chill','soaked','perBurn','perShock','perPoison','perSoaked'];
+const VS_PACKS=[
+  {id:'brawler',kind:'Playstyle',name:'Brawler',kan:'拳',col:'#ff6a3d',d:'Straight damage. Big hits and flurries, no tricks.',f:c=>c.type==='attack'&&!anyK(c,STATK_)},
+  {id:'wall',kind:'Playstyle',name:'Iron Wall',kan:'壁',col:'#7cc4ff',d:'Guard, counters and healing. Outlast them.',f:c=>anyK(c,['guard','counter','fromGuard','heal','ward'])},
+  {id:'tempo',kind:'Playstyle',name:'Tempo',kan:'速',col:'#4ee0a0',d:'Draw, Energy and doubles. More turns inside your turn.',f:c=>anyK(c,['draw','energy','charge','double','echo'])},
+  {id:'spirit',kind:'Playstyle',name:'Spirit',kan:'魂',col:'#b28cff',d:'Spirit and Power. Reach your Arts sooner and hit harder.',f:c=>c.type==='power'||anyK(c,['spirit','power'])},
+  {id:'fire',kind:'Effect',name:'Wildfire',kan:'炎',col:'#ff7a2a',d:'Burn that stacks and pays off.',f:c=>anyK(c,['burn','perBurn'])||(c.el==='fire'&&c.type==='attack')},
+  {id:'bolt',kind:'Effect',name:'Thunder',kan:'雷',col:'#ffe14a',d:'Shock, then cash it in.',f:c=>anyK(c,['shock','perShock'])||(c.el==='bolt'&&c.type==='attack')},
+  {id:'frost',kind:'Effect',name:'Frost & Tide',kan:'氷',col:'#8be9ff',d:'Chill and Soak to slow them down.',f:c=>anyK(c,['chill','soaked','perSoaked'])||((c.el==='ice'||c.el==='water')&&c.type==='attack')},
+  {id:'venom',kind:'Effect',name:'Venom',kan:'毒',col:'#9be34a',d:'Poison and Bleed that eat away every turn.',f:c=>anyK(c,['poison','bleed','perPoison','leech','siphon'])},
+  {id:'break',kind:'Effect',name:'Breaker',kan:'砕',col:'#ff4d6a',d:'Expose, disarm and pierce their defence.',f:c=>anyK(c,['exposed','ifExposed3','disarm','pierce'])}];
+function vsPackCards(id){ const P_=VS_PACKS.find(x=>x.id===id)||VS_PACKS[0]; return RING.filter(k=>{ const c=CARDS[k]; return c&&c.type!=='curse'&&!c.ult&&!c.plus&&!anyK(c,['curse','passCurse'])&&P_.f(c); }); }
+function vsOwn(hero){ const F_=FIGHTERS[hero]; const ids=[...new Set((F_.deck||[]).concat(F_.pool||[]))].filter(k=>CARDS[k]&&!CARDS[k].ult&&CARDS[k].type!=='curse'&&!/^(hc_|ctr_)/.test(k)); const out=[]; for(const k of ids){ out.push(k); if(!CARDS[k].sig) out.push(k); } return out.slice(0,VSL_OWN); }
+function vsDeck(hero,pack,rnd){ const own=vsOwn(hero), P_=shuffle(vsPackCards(pack),rnd||Math.random), out=own.slice(); for(let rep=0;rep<4&&out.length<VSL_N&&P_.length;rep++) for(const c of P_){ if(out.length>=VSL_N) break; out.push(c); } return out; }
+function vsLoadDef(hero){ const sv=(store.vsLo||{})[hero]||{}; const M=mentorOptions(); const mi=M.findIndex(m=>(m.id||m.sprite)===sv.m); const gi=GENERIC_INNATES.includes(sv.i)?sv.i:GENERIC_INNATES[0]; return {pack:VS_PACKS.some(p=>p.id===sv.p)?sv.p:'brawler',m:mi>=0?mi:0,ins:gi}; }
+function vsLoadAI(hero){ return {pack:pick(VS_PACKS).id,m:0,ins:pick(GENERIC_INNATES)}; }
+// ── duel gimmicks: one rule change for the whole match, the same for both fighters ──
+const GIMMICKS=[
+  {id:'overclock',kan:'速',col:'#4ee0a0',name:'Overclock',d:'Both fighters get +1 Energy every turn.',mods:{p:{maxEnergy:1},e:{maxEnergy:1}}},
+  {id:'sudden',kan:'死',col:'#ff4d6a',name:'Sudden Death',d:'Both fighters start at half HP.',pre:f=>{ f.hp=Math.max(1,Math.ceil(f.hp/2)); }},
+  {id:'iron',kan:'鉄',col:'#7cc4ff',name:'Iron Skin',d:'Start with 15 Guard, and half your Guard carries over each turn.',mods:{p:{guard:15,keepGuard:.5},e:{guard:15,keepGuard:.5}}},
+  {id:'fired',kan:'闘',col:'#ff7a2a',name:'Fired Up',d:'Both fighters start with +2 Power.',mods:{p:{power:2},e:{power:2}}},
+  {id:'surge',kan:'魂',col:'#b28cff',name:'Spirit Surge',d:'Both fighters start with two Spirit bars.',spirit:2},
+  {id:'quick',kan:'札',col:'#ffd34d',name:'Quick Draw',d:'Opening hands hold 7 cards.',mods:{firstDraw:7}},
+  {id:'open',kan:'隙',col:'#ff9a3c',name:'Open Guard',d:'Both fighters start Exposed 2: every hit lands harder.',mods:{p:{exposed:2},e:{exposed:2}}},
+  {id:'blaze',kan:'炎',col:'#ff6a2a',name:'Ring of Fire',d:'Both fighters start with Burn 3.',mods:{p:{burn:3},e:{burn:3}}},
+  {id:'toxic',kan:'毒',col:'#9be34a',name:'Toxic Mist',d:'Both fighters start with Poison 3.',mods:{p:{poison:3},e:{poison:3}}},
+  {id:'cold',kan:'氷',col:'#8be9ff',name:'Cold Front',d:'Both fighters start with Chill 2.',mods:{p:{chill:2},e:{chill:2}}},
+  {id:'rain',kan:'雨',col:'#4fb6ff',name:'Monsoon',d:'Both fighters start Soaked 3.',mods:{p:{soaked:3},e:{soaked:3}}},
+  {id:'counter',kan:'返',col:'#f2c14e',name:'Counter Masters',d:'Both fighters start with 5 Counter.',mods:{p:{counter:5},e:{counter:5}}},
+  {id:'blood',kan:'血',col:'#e0303f',name:'Bloodsport',d:'Both fighters start with Bleed 3.',mods:{p:{bleed:3},e:{bleed:3}}},
+  {id:'glass',kan:'砕',col:'#9fd8ff',name:'Glass Cannon',d:'+3 Power for both, but 30% less HP.',mods:{p:{power:3},e:{power:3}},pre:f=>{ f.hp=f.maxHp=Math.max(1,Math.round(f.maxHp*.7)); }},
+  {id:'titans',kan:'巨',col:'#ffb35a',name:'Titans',d:'Both fighters have 40% more HP.',pre:f=>{ f.hp=f.maxHp=Math.round(f.maxHp*1.4); }}];
+const gimOf=id=>GIMMICKS.find(g=>g.id===id)||null;
+function gimRoll(){ return pick(GIMMICKS).id; }
+function gimApply(b,id,mods){ const G=gimOf(id); if(!G) return; if(G.pre){ G.pre(b.p); G.pre(b.e); } if(G.spirit){ for(const f of [b.p,b.e]) if(f.ult) f.spirit=Math.min(SPIRIT.max,(f.spirit||0)+SPIRIT.bar*G.spirit); } if(G.mods) mods.list.push(G.mods); }
+function vslCss(){ if(document.getElementById('vslcss')) return; const st=document.createElement('style'); st.id='vslcss'; st.textContent=`
+.scr.vsl{display:grid;grid-template-columns:2.6rem 1fr 3.4rem;grid-template-rows:auto 1fr auto;gap:.14rem .26rem;padding:.7rem .5rem .3rem;box-sizing:border-box;overflow:hidden}
+.scr.vsl .hb-bg{background-image:url(img/mn_bg_versus.webp);opacity:.16}
+.scr.vsl>.hb-bg,.scr.vsl>.hb-vig,.scr.online>.hb-bg,.scr.online>.hb-vig{position:absolute;inset:0;pointer-events:none}
+.vsl-top{grid-column:1/4;display:flex;align-items:flex-end;gap:.2rem;z-index:2}
+.vsl-top b{font:400 .46rem/.9 'Anton';text-transform:uppercase;transform:skewX(-9deg);text-shadow:.03rem .04rem 0 #12091c}
+.vsl-top small{font:700 .12rem/1 'Barlow Condensed';letter-spacing:.3em;color:#4d7bff;text-transform:uppercase;padding:.03rem .06rem;background:rgba(7,5,15,.72);margin-bottom:.06rem}
+.vsl-l,.vsl-c,.vsl-r{position:relative;z-index:2;min-height:0}
+.vsl-hero{position:relative;height:100%;min-height:2.4rem;border:.025rem solid rgba(255,255,255,.18);background:#16102c;box-shadow:.05rem .06rem 0 #12091c;transform:skewX(-7deg);overflow:hidden}
+.vsl-hero img{position:absolute;left:50%;bottom:0;height:96%;transform:translateX(-50%) skewX(7deg)}
+.vsl-hero .nm{position:absolute;left:0;right:0;bottom:0;padding:.08rem .12rem;background:linear-gradient(transparent,rgba(7,5,15,.96) 45%);transform:skewX(7deg)}
+.vsl-hero .nm b{display:block;font:400 .3rem/1 'Anton';text-transform:uppercase}
+.vsl-meter{display:flex;height:.14rem;margin-top:.06rem;border:.015rem solid rgba(255,255,255,.3);background:#0c0818}
+.vsl-meter i{display:block;height:100%}
+.vsl-meter+small{display:block;margin-top:.03rem;font:600 .12rem/1.2 'Barlow Condensed';color:#d9d1ea}
+.vsl-h{font:700 .13rem/1 'Barlow Condensed';letter-spacing:.24em;text-transform:uppercase;color:#f2c14e;margin:0 0 .06rem}
+.vsl-packs{display:grid;grid-template-columns:repeat(3,1fr);gap:.1rem}
+.vsl-pk{all:unset;cursor:pointer;position:relative;height:.9rem;border:.02rem solid rgba(255,255,255,.16);background:linear-gradient(120deg,#1b1336,#120c24);box-shadow:.04rem .05rem 0 #12091c;transform:skewX(-8deg);overflow:hidden;transition:border-color .12s,transform .12s}
+.vsl-pk:hover,.vsl-pk:focus-visible{border-color:rgba(255,255,255,.6)}
+.vsl-pk.on{border-color:#fff;box-shadow:0 0 0 .02rem var(--k),0 0 .3rem color-mix(in srgb,var(--k) 55%,transparent),.04rem .05rem 0 #12091c;transform:skewX(-8deg) translateY(-.03rem)}
+.vsl-pk u{position:absolute;right:.04rem;top:-.08rem;font:400 .74rem/1 'Noto Serif JP',serif;text-decoration:none;color:var(--k);opacity:.22;transform:skewX(8deg)}
+.vsl-pk.on u{opacity:.5}
+.vsl-pk span{position:absolute;left:.12rem;right:.1rem;top:.1rem;transform:skewX(8deg)}
+.vsl-pk em{display:inline-block;font:700 .09rem/1 'Barlow Condensed';font-style:normal;letter-spacing:.22em;text-transform:uppercase;color:var(--k)}
+.vsl-pk b{display:block;margin-top:.03rem;font:400 .24rem/1 'Anton';text-transform:uppercase}
+.vsl-pk small{display:block;margin-top:.04rem;font:600 .11rem/1.2 'Barlow Condensed';color:#cfc6e0;max-height:.28rem;overflow:hidden}
+.vsl-prev{margin-top:.1rem;padding:.08rem .12rem;background:rgba(7,5,15,.62);border-left:.025rem solid var(--k,#f2c14e);font:600 .12rem/1.45 'Barlow Condensed';color:#e6dff0;min-height:.5rem}
+.vsl-prev b{color:var(--k,#f2c14e);font-weight:700;letter-spacing:.08em}
+.vsl-row{display:flex;flex-wrap:wrap;gap:.07rem;margin-bottom:.14rem}
+.vsl-m{all:unset;cursor:pointer;width:.62rem;text-align:center;font:700 .1rem/1.1 'Barlow Condensed';color:#cfc6e0}
+.vsl-m i{display:block;width:.56rem;height:.56rem;margin:0 auto .03rem;border:.02rem solid rgba(255,255,255,.18);background:#16102c center/cover;transform:skewX(-8deg)}
+.vsl-m.on{color:#fff}.vsl-m.on i{border-color:#fff;box-shadow:0 0 0 .02rem #f2c14e,0 0 .2rem rgba(242,193,78,.6)}
+.vsl-m.gh i{filter:grayscale(.4) brightness(.9)}
+.vsl-i{all:unset;cursor:pointer;width:.46rem;height:.46rem;border:.02rem solid rgba(255,255,255,.18);background:#16102c center/80% no-repeat;transform:skewX(-8deg)}
+.vsl-i.on{border-color:#fff;box-shadow:0 0 0 .02rem #4ee0a0,0 0 .2rem rgba(78,224,160,.6)}
+.vsl-i.own{cursor:default;border-color:#f2c14e;opacity:.9}
+.vsl-tip{font:600 .12rem/1.35 'Barlow Condensed';color:#d9d1ea;min-height:.5rem;padding:.06rem .1rem;background:rgba(7,5,15,.62)}
+.vsl-tip b{color:#fff}
+.vsl-bot{grid-column:1/4;display:flex;align-items:center;justify-content:flex-end;gap:.18rem;z-index:2}
+.vsl-gt{all:unset;cursor:pointer;display:flex;align-items:center;gap:.08rem;font:700 .14rem/1 'Barlow Condensed';letter-spacing:.16em;text-transform:uppercase;color:#d9d1ea;padding:.07rem .16rem;border:.02rem solid rgba(255,255,255,.28);background:rgba(7,5,15,.6);transform:skewX(-8deg)}
+.vsl-gt i{width:.34rem;height:.18rem;border-radius:.1rem;background:#3a3150;position:relative;transition:background .15s}
+.vsl-gt i::after{content:'';position:absolute;left:.02rem;top:.02rem;width:.14rem;height:.14rem;border-radius:50%;background:#fff;transition:left .15s}
+.vsl-gt.on i{background:#4ee0a0}.vsl-gt.on i::after{left:.18rem}
+.vsl-gt.off-host{opacity:.7;cursor:default}
+.portrait .scr.vsl{grid-template-columns:1fr;grid-template-rows:auto auto auto auto auto;overflow-y:auto;padding:.5rem .14rem .3rem}
+.portrait .vsl-top,.portrait .vsl-bot{grid-column:1}
+.portrait .vsl-hero{height:1.6rem;min-height:0}
+.portrait .vsl-packs{grid-template-columns:repeat(3,1fr)}.portrait .vsl-pk{height:.74rem}.portrait .vsl-pk small{display:none}
+/* gimmick reveal */
+.gimr{position:fixed;inset:0;z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(20,10,40,.86),rgba(5,3,12,.97) 70%);overflow:hidden;cursor:pointer}
+.gimr::before{content:'';position:absolute;inset:-50%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.05) 0 2deg,transparent 2deg 9deg);animation:gimSpin 9s linear infinite}
+@keyframes gimSpin{to{transform:rotate(360deg)}}
+.gimr .gr-gtag{position:relative;font:700 .16rem/1 'Barlow Condensed';letter-spacing:.5em;text-transform:uppercase;color:#f2c14e;padding:.05rem .18rem;border-top:.02rem solid #f2c14e;border-bottom:.02rem solid #f2c14e;margin-bottom:.28rem;animation:gimIn .4s both}
+.gimr .gr-reel{position:relative;width:100%;height:1.5rem;overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent)}
+.gimr .gr-strip{position:absolute;left:0;top:0;height:100%;display:flex;gap:.18rem;will-change:transform}
+.gimr .gr-tile{flex:none;width:1.3rem;height:1.3rem;margin-top:.1rem;display:flex;align-items:center;justify-content:center;font:900 .78rem/1 'Noto Serif JP',serif;color:var(--k);background:linear-gradient(140deg,#231a40,#120c24);border:.025rem solid color-mix(in srgb,var(--k) 55%,transparent);transform:skewX(-8deg);text-shadow:0 0 .2rem color-mix(in srgb,var(--k) 70%,transparent)}
+.gimr .gr-frame{position:absolute;left:50%;top:0;width:1.46rem;height:1.5rem;transform:translateX(-50%) skewX(-8deg);border:.035rem solid #fff;box-shadow:0 0 .3rem rgba(255,255,255,.5),inset 0 0 .25rem rgba(255,255,255,.25);pointer-events:none}
+.gimr .gr-ttl{position:relative;margin-top:.3rem;font:400 .86rem/.9 'Anton';text-transform:uppercase;letter-spacing:.02em;color:#fff;transform:skewX(-9deg);text-shadow:.05rem .06rem 0 #12091c,0 0 .3rem var(--k);opacity:0}
+.gimr .gr-ds{position:relative;margin-top:.14rem;max-width:7rem;text-align:center;font:600 .22rem/1.3 'Barlow Condensed';color:#e6dff0;opacity:0}
+.gimr .gr-hint{position:absolute;bottom:.3rem;font:700 .11rem/1 'Barlow Condensed';letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.45)}
+.gimr.done .gr-ttl{animation:gimSlam .42s cubic-bezier(.2,1.6,.3,1) both}
+.gimr.done .gr-ds{animation:gimIn .4s .25s both}
+.gimr.done .gr-frame{animation:gimFlash .5s both}
+.gimr .gr-burst{position:absolute;left:50%;top:50%;width:3rem;height:3rem;margin:-1.5rem 0 0 -1.5rem;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--k) 70%,transparent),transparent 65%);opacity:0}
+.gimr.done .gr-burst{animation:gimBurst .7s both}
+@keyframes gimSlam{0%{opacity:0;transform:skewX(-9deg) scale(2.2)}100%{opacity:1;transform:skewX(-9deg) scale(1)}}
+@keyframes gimIn{from{opacity:0;transform:translateY(.12rem)}to{opacity:1;transform:none}}
+@keyframes gimFlash{0%{box-shadow:0 0 0 0 #fff,0 0 1rem #fff}100%{box-shadow:0 0 .3rem rgba(255,255,255,.5)}}
+@keyframes gimBurst{0%{opacity:.9;transform:scale(.3)}100%{opacity:0;transform:scale(2.4)}}
+.gimr.out{animation:gimOut .3s both}@keyframes gimOut{to{opacity:0}}
+.portrait .gimr .gr-ttl{font-size:.5rem}.portrait .gimr .gr-ds{font-size:.17rem;max-width:3.6rem}`; document.head.appendChild(st); }
+// the reveal: a reel of every rule spins past and stops on this match's, then its name slams in
+function gimReveal(id){ const G=gimOf(id); if(!G) return Promise.resolve(); vslCss(); return new Promise(res=>{
+  const L=[]; for(let i=0;i<4;i++) L.push(...shuffle(GIMMICKS.slice(),Math.random)); const tgt=L.length-6; L[tgt]=G;
+  const ov=h('div','gimr',`<div class="gr-gtag">Duel gimmick</div><div class="gr-reel"><div class="gr-strip">${L.map(g=>`<div class="gr-tile" style="--k:${g.col}">${g.kan}</div>`).join('')}</div><div class="gr-frame"></div></div><div class="gr-burst" style="--k:${G.col}"></div><div class="gr-ttl" style="--k:${G.col}">${G.name}</div><div class="gr-ds">${G.d}</div><div class="gr-hint">Tap to fight</div>`);
+  document.body.appendChild(ov); try{ Snd.sfx('clashOpen',true); }catch(_){}
+  const strip=$('.gr-strip',ov), reel=$('.gr-reel',ov), tile=strip.children[0]; let fin=false;
+  requestAnimationFrame(()=>{ const tw=tile.offsetWidth, gap=parseFloat(getComputedStyle(strip).gap)||0, step=tw+gap, end=-(tgt*step)+reel.clientWidth/2-tw/2, D=2300*(OPT().rm?.4:1);
+    const an=strip.animate([{transform:'translateX(0)'},{transform:`translateX(${end}px)`}],{duration:D,easing:'cubic-bezier(.12,.62,.16,1)',fill:'forwards'}); let last=0, t0=performance.now();
+    const tick=()=>{ if(fin) return; const p=Math.min(1,(performance.now()-t0)/D), x=-(1-Math.pow(1-p,3))*end*-1, n=Math.floor(Math.abs(x)/step); if(n!==last){ last=n; try{ Snd.sfx('clashTick',true); }catch(_){} } if(p<1) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+    an.finished.then(()=>{ if(fin) return; ov.classList.add('done'); try{ Snd.sfx('vs'); Snd.sfx('clashGood',true); }catch(_){} setTimeout(close,3200); }); });
+  const close=()=>{ if(fin) return; fin=true; ov.classList.add('out'); setTimeout(()=>{ ov.remove(); res(); },300); };
+  ov.addEventListener('click',()=>{ if(ov.classList.contains('done')) close(); });
+  const kf=e=>{ if(e.key==='Enter'||e.key===' '||e.key==='Escape'){ if(ov.classList.contains('done')){ removeEventListener('keydown',kf); close(); } } }; addEventListener('keydown',kf); }); }
+// the loadout screen: pack, mentor, second insight (and, when this player sets the rules, the gimmick switch)
+function vsLoadout(hero,o){ o=o||{}; vslCss(); return new Promise(res=>{ const M=mentorOptions(), cur=vsLoadDef(hero); let gimOn=store.vsGim!==false; const F_=FIGHTERS[hero];
+  const s=h('div','scr vsl',`<div class="hb-bg"></div><div class="hb-vig"></div>
+    <div class="vsl-top"><button class="ol-back" data-a="back">◂ Back</button><small>${o.sub||'Versus'}</small><b>Loadout</b></div>
+    <div class="vsl-l"><div class="vsl-hero"><img src="img/${hero}.webp" alt=""><div class="nm"><b>${F_.name}</b><div class="vsl-meter"></div><small class="vsl-cnt"></small></div></div></div>
+    <div class="vsl-c"><div class="vsl-h">Card pack · fills your deck to ${VSL_N}</div><div class="vsl-packs">${VS_PACKS.map(p=>`<button class="vsl-pk" data-p="${p.id}" style="--k:${p.col}"><u>${p.kan}</u><span><em>${p.kind}</em><b>${p.name}</b><small>${p.d}</small></span></button>`).join('')}</div><div class="vsl-prev"></div></div>
+    <div class="vsl-r"><div class="vsl-h">Mentor</div><div class="vsl-row vsl-ms">${M.map((m,i)=>`<button class="vsl-m${m.gh?' gh':''}" data-m="${i}"><i style="background-image:url(${A('img/p_'+m.sprite+'.webp')})"></i>${(m.name||'').split(' ')[0]}</button>`).join('')}</div>
+      <div class="vsl-h">Insights · yours + one more</div><div class="vsl-row vsl-is"><button class="vsl-i own" style="background-image:url(img/in_${hero}.webp)" data-own="1"></button>${GENERIC_INNATES.map(k=>`<button class="vsl-i" data-i="${k}" style="background-image:url(img/in_${k}.webp)"></button>`).join('')}</div>
+      <div class="vsl-tip"></div></div>
+    <div class="vsl-bot">${o.gim===false?'':`<button class="vsl-gt${o.gimHost===false?' off-host':''}" data-a="gim"><i></i><span>Duel gimmick</span></button>`}<button class="btn" data-a="go">${o.go||'Ready'}</button></div>`);
+  show(s,Snd.hasMusic('menu')?'menu':'title');
+  const tip=$('.vsl-tip',s), prev=$('.vsl-prev',s), meter=$('.vsl-meter',s), cnt=$('.vsl-cnt',s);
+  const draw=()=>{ s.querySelectorAll('.vsl-pk').forEach(b=>b.classList.toggle('on',b.dataset.p===cur.pack)); s.querySelectorAll('.vsl-m').forEach(b=>b.classList.toggle('on',+b.dataset.m===cur.m)); s.querySelectorAll('.vsl-i[data-i]').forEach(b=>b.classList.toggle('on',b.dataset.i===cur.ins));
+    const P_=VS_PACKS.find(p=>p.id===cur.pack), own=vsOwn(hero).length, deck=vsDeck(hero,cur.pack), pk=deck.slice(own), names=[...new Set(pk)].map(k=>CARDS[k].name);
+    prev.style.setProperty('--k',P_.col); prev.innerHTML=`<b>${P_.name.toUpperCase()} · ${pk.length} CARDS</b><br>${names.join(' · ')}`;
+    meter.innerHTML=`<i style="width:${own/VSL_N*100}%;background:${F_.color||'#ff4d3d'}"></i><i style="width:${pk.length/VSL_N*100}%;background:${P_.col}"></i>`; cnt.textContent=`${deck.length} cards · ${own} ${F_.name.replace(/^The /,'')} + ${pk.length} ${P_.name}`;
+    const g=$('.vsl-gt',s); if(g){ g.classList.toggle('on',gimOn); $('span',g).textContent=o.gimHost===false?'Gimmick · host decides':'Duel gimmick · '+(gimOn?'On':'Off'); }
+    const m=M[cur.m], I=INNATES[cur.ins]; tip.innerHTML=`<b>${m.name}</b>${m.sub?' · '+m.sub:''}: ${fmt((CARDS[m.card]||{}).text||'')}<br><b>${I.name}</b> (${I.cost} Insight): ${fmt(I.text)}`; };
+  s.addEventListener('mouseover',e=>{ const i=e.target.closest('.vsl-i'); if(i){ const I=INNATES[i.dataset.own?hero:i.dataset.i]; if(I) tip.innerHTML=`<b>${I.name}</b>${i.dataset.own?' · your own':''} (${I.cost} Insight): ${fmt(I.text)}`; } });
+  s.addEventListener('click',e=>{ const t=e.target.closest('[data-p],[data-m],[data-i],[data-a]'); if(!t) return; Snd.sfx('click');
+    if(t.dataset.p){ cur.pack=t.dataset.p; } else if(t.dataset.m!==undefined){ cur.m=+t.dataset.m; } else if(t.dataset.i){ cur.ins=t.dataset.i; }
+    else if(t.dataset.a==='gim'){ if(o.gimHost!==false){ gimOn=!gimOn; store.vsGim=gimOn; save(); } }
+    else if(t.dataset.a==='back'){ res(null); return; }
+    else if(t.dataset.a==='go'){ const m=M[cur.m]; store.vsLo=store.vsLo||{}; store.vsLo[hero]={p:cur.pack,m:m.id||m.sprite,i:cur.ins}; save(); res({pack:cur.pack,mentor:m,ins:cur.ins,gim:gimOn,deck:vsDeck(hero,cur.pack)}); return; }
+    draw(); });
+  const kf=e=>{ if(!s.isConnected){ removeEventListener('keydown',kf); return; } if(e.key==='Escape'){ removeEventListener('keydown',kf); res(null); } if(e.key==='Enter'){ removeEventListener('keydown',kf); s.querySelector('[data-a=go]').click(); } }; addEventListener('keydown',kf);
+  draw(); }); }
 function vsHP(id){ const h=(HEROES[id]||{}).hp||120; return id==='kuro'?h:Math.round(120*Math.pow(h/120,.4)); }
 
 // ── Online 1v1 (desktop launcher): a short room code joins two players through the Last Seed relay ──
@@ -6005,13 +6158,13 @@ function olRoom(code,me,them,status){ return olScreen(`<div class="ol-h"><small>
   <div class="ol-acts"><button class="btn alt" data-a="copy">Copy code</button></div>
   <div class="ol-vs"><div class="ol-f" style="--c:${FIGHTERS[me].color}"><img src="img/${me}.webp" alt=""><b>${FIGHTERS[me].name}</b></div><u>VS</u>${them?`<div class="ol-f r"><img src="img/${them}.webp" alt=""><b>${FIGHTERS[them].name}</b></div>`:'<div class="ol-f wait">?</div>'}</div>
   <div class="ol-st">${status}</div>`); }
-async function olHost(){ const me=await pickHero({ti:'Choose your fighter',sm:'Online versus',all:1}); if(!me) return;
+async function olHost(){ const me=await pickHero({ti:'Choose your fighter',sm:'Online versus',all:1}); if(!me) return; const lo=await vsLoadout(me,{sub:'Online versus · you set the rules',go:'Open room'}); if(!lo) return;
   let code; const s0=olScreen('<div class="ol-st ol-dots">Opening a room</div>'); try{ const r=await fetch(NET_URL+'/new'); const j=await r.json(); code=j.code; if(!code) throw 0; await NET.open(code,'host'); }catch(e){ NET.close(); await modal('Could not open a room','Check your connection and try again.','<p style="font-size:.16rem;opacity:.8">The online relay did not answer.</p>',[['Back','alt']]); return; }
   let s=olRoom(code,me,null,'<span class="ol-dots">Waiting for your rival</span>'); let cancel=false;
   const wire=sc=>{ sc.addEventListener('click',e=>{ const a=e.target.closest('[data-a]'); if(!a) return; if(a.dataset.a==='copy'){ try{ navigator.clipboard.writeText(code); toast('Code copied: '+code); }catch(_){ toast(code); } Snd.sfx('click'); } if(a.dataset.a==='back'){ cancel=true; NET.close(); NET._in({t:'cancel'}); Snd.sfx('click'); } }); }; wire(s);
   for(;;){ const m=await NET.take(x=>x.t==='pick'||x.t==='cancel'||x.t==='lost'); if(cancel||m.t==='cancel') return; if(m.t==='lost'){ await modal('Connection lost','The room closed.','',[['Back','alt']]); return; }
     if(!FIGHTERS[m.hero]) continue; const them=m.hero; s=olRoom(code,me,them,'<em>'+FIGHTERS[them].name+'</em> is in. Starting'+'<span class="ol-dots"></span>'); wire(s);
-    const stg=pick(STAGE_ALL).k; NET.send({t:'go',hh:me,gh:them,stg}); await sleep(1300); return olMatch(me,them,stg); } }
+    const stg=pick(STAGE_ALL).k, gim=lo.gim?gimRoll():null; NET.send({t:'go',hh:me,gh:them,stg,gim}); await sleep(1300); return olMatch(me,them,stg,lo,gim); } }
 async function olJoin(){ const code=await new Promise(res=>{ const s=olScreen(`<div class="ol-h"><small>Join a room</small><b>Enter the code</b></div><div class="ol-code">${[0,1,2,3,4].map(i=>`<input maxlength="1" data-i="${i}" autocomplete="off" spellcheck="false">`).join('')}</div><div class="ol-st">Ask your rival for their five-letter room code.</div><div class="ol-acts"><button class="btn" data-a="go">Join room</button></div>`);
     const ins=[...s.querySelectorAll('.ol-code input')], box=$('.ol-code',s); setTimeout(()=>ins[0].focus(),60);
     const val=()=>ins.map(x=>x.value).join('').toUpperCase(); const go=()=>{ const v=val(); if(!NET_CODE.test(v)){ box.classList.remove('bad'); void box.offsetWidth; box.classList.add('bad'); Snd.sfx('deny'); return; } Snd.sfx('click'); res(v); };
@@ -6022,16 +6175,16 @@ async function olJoin(){ const code=await new Promise(res=>{ const s=olScreen(`<
   if(!code) return;
   olScreen('<div class="ol-st ol-dots">Joining room '+code+'</div>');
   try{ await NET.open(code,'guest'); }catch(e){ NET.close(); await modal('Room not found','Check the code and try again.',`<p style="font-size:.16rem;opacity:.8">No open room called <b>${code}</b>.</p>`,[['Back','alt']]); return; }
-  const me=await pickHero({ti:'Choose your fighter',sm:'Online versus · room '+code,all:1}); if(!me){ NET.close(); return; }
+  const me=await pickHero({ti:'Choose your fighter',sm:'Online versus · room '+code,all:1}); if(!me){ NET.close(); return; } const lo=await vsLoadout(me,{sub:'Online versus · room '+code,go:'Ready',gimHost:false}); if(!lo){ NET.close(); return; }
   NET.send({t:'pick',hero:me}); let s=olRoom(code,me,null,'<span class="ol-dots">Waiting for the host</span>'); let cancel=false;
   s.addEventListener('click',e=>{ const a=e.target.closest('[data-a]'); if(!a) return; if(a.dataset.a==='back'){ cancel=true; NET.close(); NET._in({t:'cancel'}); } if(a.dataset.a==='copy'){ try{ navigator.clipboard.writeText(code); }catch(_){} } });
   const m=await NET.take(x=>x.t==='go'||x.t==='cancel'||x.t==='lost'); if(cancel||m.t==='cancel') return; if(m.t==='lost'){ await modal('Connection lost','The room closed.','',[['Back','alt']]); return; }
-  olRoom(code,me,m.hh,'<em>'+FIGHTERS[m.hh].name+'</em> is ready. Starting<span class="ol-dots"></span>'); await sleep(1300); return olMatch(me,m.hh,m.stg); }
-async function olMatch(me,them,stg){
+  olRoom(code,me,m.hh,'<em>'+FIGHTERS[m.hh].name+'</em> is ready. Starting<span class="ol-dots"></span>'); await sleep(1300); return olMatch(me,m.hh,m.stg,lo,m.gim||null); }
+async function olMatch(me,them,stg,lo,gim){
   for(;;){ HERO=me; const k=FIGHTERS[HERO], HH=HEROES[HERO];
-    run={n:store.runs+1,hero:HERO,hp:vsHP(HERO),maxHp:vsHP(HERO),deck:k.deck.slice(),mentor:mentorOptions()[0],quick:1,inn:[HERO],stage:0,ghostDef:null,hype:0,fatigue:0,mon:10,conds:[],coach:null,bond:null,quests:[],perks:{guard:0,spirit:0,energy:0},intel:{},tut:false,stats:{t0:Date.now(),dmg:0,taken:0,big:0,combo:0,ctr:0,pctr:0,fights:0,won:0,turns:0},spirit:0,quick:true,online:true};
-    const opp=Object.assign({},FIGHTERS[them]); const mine=vsDraw(k); run.deck.push(...mine); const vm=vsMentor(HERO); run.mx=vm?[vm]:[]; run.br={slots:[],w:{}};
-    await vsSplash(opp,1); const cu=stageCustom(stg,rivalRound(1))||{}; cu.net=true; cu.vs=true; cu.name='Online versus';
+    run={n:store.runs+1,hero:HERO,hp:vsHP(HERO),maxHp:vsHP(HERO),deck:lo.deck.slice(),mentor:lo.mentor,quick:1,inn:[HERO,lo.ins],stage:0,ghostDef:null,hype:0,fatigue:0,mon:10,conds:[],coach:null,bond:null,quests:[],perks:{guard:0,spirit:0,energy:0},intel:{},tut:false,stats:{t0:Date.now(),dmg:0,taken:0,big:0,combo:0,ctr:0,pctr:0,fights:0,won:0,turns:0},spirit:0,quick:true,online:true};
+    const opp=Object.assign({},FIGHTERS[them]); const vm=vsMentor(HERO); run.mx=vm?[vm]:[]; run.br={slots:[],w:{}};
+    await vsSplash(opp,1); if(gim) await gimReveal(gim); const cu=stageCustom(stg,rivalRound(1))||{}; cu.net=true; cu.vs=true; cu.gim=gim; cu.name='Online versus';
     const win=await stageBattle(opp,1,cu); app.classList.add('dim');
     const why=NET._why; NET._why=null;
     const v=await modal(win?'Victory':'Defeat',`${FIGHTERS[me].name} vs ${FIGHTERS[them].name}`,h('div','',`<p style="font-size:.18rem;opacity:.85">${why||'Online versus · room '+NET.code}</p>`),NET.live&&NET.peer?[['Rematch','',1],['Leave','alt',0]]:[['Leave','alt',0]]);
@@ -6040,16 +6193,17 @@ async function olMatch(me,them,stg){
     // rematch: both have to agree
     NET.send({t:'again'}); olScreen('<div class="ol-st ol-dots">Waiting for your rival to accept the rematch</div>');
     const a=await NET.take(x=>x.t==='again'||x.t==='leave'||x.t==='lost',60000); if(!a||a.t!=='again'){ NET.close(); await modal('No rematch','Your rival left the room.','',[['Back','alt']]); __toMenu(); return 'menu'; }
-    if(NET.role==='host'){ stg=pick(STAGE_ALL).k; NET.send({t:'stg',stg}); } else { const m=await NET.take(x=>x.t==='stg'||x.t==='lost',20000); if(!m||m.t!=='stg'){ NET.close(); __toMenu(); return 'menu'; } stg=m.stg; } } }
-async function quickBattle(){ let id=null, oppId=null, stage=1, stg=null; const VS={sm:'Versus mode · test battle',all:1};
+    if(NET.role==='host'){ stg=pick(STAGE_ALL).k; gim=lo.gim?gimRoll():null; NET.send({t:'stg',stg,gim}); } else { const m=await NET.take(x=>x.t==='stg'||x.t==='lost',20000); if(!m||m.t!=='stg'){ NET.close(); __toMenu(); return 'menu'; } stg=m.stg; gim=m.gim||null; } } }
+async function quickBattle(){ let id=null, oppId=null, stage=1, stg=null, lo=null; const VS={sm:'Versus mode · test battle',all:1};
   for(;;){ if(!id){ id=await pickHero(Object.assign({ti:'Choose your fighter'},VS)); if(!id){ __toMenu(); return; } }
     if(!oppId){ const ro=await pickHero(Object.assign({ti:'Choose your opponent',go:'Face ',exclude:id,start:Object.keys(HEROES).find(x=>x!==id)},VS)); if(!ro){ id=null; continue; } oppId=ro; stg=null; }
     if(!stg){ const sp=await stagePick(null,{title:'Choose a stage',pickLabel:'Fight here'}); if(!sp){ oppId=null; continue; } stg=sp; }
+    if(!lo){ lo=await vsLoadout(id,{sub:'Versus · vs '+FIGHTERS[oppId].name}); if(!lo){ stg=null; continue; } }
     HERO=id; const k=FIGHTERS[HERO], HH=HEROES[HERO];
-    run={n:store.runs+1,hero:HERO,hp:vsHP(HERO),maxHp:vsHP(HERO),deck:k.deck.slice(),mentor:mentorOptions()[0],quick:1,inn:[HERO],stage:0,ghostDef:null,hype:0,fatigue:0,mon:10,conds:[],coach:null,bond:null,quests:[],perks:{guard:0,spirit:0,energy:0},intel:{},tut:!store.tutDone,stats:{t0:Date.now(),dmg:0,taken:0,big:0,combo:0,ctr:0,pctr:0,fights:0,won:0,turns:0},spirit:0,quick:true,tut:false};
-    const opp0=FIGHTERS[oppId], mine=vsDraw(k), theirs=vsDraw(opp0), opp=Object.assign({},opp0,{deck:opp0.deck.concat(theirs)}); run.deck.push(...mine); const vm=vsMentor(HERO); run.mx=vm?[vm]:[]; run.br={slots:[],w:{}}; await vsSplash(opp,stage); setTimeout(()=>toast(`Versus draw · you: ${mine.map(c=>CARDS[c].name).join(', ')}${vm?` · Mentor 2: ${vm.name}`:''}`),3200); const sk=stg==='random'?pick(STAGE_ALL).k:stg; const win=await stageBattle(opp,stage,Object.assign(stageCustom(sk,rivalRound(stage))||{},{vs:true})); app.classList.add('dim');
-    const v=await modal(win?'Victory':'Defeat',`${hero().name} vs ${opp.name}`,h('div','',`<p style="font-size:.18rem;opacity:.85">Versus mode · test battle. Nothing is saved.</p>`),[['Rematch','',2],['Random opponent','alt',1],['Pick opponent','alt',4],['Change stage','alt',5],['Change fighter','alt',3],['Main menu','alt',0]]);
-    if(v===1){ const pool=Object.keys(HEROES).filter(x=>x!==HERO); oppId=pick(pool); } else if(v===2){} else if(v===5){ stg=null; } else if(v===4){ oppId=null; } else if(v===3){ id=null; oppId=null; } else break; }
+    run={n:store.runs+1,hero:HERO,hp:vsHP(HERO),maxHp:vsHP(HERO),deck:lo.deck.slice(),mentor:lo.mentor,quick:1,inn:[HERO,lo.ins],stage:0,ghostDef:null,hype:0,fatigue:0,mon:10,conds:[],coach:null,bond:null,quests:[],perks:{guard:0,spirit:0,energy:0},intel:{},tut:!store.tutDone,stats:{t0:Date.now(),dmg:0,taken:0,big:0,combo:0,ctr:0,pctr:0,fights:0,won:0,turns:0},spirit:0,quick:true,tut:false};
+    const opp0=FIGHTERS[oppId], olo=vsLoadAI(oppId), opp=Object.assign({},opp0,{deck:vsDeck(oppId,olo.pack)}); const vm=vsMentor(HERO); run.mx=vm?[vm]:[]; run.br={slots:[],w:{}}; const gim=lo.gim?gimRoll():null; await vsSplash(opp,stage); if(gim) await gimReveal(gim); const sk=stg==='random'?pick(STAGE_ALL).k:stg; const win=await stageBattle(opp,stage,Object.assign(stageCustom(sk,rivalRound(stage))||{},{vs:true,gim})); app.classList.add('dim');
+    const v=await modal(win?'Victory':'Defeat',`${hero().name} vs ${opp.name}`,h('div','',`<p style="font-size:.18rem;opacity:.85">Versus mode · test battle. Nothing is saved.</p>`),[['Rematch','',2],['Random opponent','alt',1],['Pick opponent','alt',4],['Change loadout','alt',6],['Change stage','alt',5],['Change fighter','alt',3],['Main menu','alt',0]]);
+    if(v===1){ const pool=Object.keys(HEROES).filter(x=>x!==HERO); oppId=pick(pool); } else if(v===2){} else if(v===5){ stg=null; } else if(v===4){ oppId=null; } else if(v===3){ id=null; oppId=null; lo=null; } else if(v===6){ lo=null; } else break; }
   run=null; app.classList.remove('dim'); title(); }
 // ── run setup ──
 let run=null, HERO='kaede'; const hero=()=>FIGHTERS[HERO];
@@ -6519,7 +6673,7 @@ async function lsqArenaBg(){ try{
   return c.toDataURL('image/jpeg',.88);
 }catch(_){ return null; } }
 function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.remove('dim'); const RD=custom||rivalRound(stage); const bgEl=document.getElementById('bg'); document.body.classList.remove('ctrmode'); app.classList.remove('frzbg'); const __fb=custom&&custom.bg?(custom.stageLock?custom.bg:fightBg(custom.bg,opp)):null; if(__fb) bgEl.style.backgroundImage=`url(${__fb})`; window.__lsArena={host:bgEl,custom,bg:__fb||((/url\(["']?([^"')]+)/.exec(bgEl.style.backgroundImage||getComputedStyle(bgEl).backgroundImage)||[])[1])}; ls3dStart(bgEl,custom,window.__lsArena.bg); app.classList.toggle('paperon',paperOn()); window.__lsPaperSwap=()=>{ try{ app.classList.toggle('paperon',paperOn()); ['p','e'].forEach(sd=>{ const f=document.querySelector('.scr.battle .fighter.'+sd); if(!f||f.classList.contains('awk')) return; const id=sd==='p'?HERO:(opp.sprite||opp.id), tint=sd==='e'&&opp.tint, img=f.querySelector('.spr img'); if(!img) return; img.src=tint?sprOf(opp):sprB(id,sd==='p'?'img/'+HERO+'.webp':sprOf(opp)); f.classList.toggle('paper',!tint&&paperOf(id)); }); }catch(e){ console.warn('paper',e); } };   /* no inline backdrop = the tournament ring (img/arena.webp from the stylesheet), which has its own 3D set */ const VSF=!!(custom&&custom.vs); const NETB=!!(custom&&custom.net); const mods=VSF?{list:[{p:{maxEnergy:1},e:{maxEnergy:1}}],names:[]}:fightMods(opp); if(custom&&custom.mods) custom.mods.forEach(m=>mods.list.push(m));
-  dailyReseed('bt'+stage+':'+opp.id+':'+((run.stats&&run.stats.fights)||0)); const EDX=(()=>{ if(custom&&custom.vs) return {h:1,p:0,x:1,gm:null,e:0}; if(run.tut&&stage===0&&!custom) return {h:1,p:0,x:1,gm:null,e:0}; const T=opp.tier, st=Math.min(3,stage||0), gm=gmOf(opp); if(!custom||!T) return {h:EDIFF.rh[st],p:EDIFF.rp[st],x:EDIFF.rx[st],gm}; return {h:EDIFF.fh[T]||1.1,p:EDIFF.fp[T]||0,x:EDIFF.fx[T]||1.15,gm,e:EDIFF.fe[T]||0}; })(); if(EDX.e) mods.list.push({e:{maxEnergy:EDX.e}}); const b=new Battle({id:HERO,name:hero().name,hp:run.hp,maxHp:run.maxHp,deck:run.deck,el:hero().el,...(HEROES[HERO].kit||{}),life:HERO==='kuro'?(run.life||1):0,underdog:HERO==='kaede',ult:ULTS[HERO]?HERO:null,inn:run.inn||[HERO],spirit:run.spirit||0},{id:opp.id,name:opp.name,hp:custom&&custom.vs&&HEROES[opp.sprite||opp.id]?vsHP(opp.sprite||opp.id):Math.round((custom?Math.round(RD.hp*HPX):Math.round(RD.hp*(run.tut&&stage===0?.7:1)))*EDX.h),gm:EDX.gm,xm:EDX.x,deck:(custom?opp.deck:rivalDeck(opp,stage)).concat((FIGHTERS[opp.id]||{}).gear&&!opp.tint?[FIGHTERS[opp.id].gear]:[]),el:opp.el||(FIGHTERS[opp.sprite||opp.id]||{}).el,power:custom&&custom.vs?0:RD.power+EDX.p,toreo:!!((HEROES[opp.sprite||opp.id]||{}).kit||{}).toreo,ult:ULTS[opp.sprite||opp.id]?(opp.sprite||opp.id):null,saves:!custom&&(stage>=2||!!opp.tint||opp.id==='vex'),spirit:!custom&&stage===3?6:0,demon:['horde','general','king'].includes(opp.tier)},(Math.random()*1e9)|0,run.mentor.card); b.mx=(run.mx||[]).map(m=>({card:m.card,used:false})); { const EM=rivalMentor(opp,stage,custom); b.emt=EM?{card:EM.card,used:false,M:EM}:null; } b.e.fk=opp.foe||null; if(custom&&((custom.pack&&custom.pack.length)||(custom.waves&&custom.waves.length))) b.group(custom.pack,custom.waves); RS_b=b; b.legacy=store.legacy.length; b.aiCtr=run.tut?0:COUNTER.ai[Math.min(3,stage)]; window.__LS._b=b; window.__LS._rr=()=>rushResolve(); window.__LS._spk=(x,y,c,t,d)=>sparkV3(x,y,c,t,d); window.__LS._gspk=(x,y,cr)=>guardSpark(x,y,cr); window.__LS._tag=(x,y,t,c)=>hitTag(x,y,t,c); window.__LS._art=k=>doArt(k); window.__LS._ev=()=>runEv(b.flush()); window.__LS._cut=(...a)=>cutin(...a); window.__LS._sf=(...a)=>superFlash(...a); window.__LS._fgc=(sd,n,cm)=>{ FGN[sd]=n; FGCH[sd]=cm; fgcShow(sd); }; window.__LS._ono=(...a)=>onoHit(...a);
+  dailyReseed('bt'+stage+':'+opp.id+':'+((run.stats&&run.stats.fights)||0)); const EDX=(()=>{ if(custom&&custom.vs) return {h:1,p:0,x:1,gm:null,e:0}; if(run.tut&&stage===0&&!custom) return {h:1,p:0,x:1,gm:null,e:0}; const T=opp.tier, st=Math.min(3,stage||0), gm=gmOf(opp); if(!custom||!T) return {h:EDIFF.rh[st],p:EDIFF.rp[st],x:EDIFF.rx[st],gm}; return {h:EDIFF.fh[T]||1.1,p:EDIFF.fp[T]||0,x:EDIFF.fx[T]||1.15,gm,e:EDIFF.fe[T]||0}; })(); if(EDX.e) mods.list.push({e:{maxEnergy:EDX.e}}); const b=new Battle({id:HERO,name:hero().name,hp:run.hp,maxHp:run.maxHp,deck:run.deck,el:hero().el,...(HEROES[HERO].kit||{}),life:HERO==='kuro'?(run.life||1):0,underdog:HERO==='kaede',ult:ULTS[HERO]?HERO:null,inn:run.inn||[HERO],spirit:run.spirit||0},{id:opp.id,name:opp.name,hp:custom&&custom.vs&&HEROES[opp.sprite||opp.id]?vsHP(opp.sprite||opp.id):Math.round((custom?Math.round(RD.hp*HPX):Math.round(RD.hp*(run.tut&&stage===0?.7:1)))*EDX.h),gm:EDX.gm,xm:EDX.x,deck:(custom?opp.deck:rivalDeck(opp,stage)).concat((FIGHTERS[opp.id]||{}).gear&&!opp.tint&&!(custom&&custom.vs)?[FIGHTERS[opp.id].gear]:[]),el:opp.el||(FIGHTERS[opp.sprite||opp.id]||{}).el,power:custom&&custom.vs?0:RD.power+EDX.p,toreo:!!((HEROES[opp.sprite||opp.id]||{}).kit||{}).toreo,ult:ULTS[opp.sprite||opp.id]?(opp.sprite||opp.id):null,saves:!custom&&(stage>=2||!!opp.tint||opp.id==='vex'),spirit:!custom&&stage===3?6:0,demon:['horde','general','king'].includes(opp.tier)},(Math.random()*1e9)|0,run.mentor.card); b.mx=(run.mx||[]).map(m=>({card:m.card,used:false})); { const EM=rivalMentor(opp,stage,custom); b.emt=EM?{card:EM.card,used:false,M:EM}:null; } b.e.fk=opp.foe||null; if(custom&&custom.gim) gimApply(b,custom.gim,mods); if(custom&&((custom.pack&&custom.pack.length)||(custom.waves&&custom.waves.length))) b.group(custom.pack,custom.waves); RS_b=b; b.legacy=store.legacy.length; b.aiCtr=run.tut?0:COUNTER.ai[Math.min(3,stage)]; window.__LS._b=b; window.__LS._rr=()=>rushResolve(); window.__LS._spk=(x,y,c,t,d)=>sparkV3(x,y,c,t,d); window.__LS._gspk=(x,y,cr)=>guardSpark(x,y,cr); window.__LS._tag=(x,y,t,c)=>hitTag(x,y,t,c); window.__LS._art=k=>doArt(k); window.__LS._ev=()=>runEv(b.flush()); window.__LS._cut=(...a)=>cutin(...a); window.__LS._sf=(...a)=>superFlash(...a); window.__LS._fgc=(sd,n,cm)=>{ FGN[sd]=n; FGCH[sd]=cm; fgcShow(sd); }; window.__LS._ono=(...a)=>onoHit(...a);
   const s=h('div','scr battle intro'); const ms=run.mentor;
   s.innerHTML=`<div class="domains"><div class="dom p"></div><div class="dom e"></div><div class="seam"></div><div class="domcap p"></div><div class="domcap e"></div></div><div id="stage"><div class="field">
     <div class="fighter p${paperOf(HERO)?' paper':''}" style="--c:${hero().color}"><div class="shadow"></div><div class="aura"></div><div class="awfx"></div><div class="spr"><div class="flip"><img src="${sprB(HERO,'img/'+HERO+'.webp')}" style="height:calc(var(--sprh)*${SCALE[HERO]||1})" alt=""></div></div><div class="shield"></div></div>
@@ -6764,11 +6918,12 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
     const W=stageEl.clientWidth, H=stageEl.clientHeight, big=camLv==='full', pr=portrait, P=F.p, E=F.e, D=F[def], A=F[att], sg=def==='p'?1:-1;
     for(const f of [P,E]){ f.style.transition=on?'transform .32s cubic-bezier(.2,.85,.25,1)':'transform .38s cubic-bezier(.4,.1,.2,1)'; }
     if(on){ stageEl.classList.add('ots','ots-'+def); ls3dCall('ots',true,def); const posed=ctrHas(def,'b_ready')&&ctrHas(att,'f_swing');
-      if(posed){ ctrPose(def,'b_ready'); ctrPose(att,'f_swing');
+      if(window.__ls3dSet){ if(posed){ ctrPose(def,'b_ready'); ctrPose(att,'f_swing'); } for(const f of [P,E]){ f.style.transition='none'; f.style.filter=''; } }   // a 3D set steers the fighters itself: they stay on their marks as its camera swings
+      else if(posed){ ctrPose(def,'b_ready'); ctrPose(att,'f_swing');
         D.style.transform=`translate(${-sg*W*(pr?.01:.025)}px,${H*(pr?.1:.17)}px) scale(${pr?1.3:big?1.55:1.38})`;
         A.style.transform=`translate(${sg*W*(pr?.01:.03)}px,${-H*(pr?.03:.06)}px) scale(${pr?.85:big?.74:.84})`; A.style.filter=''; }
       else { D.style.transform=`perspective(${Math.round(H*1.6)}px) translate(${-sg*W*(pr?.04:.06)}px,${H*.07}px) rotateY(${sg*(big?16:8)}deg) scale(${pr?1.15:big?1.3:1.18})`; A.style.transform=`perspective(${Math.round(H*1.6)}px) translate(${sg*W*(pr?.04:.07)}px,${-H*.045}px) rotateY(${-sg*(big?26:12)}deg) scale(${big?.8:.9})`; A.style.filter=big?'brightness(.82) saturate(.9)':''; } }
-    else { ls3dCall('ots',false); stageEl.classList.remove('ots','ots-p','ots-e'); P.style.transform=''; E.style.transform=''; P.style.filter=''; E.style.filter=''; setTimeout(()=>{ P.style.transition=''; E.style.transition=''; },420); } }
+    else { ls3dCall('ots',false); stageEl.classList.remove('ots','ots-p','ots-e'); if(!window.__ls3dSet){ P.style.transform=''; E.style.transform=''; } P.style.filter=''; E.style.filter=''; setTimeout(()=>{ P.style.transition=''; E.style.transition=''; },420); } }
   // heartbeat under the fuse: speeds up as it burns
   function ctrHeart(total){ let stop=false, t0=performance.now(); const beat=()=>{ if(stop) return; const k=Math.min(1,(performance.now()-t0)/Math.max(1,total)); try{ Snd.fxFile('ctr_hb',.75+k*.35,1+k*.25); }catch(_){} setTimeout(beat,(920-k*380)*speed); }; beat(); return ()=>{ stop=true; }; }
   const CT_RES=['','BRACE','CLASH','DEFLECT','PERFECT'];
@@ -6816,7 +6971,7 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
     // PHASE: go intangible and let it pass straight through
     const im=$('.spr img',F[def]); if(im) im.animate([{opacity:1,filter:'none'},{opacity:.3,filter:`drop-shadow(0 0 .2rem ${CT_COL.spirit}) hue-rotate(40deg)`,offset:.2},{opacity:.3,filter:`drop-shadow(0 0 .2rem ${CT_COL.spirit}) hue-rotate(40deg)`,offset:.7},{opacity:1,filter:'none'}],{duration:(perfect?760:600)*speed,easing:'ease-in-out'});
     lunge(att,dist*1.05,perfect?680:560); try{ Snd.sfx('ghost',true); }catch(_){} await sleep(perfect?440:360); shockRing(t.x,t.y,CT_COL.spirit,false); Fx.burst(d.x,d.y,'ghost',12,1); try{ Snd.fx3('shadow',.7); }catch(_){} ctrPose(att,'f_stagger'); await sleep(200); }
-  async function ctrPlay(ev){ const def=ev.side||'p', att=def==='p'?'e':'p', tr=ev.tier, sg=def==='p'?1:-1, ecol=ctrElCol(def), adv=ev.rel==='adv', S0=Math.min(stageEl.clientWidth,stageEl.clientHeight), full=camLv==='full', Q=CTRSEQ&&CTRSEQ.card===ev.eid?CTRSEQ:{}, dmg=Q.strike||0;
+  async function ctrPlay(ev){ if(window.__ls3dSet&&stageEl.classList.contains('ots')){ ls3dCall('ots',true,ev.side||'p','wide'); await sleep(260); } const def=ev.side||'p', att=def==='p'?'e':'p', tr=ev.tier, sg=def==='p'?1:-1, ecol=ctrElCol(def), adv=ev.rel==='adv', S0=Math.min(stageEl.clientWidth,stageEl.clientHeight), full=camLv==='full', Q=CTRSEQ&&CTRSEQ.card===ev.eid?CTRSEQ:{}, dmg=Q.strike||0;
     const dist=()=>Math.abs(sprC(def).x-sprC(att).x), mid=()=>{ const a=sprC(def), e=sprC(att); return {x:(a.x+e.x)/2,y:(a.y+e.y)/2}; };
     const wrap=()=>{ ctrMode(def,0,false); ctrThreat(null); ctrCam(false); };
     const strike=async big=>{ ctrPose(def,'b_strike'); await sleep(120); wrap(); ctrPose(att,'f_stagger',true); if(big) impactFrame(); await sleep(140); lunge(def,dist()*(big?.72:.62),big?440:420); await sleep(170); const t=sprC(att); ctrSwipe(def,t.x,t.y-t.h*.08,S0,true); if(big) ctrFx('bighit',t.x,t.y-t.h*.05,S0*.26,{dur:440}); hurt(att,big); try{ ls3dCall('impact',att,{big:!!big}); }catch(_){} if(dmg>0) num(t.x,t.top+t.h*.12,'-'+dmg,'dmg'+(big?' big':'')); if(Q.strikeS) hud(Q.strikeS); shake(big?12:9,big?320:260); };

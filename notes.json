@@ -1,5 +1,17 @@
 [
  {
+  "version": "0.3.40",
+  "date": "Nov 25, 2026",
+  "title": "Versus loadouts and duel gimmicks",
+  "items": [
+   "Versus loadout: pick a card pack (Brawler, Iron Wall, Tempo, Spirit, Fire, Bolt, Frost, Venom or Break) to fill your fighter's own cards out to a 30-card deck",
+   "Your fighter's own cards come in pairs (signature once), choose a mentor from the ones you've unlocked, and take a second insight on top of your fighter's own",
+   "Duel gimmicks: each Versus match can roll 1 of 15 rule twists (Sudden Death, Overclock, Titans, Glass Cannons and more), revealed with a slot-reel pop-up",
+   "The host can turn gimmicks on or off; online, both players get the same gimmick and a fresh one on rematch",
+   "Counter mode on 3D sets: fighters now stay planted on their ground spots while the camera swings over the shoulder, then pulls wider for the outcome"
+  ]
+ },
+ {
   "version": "0.3.39",
   "date": "Nov 25, 2026",
   "title": "Rush and Rushdown",
