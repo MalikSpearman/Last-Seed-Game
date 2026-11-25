@@ -1556,6 +1556,16 @@ svg line.lk{stroke:rgba(160,160,160,.35)!important;stroke-dasharray:.04rem .08re
 @keyframes cisigfig{0%{opacity:0;translate:calc(var(--dir)*-14%) 0;scale:1.18}22%{opacity:1;translate:0 0;scale:1.02}80%{opacity:1;translate:calc(var(--dir)*3%) 0;scale:1}100%{opacity:0;translate:calc(var(--dir)*12%) 0}}
 .ci.sig .ci-ttl b{font-size:.8rem}
 .ci.sig .ci-dim{background:rgba(4,2,10,.55)}
+/* signature cut-in: full-screen comic panel — halftone, ink border, manga title; speed lines removed everywhere */
+.ci .ci-speed,.ci .ci-burst{display:none!important}
+.ci.sig.full .ci-tone{background:radial-gradient(circle,rgba(13,7,16,.42) 30%,transparent 37%) 0 0/.11rem .11rem;opacity:.85}
+.ci.sig.full .ci-ink{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 .1rem #0d0710,inset 0 0 0 .15rem #fff,inset 0 0 0 .23rem #0d0710;animation:ciink .28s ease-out both,ciinkout var(--dur) linear both}
+@keyframes ciinkout{0%,78%{opacity:1}100%{opacity:0}}
+@keyframes ciink{from{box-shadow:inset 0 0 0 2rem #0d0710,inset 0 0 0 2.05rem #fff,inset 0 0 0 2.1rem #0d0710}}
+.ci.sig.full .ci-fig img{filter:drop-shadow(.05rem .05rem 0 #0d0710) drop-shadow(-.025rem -.025rem 0 #0d0710)}
+.ci.sig.full .ci-ttl b i{font-family:'Anton',sans-serif;font-style:normal;color:#fff;-webkit-text-stroke:.07em #0d0710;paint-order:stroke fill;text-shadow:.05em .07em 0 #0d0710}
+.ci.sig.full .ci-ttl small{background:#0d0710;color:var(--c);padding:.03rem .1rem}
+
 .portrait .ci .ci-ttl b{font-size:.5rem}
 .portrait .ci.sig .ci-ttl b{font-size:.42rem}
 .portrait .ci .ci-ttl small{font-size:.11rem}
@@ -1967,6 +1977,18 @@ svg line.lk{stroke:rgba(160,160,160,.35)!important;stroke-dasharray:.04rem .08re
 .cscene .cs-bar{position:absolute;left:0;right:0;height:9%;background:#05030a;animation:csbar .28s ease-out both}.cscene .cs-bar.t{top:0}.cscene .cs-bar.b{bottom:0}
 @keyframes csbar{from{transform:scaleY(0)}to{transform:none}}.cscene .cs-bar.t{transform-origin:top}.cscene .cs-bar.b{transform-origin:bottom}
 .portrait .cscene .cs-name b{font-size:.3rem}.portrait .cscene .cs-hero{height:100%;top:8%}
+/* signature cut-in, comic panel: no speed lines or letterbox bars — halftone field, ink panel border, manga lettering, full screen */
+.cscene .cs-dots{position:absolute;inset:0;background:radial-gradient(circle,rgba(13,7,16,.5) 0 32%,transparent 34%) 0 0/.13rem .13rem;-webkit-mask:radial-gradient(circle at 50% 55%,transparent 20%,#000 75%);mask:radial-gradient(circle at 50% 55%,transparent 20%,#000 75%);animation:csdots 1.1s ease-out both}
+@keyframes csdots{from{opacity:0;transform:scale(1.15)}20%{opacity:1}to{opacity:1;transform:none}}
+.cscene .cs-ink{position:absolute;inset:0;box-shadow:inset 0 0 0 .09rem #0d0710,inset 0 0 0 .13rem #fff,inset 0 0 0 .2rem #0d0710;animation:csink .25s ease-out both}
+@keyframes csink{from{box-shadow:inset 0 0 0 1.2rem #0d0710,inset 0 0 0 1.25rem #fff,inset 0 0 0 1.3rem #0d0710}}
+.cscene .cs-rays,.cscene .cs-lines,.cscene .cs-bar{display:none}
+.cscene .cs-name{background:none!important;padding:0!important}
+.cscene .cs-name small{background:#0d0710;padding:.04rem .12rem;filter:none;color:var(--c)}
+.cscene .cs-name b{font:400 .72rem/1 'Anton',sans-serif;font-style:normal;color:#fff;-webkit-text-stroke:.07em #0d0710;paint-order:stroke fill;text-shadow:.05em .07em 0 #0d0710,0 0 .3em var(--c);letter-spacing:.01em}
+.cscene .cs-hero{filter:drop-shadow(.04rem .04rem 0 #0d0710) drop-shadow(-.02rem -.02rem 0 #0d0710) drop-shadow(0 0 .2rem var(--c))}
+.portrait .cscene .cs-name b{font-size:.36rem}
+
 .fgc.p{left:33%}.portrait .fgc.p{left:6%;top:36%}
 .scr:has(.inn .innt) .fgc{z-index:20}
 
@@ -2583,6 +2605,73 @@ body.portrait .rm-hp{width:2.25rem}
 .spfin em{position:absolute;z-index:2;right:9%;bottom:12%;font:400 .7em/1 'Anton',sans-serif;color:#fff;font-style:normal;text-shadow:.04em .05em 0 #000;animation:spSlam .35s .42s cubic-bezier(.2,1.6,.4,1) both}
 .spfin .spk{position:absolute;z-index:2;left:11%;top:12%;font:800 .26em/1 'Barlow Condensed',sans-serif;letter-spacing:.4em;text-transform:uppercase;color:#fff;background:#000;padding:.2em .5em;animation:spSlam .3s .5s both}
 .spfin.out{transition:opacity .4s,transform .4s;opacity:0;transform:translate(-50%,-50%) rotate(-4deg) scale(1.08)}
+/* ── impact frame (replaces speed lines) ── */
+.ifx{position:absolute;inset:0;z-index:88;pointer-events:none;-webkit-backdrop-filter:grayscale(1) contrast(7) brightness(1.15) invert(1);backdrop-filter:grayscale(1) contrast(7) brightness(1.15) invert(1);background:rgba(255,255,255,.06)}
+.ifx svg{position:absolute;inset:0;width:100%;height:100%}
+.ifx polygon{fill:#05030a}
+.ifx>i{position:absolute;width:24vmin;height:24vmin;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff 0 38%,rgba(255,255,255,.85) 52%,transparent 72%)}
+.ifx.big>i{width:34vmin;height:34vmin}
+.ifx.f2{-webkit-backdrop-filter:grayscale(1) contrast(5) brightness(.85);backdrop-filter:grayscale(1) contrast(5) brightness(.85);background:color-mix(in srgb,var(--c) 26%,transparent)}
+.ifx.f2 polygon{fill:#fff;opacity:.9}
+.ifx.f2>i{background:radial-gradient(circle,#05030a 0 30%,transparent 62%)}
+@media (prefers-reduced-motion:reduce){.ifx{display:none}}
+/* ── counter result + finisher: Strive-style full-screen slam (smaller) ── */
+.cd-slam{position:fixed;inset:0;z-index:160;pointer-events:none}
+.cd-slam .dim,.fslam .dim{position:absolute;left:0;right:0;height:min(22vw,40vh);transform:translateY(-50%);background:linear-gradient(180deg,transparent,rgba(8,4,14,.55) 25% 75%,transparent);animation:slfade 1.5s both}
+.cd-slam .w{position:absolute;transform:translate(-50%,-50%);white-space:nowrap}
+.cd-slam b,.fslam b{display:block;font:400 min(13vw,25vh)/.8 'Anton',sans-serif;letter-spacing:-.01em;color:var(--sc,var(--c));-webkit-text-stroke:.006em rgba(255,255,255,.55);text-shadow:0 0 .1em color-mix(in srgb,var(--sc,var(--c)) 55%,transparent);transform:skewX(-12deg) scaleY(1.12)}
+.cd-slam.big b{font-size:min(15vw,28vh)}
+.cd-slam b:not(.gh){animation:slin 1.5s cubic-bezier(.1,.9,.2,1) both}
+.cd-slam b.gh{position:absolute;left:0;bottom:0;color:transparent;-webkit-text-stroke:.012em #fff;text-shadow:none;opacity:.6;animation:slgh 1.5s cubic-bezier(.1,.9,.2,1) both}
+.cd-slam small,.fslam small{position:absolute;z-index:2;font:700 min(1.6vw,3vh)/1 'Barlow Condensed',sans-serif;letter-spacing:.5em;color:#fff;text-shadow:0 .1em .3em #000;animation:slfade 1.5s .08s both}
+.cd-slam small{left:6%;top:-24%}
+.cd-slam small::before{content:'';display:inline-block;width:3.2em;height:.22em;background:var(--sc);vertical-align:middle;margin-right:.7em}
+@keyframes slin{0%{opacity:0;transform:skewX(-12deg) scaleY(1.12) scale(2.6) translateX(6%)}9%{opacity:1;transform:skewX(-12deg) scaleY(1.12) scale(1) translateX(2%)}100%{opacity:1;transform:skewX(-12deg) scaleY(1.12) translateX(-3%)}}
+@keyframes slgh{0%{opacity:0;transform:skewX(-12deg) scaleY(1.12) scale(1.4)}9%{opacity:.7;transform:skewX(-12deg) scaleY(1.12) scale(1.04) translateX(3%)}100%{opacity:.25;transform:skewX(-12deg) scaleY(1.12) scale(1.12) translateX(-6%)}}
+@keyframes slfade{0%{opacity:0}10%{opacity:1}100%{opacity:1}}
+.cd-slam.out,.fslam.out{transition:opacity .3s;opacity:0}
+.fslam{position:absolute;inset:0;z-index:61;pointer-events:none}
+.fslam .dim{top:40%}
+.fslam .w{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%) rotate(-6deg);white-space:nowrap}
+.fslam.e .w{transform:translate(-50%,-50%) rotate(6deg)}
+.fslam b{font-size:min(15vw,28vh);-webkit-text-stroke:.012em #fff}
+.fslam b.a{clip-path:polygon(0 0,100% 0,100% 44%,0 60%);animation:slA .9s cubic-bezier(.2,.9,.2,1) both}
+.fslam b.b{position:absolute;inset:0;clip-path:polygon(0 60%,100% 44%,100% 100%,0 100%);animation:slB .9s cubic-bezier(.2,.9,.2,1) both}
+.fslam .cut{position:absolute;left:-8%;right:-8%;top:51%;height:max(3px,.35vw);background:#fff;box-shadow:0 0 1.4vw #fff,0 0 3vw var(--c);transform:rotate(-2.6deg);animation:slcut .5s .18s ease-out both}
+.fslam small{right:2%;bottom:-16%;font:400 min(4vw,7vh)/1 'Anton',sans-serif;letter-spacing:.02em;-webkit-text-stroke:.05em #0d0710;paint-order:stroke fill;text-shadow:.05em .06em 0 #0d0710;animation:slfade 1s .3s both}
+@keyframes slA{0%{opacity:0;transform:skewX(-12deg) scale(2)}18%{opacity:1;transform:skewX(-12deg) scale(1)}40%{transform:skewX(-12deg)}100%{opacity:1;transform:skewX(-12deg) translate(-2.5%,-3%)}}
+@keyframes slB{0%{opacity:0;transform:skewX(-12deg) scale(2)}18%{opacity:1;transform:skewX(-12deg) scale(1)}40%{transform:skewX(-12deg)}100%{opacity:1;transform:skewX(-12deg) translate(2.5%,3%)}}
+@keyframes slcut{0%{transform:rotate(-2.6deg) scaleX(0);opacity:1}60%{transform:rotate(-2.6deg) scaleX(1);opacity:1}100%{transform:rotate(-2.6deg) scaleX(1);opacity:0}}
+.portrait .cd-slam b{font-size:19vw}.portrait .cd-slam.big b{font-size:21vw}.portrait .fslam b{font-size:21vw}.portrait .cd-slam small,.portrait .fslam small{font-size:3.4vw}.portrait .fslam small{font-size:7vw}
+
+/* ── counter result: manga sound-effect word ── */
+.cd-word{position:fixed;z-index:160;transform:translate(-50%,-50%) rotate(-8deg);pointer-events:none;white-space:nowrap;display:flex;flex-direction:column;align-items:center;line-height:.9}
+.cd-word b{display:flex;font:400 1.05rem/1 'Anton',sans-serif;letter-spacing:-.01em}
+.cd-word.big b{font-size:1.35rem}.cd-word.long b{font-size:.82rem}.cd-word.big.long b{font-size:1rem}
+.cd-word b i{position:relative;display:inline-block;font-style:normal;color:var(--sc);-webkit-text-stroke:.075em #0d0710;paint-order:stroke fill;transform:rotate(var(--r)) skewX(-9deg);animation:cdwIn .3s calc(var(--i)*.045s) cubic-bezier(.2,1.7,.35,1) both}
+.cd-word b i::before{content:attr(data-c);position:absolute;inset:0;z-index:-1;color:#fff;-webkit-text-stroke:.2em #fff;filter:drop-shadow(.05em .07em 0 #0d0710) drop-shadow(0 0 .12em color-mix(in srgb,var(--sc) 70%,transparent))}
+.cd-word b i::after{content:attr(data-c);position:absolute;inset:0;color:transparent;background:linear-gradient(180deg,rgba(255,255,255,.75) 0 22%,transparent 23% 100%);-webkit-background-clip:text;background-clip:text;pointer-events:none}
+.cd-word small{font:800 .2rem/1 'Barlow Condensed',sans-serif;letter-spacing:.32em;color:#fff;background:#0d0710;padding:.04rem .12rem;margin-bottom:.03rem;transform:skewX(-9deg);animation:cdwIn .25s cubic-bezier(.2,1.6,.4,1) both}
+.cd-word.big{animation:cdwShake .32s .3s both}
+.cd-word.out{animation:cdwOut .36s ease-in forwards}
+@keyframes cdwIn{0%{opacity:0;transform:translateY(-.35em) rotate(calc(var(--r,0deg)*4)) skewX(-9deg) scale(2.4)}60%{opacity:1}100%{opacity:1;transform:rotate(var(--r,0deg)) skewX(-9deg) scale(1)}}
+@keyframes cdwShake{0%,100%{translate:0 0}20%{translate:.03rem -.02rem}40%{translate:-.03rem .02rem}60%{translate:.02rem .01rem}80%{translate:-.01rem -.01rem}}
+@keyframes cdwOut{to{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(1.18);filter:blur(3px)}}
+.portrait .cd-word b{font-size:.62rem}.portrait .cd-word.big b{font-size:.8rem}.portrait .cd-word.long b{font-size:.48rem}.portrait .cd-word.big.long b{font-size:.58rem}
+/* ── painted finisher banner (all finishers) ── */
+.spfin.fin2 .spb.s2{inset:20% -5% 10% 5%;opacity:.8;background:#0d0710;transform:rotate(2.5deg);animation-delay:0s}
+.spfin.fin2 .spb:not(.s2){animation-delay:.07s}
+.spfin.fin2 .spw{position:absolute;inset:0;z-index:1;background:linear-gradient(100deg,transparent 0 42%,rgba(255,255,255,.85) 49%,rgba(255,255,255,.25) 53%,transparent 60% 100%);background-size:260% 100%;background-position:120% 0;-webkit-mask:url(img/fx_brush.webp) center/100% 100% no-repeat;mask:url(img/fx_brush.webp) center/100% 100% no-repeat;mix-blend-mode:overlay;animation:spWet .6s .12s cubic-bezier(.5,0,.4,1) both}
+@keyframes spWet{from{background-position:120% 0;opacity:1}to{background-position:-20% 0;opacity:.6}}
+.spfin.fin2 .spkan{position:absolute;z-index:1;right:4%;top:50%;transform:translateY(-52%) rotate(8deg);font:900 1.9em/1 'Noto Serif JP','Yu Mincho',serif;text-decoration:none;color:color-mix(in srgb,var(--c) 45%,#000);opacity:.55;animation:spSlam .4s .18s cubic-bezier(.2,1.6,.4,1) both}
+.spfin.fin2>u{position:absolute;z-index:1;left:50%;top:50%;width:var(--z);height:var(--z);border-radius:50%;background:var(--c);box-shadow:0 0 0 .03em #0d0710;opacity:0;animation:spFleck .55s var(--d) cubic-bezier(.1,.8,.3,1) both}
+@keyframes spFleck{0%{opacity:1;transform:translate(-50%,-50%) scale(.4)}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1)}}
+.spfin.fin2 b{-webkit-text-stroke:.05em #0d0710;paint-order:stroke fill;text-shadow:.06em .07em 0 #0d0710,0 0 .45em var(--c)}
+.spfin.fin2 em{font-size:.9em;color:#fff;-webkit-text-stroke:.06em #0d0710;paint-order:stroke fill;text-shadow:.05em .06em 0 #0d0710}
+.spfin.fin2 .spk{background:#0d0710;color:var(--c);box-shadow:.05em .05em 0 color-mix(in srgb,var(--c) 60%,#000)}
+.spfin.fin2.e{transform:translate(-50%,-50%) rotate(4deg)}
+.spfin.fin2.e .spb,.spfin.fin2.e .spw{scale:-1 1}
+
 @keyframes spSlam{from{opacity:0;transform:skewX(-10deg) scale(2.2)}to{opacity:1}}
 .spblast{position:absolute;z-index:58;width:var(--s);height:var(--s);transform:translate(-50%,-50%);pointer-events:none}
 .spblast .spimg{position:absolute;inset:0;background:center/contain no-repeat;mix-blend-mode:screen;animation:spBoom .95s cubic-bezier(.1,.9,.3,1) both}
@@ -6943,7 +7032,7 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
   function fgcHide(side,delay){ clearTimeout(fgT[side]); fgT[side]=setTimeout(()=>{ const m=FGC[side]; if(m) m.classList.remove('on'); },(delay||0)*speed); }
   const annT={t:0}; let KOART=null; function annCall(k,pri){ const t=performance.now(); if(t-annT.t<900&&!pri) return; annT.t=t; if(Snd.has('ann',k)) Snd.voice('ann',k,pri?{pri:true}:undefined); }
   function cmbMeter(side,cm){ const pv=FGCH[side]; if(pv&&pv.n>=2&&cm&&cm.n&&cm.n<pv.n) annCall('breaker',true); if(cm&&cm.n>=3&&!(pv&&pv.n>=3)) annCall('maxc',true); FGCH[side]=cm&&cm.n?cm:null; if(!FGCH[side]&&FGN[side]<2){ fgcHide(side,700); return; } fgcShow(side); }
-  function comboHit(side,n){ FGN[side]=(FGN[side]||0)+1; fgcShow(side); const c=FGN[side]; if(side==='p'&&run.stats) run.stats.combo=Math.max(run.stats.combo,c); if([2,3,4,5,7,10].includes(c)) annCall('c'+c,c>=5); clearTimeout(fgL[side]); fgL[side]=setTimeout(()=>fgcReset(side),2600*speed); }
+  function comboHit(side,n){ FGN[side]=(FGN[side]||0)+1; fgcShow(side); const c=FGN[side]; if(side==='p'&&run.stats) run.stats.combo=Math.max(run.stats.combo,c); if([2,3,4,5,7,10].includes(c)) annCall('c'+c,c>=5); clearTimeout(fgL[side]); if(!(F[side]&&F[side].classList.contains('myturn'))) fgL[side]=setTimeout(()=>fgcReset(side),2600*speed); }   /* on your own turn the hit count only ends with the turn or a counter, never with a pause (tick damage, cut-ins) */
   function fgcReset(side){ clearTimeout(fgT[side]); clearTimeout(fgL[side]); FGN[side]=0; if(FGCH[side]) fgcShow(side); else fgcHide(side,250); }
 
   // ── Innates: Insight meter + buttons ──
@@ -7048,7 +7137,13 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
     const x0=A.x+dir*A.w*.2, x1=T.x+dir*T.w*.9, y=T.y-T.h*.06, e=h('div','thrust'+(dir<0?' rev':'')); e.style.left=Math.min(x0,x1)+'px'; e.style.width=Math.abs(x1-x0)+'px'; e.style.top=y+'px'; overlay.appendChild(e); Snd.sfx('slash',true);
     await sleep(150); scr.classList.remove('frz'); app.classList.remove('frzbg'); flash(); setTimeout(()=>e.remove(),520); }
   function onoHit(x,y,fx,big){ const o=h('div','ono-hit',onoW(fx)); o.style.left=x+'px'; o.style.top=y+'px'; o.style.setProperty('--r',(Math.random()*24-12).toFixed(0)+'deg'); o.style.setProperty('--k',{fire:'#ffb35a',bolt:'#fff27a',ice:'#c9f2ff',shadow:'#d9a8ff',slash:'#fff',gold:'#ffe07a',impact:'#fff'}[fx]||'#fff'); if(big) o.style.fontSize='.82rem'; overlay.appendChild(o); setTimeout(()=>o.remove(),950); if(big&&Snd.synth) Snd.synth('boom'); }
-  function speedBurst(x,y){ const o=h('div','speedburst'); o.style.setProperty('--x',x+'px'); o.style.setProperty('--y',y+'px'); overlay.appendChild(o); setTimeout(()=>o.remove(),400); Snd.synth&&Snd.synth('whoosh'); }
+  function speedBurst(x,y,col){ impactFX(x,y,col,true); }
+  // ── anime impact frame: two frames of stark black-and-white (negative, then positive) with jagged ink spikes bursting from the point of contact ──
+  function impactFX(x,y,col,big){ if(!camK()) return; const W=overlay.clientWidth||innerWidth, H=overlay.clientHeight||innerHeight, Rr=Math.hypot(W,H)*1.3; col=col||'#ffffff';
+    const N=big?22:15; let p=''; for(let i=0;i<N;i++){ const a=(i+Math.random()*.7)/N*Math.PI*2, w=(.018+Math.random()*.045)*(big?1.25:1), r0=Math.min(W,H)*(.07+Math.random()*.16), r1=Rr*(.55+Math.random()*.45), b=a+(Math.random()-.5)*.05;
+      p+=`<polygon points="${(x+Math.cos(a-w)*r1).toFixed(1)},${(y+Math.sin(a-w)*r1).toFixed(1)} ${(x+Math.cos(b)*r0).toFixed(1)},${(y+Math.sin(b)*r0).toFixed(1)} ${(x+Math.cos(a+w)*r1).toFixed(1)},${(y+Math.sin(a+w)*r1).toFixed(1)}"/>`; }
+    const o=h('div','ifx'+(big?' big':''),`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${p}</svg><i style="left:${x}px;top:${y}px"></i>`); o.style.setProperty('--c',col); overlay.appendChild(o);
+    setTimeout(()=>o.classList.add('f2'),(big?70:55)*speed); setTimeout(()=>o.remove(),(big?175:130)*speed); }
   // ── Counter-window camera: you swing into the foreground (bottom left), the rival is pushed back and turned in 3D ──
   // ── Counter v90: over-the-shoulder shot. The defender is seen close from behind (back 3/4), the attacker far, front 3/4.
   //    Pose sprites are pure movement (no effects baked in); effects are layered in code. Fighters without pose art keep their cut-out.
@@ -7194,7 +7289,7 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
     const kf=(X,Y,Z,R)=>{ const to=`translate(${X}px,${Y}px) scale(${Z}) rotate(${R}deg)`; return [{transform:'none'},{transform:to,offset:.2},{transform:to,offset:Math.min(.85,.2+hold)},{transform:'none'}]; };
     const opt={duration:dur*speed,easing:'cubic-bezier(.2,.8,.2,1)'}; fieldEl.style.transformOrigin=ox+'% '+oy+'%'; fieldEl.animate(kf(x*k,y*k,zz,r*k),opt);
     [bgEl,DOMS].forEach(e=>{ if(e) e.animate(kf(-x*k*px,-y*k*px,1+(z-1)*k*.5,-r*k*.4),opt); }); }
-  function camLines(dir,col){ const o=h('div','camlines '+(dir>0?'r':'l')); o.style.setProperty('--c',col||'#fff'); overlay.appendChild(o); setTimeout(()=>o.remove(),480*speed); }
+  function camLines(dir,col,side){ try{ const t=sprC(side||(dir>0?'e':'p')); impactFX(t.x,t.y,col,false); }catch(_){ } }   /* the old horizontal speed lines are gone: a camera punch now cuts to an impact frame */
   function invFrame(ms){ const o=h('div','invframe'); overlay.appendChild(o); setTimeout(()=>o.remove(),(ms||110)*speed); }
   let camStyle='orbit'; try{ camStyle=localStorage.getItem('ls_camst')||'orbit'; }catch(e){}
   // Chrono-Ark-style: track the attacker, whip to the target at impact, hold, ease home; letterbox bars + strong parallax
@@ -7212,7 +7307,7 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
     const bgk=(a,sc)=>[{transform:'none'},{transform:`perspective(1300px) translate(${-tx*.4}px,${rise}px) rotateY(${a}deg) scale(${sc})`,offset:.3,easing:'cubic-bezier(.1,.9,.2,1)'},{transform:`perspective(1300px) translate(${-tx*.45}px,${rise}px) rotateY(${a*1.15}deg) scale(${sc*1.03})`,offset:.68},{transform:'none'}];
     [bgEl,DOMS].forEach(e=>{ if(e) e.animate(bgk(yaw,1.32),opt); }); const bars=h('div','cbars','<i></i><i></i>'); overlay.appendChild(bars); setTimeout(()=>bars.remove(),dur); }
   // Chrono-Ark-style skill cutscene: full-screen close-up of the caster with speed lines, colour wash and a skill slab
-  function cutscene(side,c,col,spr,tint){ if(!camK()) return Promise.resolve(); Snd.sfx('cutin'); const o=h('div','cscene '+side,`<div class="cs-bk"></div><div class="cs-rays"></div><img class="cs-hero ${tint?'gh':''}" src="${spr}" alt=""><div class="cs-lines"><i></i><i></i><i></i><i></i><i></i></div><div class="cs-name"><small>${(ctype(c)==='spirit'?'SPIRIT':ctype(c)==='tech'?'TECHNIQUE':'PHYSICAL')}</small><b>${c.name}</b></div><div class="cs-bar t"></div><div class="cs-bar b"></div>`); o.style.setProperty('--c',col||'#ffd34d'); overlay.appendChild(o); if(speed<1) o.getAnimations({subtree:true}).forEach(a=>a.playbackRate=1/speed); setTimeout(()=>o.remove(),1150*speed); setTimeout(()=>{ flash(); shake(8,200); },520*speed); return sleep(980); }
+  function cutscene(side,c,col,spr,tint){ if(!camK()) return Promise.resolve(); Snd.sfx('cutin'); const o=h('div','cscene '+side,`<div class="cs-bk"></div><div class="cs-dots"></div><img class="cs-hero ${tint?'gh':''}" src="${spr}" alt=""><div class="cs-ink"></div><div class="cs-name"><small>${(ctype(c)==='spirit'?'SPIRIT':ctype(c)==='tech'?'TECHNIQUE':'PHYSICAL')}</small><b>${c.name}</b></div>`); o.style.setProperty('--c',col||'#ffd34d'); overlay.appendChild(o); if(speed<1) o.getAnimations({subtree:true}).forEach(a=>a.playbackRate=1/speed); setTimeout(()=>o.remove(),1150*speed); setTimeout(()=>{ flash(); shake(8,200); },520*speed); return sleep(980); }
   // ── Splash v2 (2026-11-20): big-hit splash drawn on canvas. Brush strokes with tapered, ragged edges, a dark ink rim, white core,
   //    element trim (fire tongues, ice shards, lightning forks, shadow wisps), curved speed streaks and particles. Five variations, picked per hit.
   const SPLV=(()=>{ const R=(a,b)=>a+Math.random()*(b-a), E=t=>1-Math.pow(1-t,3), cl=t=>Math.max(0,Math.min(1,t));
@@ -7266,7 +7361,7 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
       const drops=[]; for(const o of specs) for(let k=0;k<14;k++){ const q=o.s.pts[(Math.random()*o.s.pts.length)|0]; drops.push({x:q.x,y:q.y,vx:R(-1,1)*R(120,520)+dir*R(100,400),vy:R(-420,260),r:R(1.5,6)*(Math.random()<.2?2:1),d:o.delay+R(.05,.2),c:Math.random()<.6?col:ink}); }
       const t0=performance.now(), T=.95; let raf=0;
       const frame=now=>{ const u=(now-t0)/1000/(T*(window.speed||1)); if(u>=1||!cv.isConnected){ cancelAnimationFrame(raf); return; } raf=requestAnimationFrame(frame); cx.clearRect(0,0,W,H);
-        drawStreaks(cx,streaks,W,H,cx0,cy0,u*1.4,col);
+        /* converging speed streaks removed — the hit gets an impact frame instead */
         const fade=u<.62?1:1-(u-.62)/.38;
         for(const o of specs){ const k=E(cl((u-o.delay)/o.dur)); if(k<=0) continue; const s=o.s, thin=u>.5?1-(u-.5)*1.1:1;
           cx.globalAlpha=fade; cx.save(); cx.shadowColor=hex(col,.8); cx.shadowBlur=H*.03;
@@ -7297,7 +7392,7 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
   function phoenixRush(att,tgt){ kSfx([[0,'3','whoosh_h',.6],[0,'s','fire'],[60,'3','dash',.5],[180,'3','whoosh_l',.5]]); if(window.__LS) window.__LS.phx=(window.__LS.phx||0)+1; try{ performance.mark('phx0'); }catch(e){} return new Promise(resolve=>{
     if(!(PHX_BOOM.complete&&PHX_BOOM.naturalWidth)) PHX_BOOM.src='img/fx_fin_phys.webp';   // re-resolve in case the packed cut-out wasn't ready at battle start
     const A=ROAM_ATLAS.full, fa=F[att], ft=F[tgt], img=$('.spr img',fa); if(!img){ resolve(); return; }
-    try{ const A0=sprC(att), T0=sprC(tgt), who=phxWho(att), fc=(FIGHTERS[who]||{}).color||'#ffffff', dd=att==='p'?1:-1; sheetFx('hyperspeed',(A0.x+T0.x)/2,A0.y,Math.abs(T0.x-A0.x)*1.1,{flipX:dd<0,filter:tintF(fc,1.3),blend:'screen',op:.55,dur:360}); }catch(_){ } const dir=att==='p'?1:-1, H=img.offsetHeight||300, gap=Math.abs(ft.offsetLeft-fa.offsetLeft)||H*2, D=Math.max(H*.4,gap-H*.42), k=H/400*1.04;
+    try{ const A0=sprC(att), T0=sprC(tgt), who=phxWho(att), fc=(FIGHTERS[who]||{}).color||'#ffffff', dd=att==='p'?1:-1; void 0; }catch(_){ } const dir=att==='p'?1:-1, H=img.offsetHeight||300, gap=Math.abs(ft.offsetLeft-fa.offsetLeft)||H*2, D=Math.max(H*.4,gap-H*.42), k=H/400*1.04;
     const Wc=gap+H*1.75, L=dir>0?H*.6:gap+H*1.15, Hc=H*2.6, B=H*.25, dpr=Math.min(1.5,devicePixelRatio||1);
     const cv=document.createElement('canvas'); cv.className='phx'; cv.width=Wc*dpr; cv.height=Hc*dpr; cv.style.cssText=`position:absolute;left:${-L}px;bottom:${-B}px;width:${Wc}px;height:${Hc}px;z-index:6;pointer-events:none`; fa.appendChild(cv);
     const cx=cv.getContext('2d'); cx.scale(dpr,dpr); const X0=L, Y0=Hc-B;
@@ -9386,7 +9481,7 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
   const kSupCan=(card,side)=>{ const id=String(card||'').replace(/\+$/,''); return PHX_OK&&typeof ROAM_ATLAS!=='undefined'&&!!ROAM_ATLAS.full&&!!ROAM_ATLAS.full.rush&&(id==='sup_kaede'||id==='ult_kaede'||id==='crit_kaede')&&phxWho(side)==='kaede'; };
   function kActor(att,tgt){
     const A=ROAM_ATLAS.full, fa=F[att], ft=F[tgt], img=$('.spr img',fa); if(!img) return null;
-    try{ const A0=sprC(att), T0=sprC(tgt), who=phxWho(att), fc=(FIGHTERS[who]||{}).color||'#ffffff', dd=att==='p'?1:-1; sheetFx('hyperspeed',(A0.x+T0.x)/2,A0.y,Math.abs(T0.x-A0.x)*1.1,{flipX:dd<0,filter:tintF(fc,1.3),blend:'screen',op:.55,dur:360}); }catch(_){ } const dir=att==='p'?1:-1, H=img.offsetHeight||300, gap=Math.abs(ft.offsetLeft-fa.offsetLeft)||H*2, k=H/400*1.04, SP=()=>(speed||1);
+    try{ const A0=sprC(att), T0=sprC(tgt), who=phxWho(att), fc=(FIGHTERS[who]||{}).color||'#ffffff', dd=att==='p'?1:-1; void 0; }catch(_){ } const dir=att==='p'?1:-1, H=img.offsetHeight||300, gap=Math.abs(ft.offsetLeft-fa.offsetLeft)||H*2, k=H/400*1.04, SP=()=>(speed||1);
     const Wc=gap+H*2.3, L=dir>0?H*.75:gap+H*1.55, Hc=H*2.9, B=H*.25, dpr=Math.min(1.5,devicePixelRatio||1);
     const cv=document.createElement('canvas'); cv.className='phx'; cv.width=Wc*dpr; cv.height=Hc*dpr; cv.style.cssText=`position:absolute;left:${-L}px;bottom:${-B}px;width:${Wc}px;height:${Hc}px;z-index:6;pointer-events:none`; fa.appendChild(cv);
     const cx=cv.getContext('2d'); cx.scale(dpr,dpr); const X0=L, Y0=Hc-B;
@@ -9607,7 +9702,7 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
     else { let mv=gMoveOf(id,cc);
       if(c.sig) mv=[mv[0],mv[1],Object.assign({},mv[2]||{},{big:1})];
       if(first&&c.sig){ a.pose('phys_w'); a.aura=4; try{ Snd.fx3&&Snd.fx3('charge',.6); }catch(e){} a.ring(a.wx(0),a.wy(a.H*.04),true); await a.go({x:-a.H*.07,ease:E3o},240); a.ring(a.wx(0),a.wy(a.H*.5),true);
-        try{ if(!/^(proj|rain|fall|erupt|beam)$/.test(mv[0])&&!(mv[2]&&mv[2].tk)){ const A0=sprC(ev.from), T0=sprC(ev.side); sheetFx('hyperspeed',(A0.x+T0.x)/2,A0.y,Math.abs(T0.x-A0.x)*1.1,{flipX:a.dir<0,filter:tintF(a.C.hex,1.3),blend:'screen',op:.55,dur:360}); } }catch(e){} }
+        try{ if(!/^(proj|rain|fall|erupt|beam)$/.test(mv[0])&&!(mv[2]&&mv[2].tk)){ const A0=sprC(ev.from), T0=sprC(ev.side); void 0; } }catch(e){} }
       await gTechnique(a,first,ev,c,c.sig?3:tier,id,mv); }
     if(ev.air&&!isLaunchC(c)) a.go({z:Math.max(a.S.z,a.H*.3),ease:E3o},90);
     a.n++;
@@ -9649,7 +9744,7 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
   // real wind-up → impact frames at contact, then a rising follow-through that bursts in the fighter's element
   async function gSig(a,ev,c,id){ const H=a.H, D=a.D;
     a.pose('phys_w'); a.aura=4; try{ Snd.fx3&&Snd.fx3('charge',.6); Snd.fx3&&Snd.fx3('whoosh_h',.5); }catch(e){} a.ring(a.wx(0),a.wy(H*.04),true); await a.go({x:-H*.07,ease:E3o},260);
-    try{ const A0=sprC(ev.from), T0=sprC(ev.side); sheetFx('hyperspeed',(A0.x+T0.x)/2,A0.y,Math.abs(T0.x-A0.x)*1.1,{flipX:a.dir<0,filter:tintF(a.C.hex,1.3),blend:'screen',op:.55,dur:360}); }catch(e){}
+    try{ const A0=sprC(ev.from), T0=sprC(ev.side); void 0; }catch(e){}
     a.S.ghost=true; a.S.trail=true; a.dust(0); try{ Snd.fx3&&Snd.fx3('dash',.6); }catch(e){} await a.go({x:D*.9,frames:a.RUN,loop:1,ease:EIOo},230);
     a.pose('phys_w'); await a.go({x:D-H*.02},55); a.pose('phys'); a.S.sq=.09; await a.go({x:D+H*.09},60);
     a.aura=0; a.S.ghost=false;
@@ -10044,12 +10139,12 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
       return; } }
   const SPL_K={phys:'打',tech:'技',spirit:'霊'};
   function splash(title,sub,col,side,kind,o2){ o2=o2||{}; col=col||'#ffd34d'; try{ performance.mark('splash'); }catch(e){} const o=h('div','splash v2 '+(side==='e'?'e':'p'),`<i class="sp-k">${SPL_K[kind]||'撃'}</i><b>${title}</b>${sub?`<small>${sub}</small>`:''}`); o.style.setProperty('--c',col); overlay.appendChild(o); try{ SPLV.play(o,col,side==='e'?-1:1,o2.el,o2.v); }catch(e){} if(camK()&&!o2.nf) tintFrame(col); setTimeout(()=>o.remove(),1000*speed); }
-  if(window.__LS) window.__LS._spl=splash;
+  if(window.__LS) window.__LS._spl=splash; if(window.__LS){ window.__LS._cds=(...a)=>cdStamp(...a); window.__LS._ifx=(...a)=>impactFX(...a); window.__LS._fgn=()=>({...FGN}); }
   function tintFrame(col){ const o=h('div','heatframe'); o.style.setProperty('--c',col||'#ffd34d'); overlay.appendChild(o); setTimeout(()=>o.remove(),150*speed); }
   const SPIRITFX={bolt:1,ice:1,ghost:1,aura:1,shadow:1};
   function camHit(c,ev,t,first,big){ if(camStyle==='ark'||camStyle==='orbit'){ return ctype(CARDS[ev.card]||c)||(SPIRITFX[c.fx]?'spirit':'phys'); } const att=ev.from, dir=att==='p'?1:-1, fr=fieldEl.getBoundingClientRect(); const ox=Math.max(5,Math.min(95,(t.x-fr.left)/fr.width*100)), oy=Math.max(5,Math.min(95,(t.y-fr.top)/fr.height*100)); const heavy=big||ev.amount>=12; const kind=ctype(CARDS[ev.card]||c)||(SPIRITFX[c.fx]?'spirit':'phys');
     if(!first&&!heavy){ cam({z:1.02,ox,oy,dur:220,hold:.1}); return; }
-    if(kind==='tech'){ cam({z:heavy?1.1:1.06,x:-dir*(heavy?46:26),r:dir*(heavy?2.2:1.2),ox,oy,dur:520,hold:.25}); camLines(dir,ELC[c.fx]); }
+    if(kind==='tech'){ cam({z:heavy?1.1:1.06,x:-dir*(heavy?46:26),r:dir*(heavy?2.2:1.2),ox,oy,dur:520,hold:.25}); camLines(dir,ELC[c.fx],ev.side); }
     else if(kind==='spirit'){ cam({z:heavy?1.12:1.07,y:heavy?22:12,r:-dir*.8,ox,oy,dur:620,hold:.35}); }
     else { cam({z:heavy?1.16:1.09,y:heavy?-12:-6,r:-dir*(heavy?1.4:.8),ox,oy,dur:480,hold:.25}); }
     return kind; }
@@ -10077,8 +10172,9 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
   function cardPose(c,big,tier){ if(!c) return null; if(c.type!=='attack') return [['hand',760]]; const k=ctype(c)||(SPIRITFX[c.fx]?'spirit':'phys');
     if(k==='spirit') return [['spirit',640]]; if(k==='tech') return [['tech',640]];
     return (big||c.sig||tier>=2)?[['phys_w',150],['phys',470]]:[['jab_w',90],['jab',330]]; }
-  var HITK='light'; function hurt(side,big){ try{ if(phxWho(side)==='kaede') Snd.voice('kaede',big?'g_hurt_big':'g_hurt'); }catch(e){} const sp=$('.spr',F[side]); sp.classList.remove('hurt'); void sp.offsetWidth; sp.classList.add('hurt'); HP[side].classList.remove('hit'); void HP[side].offsetWidth; HP[side].classList.add('hit');
-    const dir=side==='p'?-1:1, kb=(big?92:30)*R/100, rot=dir*(big?10:4); { const k=HITK; HITK='light'; if(GACT[side]) GACT[side].end(true); const SPR=!!poseSrc(phxWho(side))&&!F[side].classList.contains('awk'); pose(side,k==='lhit'?[['launch',99999]]:k==='stun'?[['hit_h',260]]:k==='air'?[['air',99999,{spin:-22}]]:k==='launch'?[['launch',240],['air',330,{spin:-24}],['down',300,{land:1}]]:(phxWho(side)==='ratcoat'&&(F[side].dataset.rf=(+F[side].dataset.rf||0)+1)%2===1)?[[(k==='heavy'||big)?'hit_h':'hit',150],['rf1',170],['rf2',260],['rf3',220],['rf4',200]]:(k==='heavy'||big)?[['hit_h',540]]:[['hit',320]]); if(k==='air') airBump(side); if(k==='launch') sp.animate([{translate:'0 0'},{translate:SPR?'0 -9%':'0 -22%',offset:.32},{translate:SPR?'0 -11%':'0 -26%',offset:.48},{translate:'0 0'}],{duration:620*speed,easing:'cubic-bezier(.25,.8,.45,1)',composite:'add'}); else if(k==='heavy') sp.animate([{translate:'0 0'},{translate:`${dir*7}% 0`,offset:.3},{translate:'0 0'}],{duration:640*speed,easing:'ease-out',composite:'add'}); }
+  var HITK='light'; function hurt(side,big,tick){ try{ if(phxWho(side)==='kaede') Snd.voice('kaede',big?'g_hurt_big':'g_hurt'); }catch(e){} const sp=$('.spr',F[side]); sp.classList.remove('hurt'); void sp.offsetWidth; sp.classList.add('hurt'); HP[side].classList.remove('hit'); void HP[side].offsetWidth; HP[side].classList.add('hit');
+    const dir=side==='p'?-1:1, kb=(big?92:30)*R/100, rot=dir*(big?10:4); const OWN=!!(tick&&F[side]&&F[side].classList.contains('myturn')&&GACT[side]); if(OWN){ HITK='light'; return; }   /* tick or thorns damage on your own turn: flash the HP, keep your attack going */
+    { const k=HITK; HITK='light'; if(GACT[side]) GACT[side].end(true); const SPR=!!poseSrc(phxWho(side))&&!F[side].classList.contains('awk'); pose(side,k==='lhit'?[['launch',99999]]:k==='stun'?[['hit_h',260]]:k==='air'?[['air',99999,{spin:-22}]]:k==='launch'?[['launch',240],['air',330,{spin:-24}],['down',300,{land:1}]]:(phxWho(side)==='ratcoat'&&(F[side].dataset.rf=(+F[side].dataset.rf||0)+1)%2===1)?[[(k==='heavy'||big)?'hit_h':'hit',150],['rf1',170],['rf2',260],['rf3',220],['rf4',200]]:(k==='heavy'||big)?[['hit_h',540]]:[['hit',320]]); if(k==='air') airBump(side); if(k==='launch') sp.animate([{translate:'0 0'},{translate:SPR?'0 -9%':'0 -22%',offset:.32},{translate:SPR?'0 -11%':'0 -26%',offset:.48},{translate:'0 0'}],{duration:620*speed,easing:'cubic-bezier(.25,.8,.45,1)',composite:'add'}); else if(k==='heavy') sp.animate([{translate:'0 0'},{translate:`${dir*7}% 0`,offset:.3},{translate:'0 0'}],{duration:640*speed,easing:'ease-out',composite:'add'}); }
     sp.animate([{transform:'translateX(-50%)'},{transform:`translateX(calc(-50% + ${dir*kb*.75}px)) rotate(${rot}deg) scale(1.02,.95)`,offset:.12},{transform:`translateX(calc(-50% + ${dir*kb}px)) rotate(${rot*.6}deg) scale(.98,1.02)`,offset:.35},{transform:`translateX(calc(-50% + ${dir*kb*.4}px)) rotate(${-rot*.15}deg)`,offset:.7},{transform:'translateX(-50%)'}],{duration:(big?620:340)*speed,easing:'cubic-bezier(.2,.8,.3,1)'});
     if(big){ const t=sprC(side); fxs('dust',t.x+dir*kb*.5,t.top+t.h*.97,t.h*.5,560,0,false); } }
 const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make me stand up.","_intro#2":"Ugh. Fine. Loading in."},"ito":{"_intro": "Ito. Just Ito. The hand that made me forgot my last name.", "_intro#2": "Curtain up! Let's see how you dance."},"hana":{"_intro":"Hana Kurose. I'm very calm. Please don't test that.","_intro#2":"It's starting to rain. Upward."},"uzume":{"_intro":"Hanagakure's shrine maiden, Uzume! I-I'll do my very best!","_intro#2":"Jo... ha... kyu. The dance begins."},"kaede":{"_intro":"Last pick. First place! Let's go!","_intro#2":"Teacher... watch this one."},"varro":{"_intro":"Kneel, challenger. A hundred years, and none have stood where you stand.","_intro#2":"Another hopeful. How delicious."},"shura":{"_intro":"My big sis is in this tournament. I'm gonna beat her! And you're first!","_intro#2":"Little ogre? I'll show you LITTLE!"},"jin":{"_intro":"My school died in one night. Its blade did not.","_intro#2":"Draw, if you're going to."},"bruna":{"_intro":"You're tiny! Come on, swing at me!","_intro#2":"Every coin I win goes home to the docks. So don't take it personal!"},"suzu":{"_intro":"Can you keep the beat? Bet you can't!","_intro#2":"The gods are sleepy! I'm gonna wake 'em up!"},"nyx":{"_intro":"The troupe sent me to dance. I came to be free.","_intro#2":"Do try to keep your eyes on me."},"orin":{"_intro":"Winter does not hurry. Neither do I.","_intro#2":"I came to reseal what stirs below. Forgive me for passing through you."},"rasetsu":{"_intro":"You're the one who'll satisfy my blade? Prove it.","_intro#2":"Little sister keeps saying she'll beat me. You first."},"maya":{"_intro":"I-I'm Maya! Sorry in advance for the... um... hammer.","_intro#2":"I came here to be brave. So... I'm gonna be brave!"},"nia":{"_intro":"Hi! I'm Nia! Wanna be in my story? You can be the villain!","_intro#2":"Every story needs a happy ending. I'm gonna write mine!"},"rei":{"_intro":"Fast is all I've got. It's all I need.","_intro#2":"Don't ask about the scar. Ask how fast I can give you one."},"azami":{"_intro":"My clan cast me out. I'll poison their name. Starting with yours.","_intro#2":"You're already breathing it."},"mirei":{"_intro":"I came to cure a sickness no medicine can. Forgive me for what I take from you.","_intro#2":"Don't worry. I'll heal you after. Probably."},"tetsu":{"_intro":"I'm forging a blade that can cut a god. You'll do as a whetstone.","_intro#2":"Let's see what you're made of. Literally."},"shio":{"_intro":"I'm Shio! I want to dance at the Founder's Shrine. Will you be my partner?","_intro#2":"The tide's coming in! Better swim!"},"gozen":{"_intro":"Three hundred years I've watched this tournament. Show me you're ready.","_intro#2":"Magatsu stirs. I must know the next generation can stand."},"jo":{"_intro":"One last bet. All or nothing. You feeling lucky?","_intro#2":"The house always wins. And I AM the house."},"valka":{"_intro":"White Comet, launching. I'm bringing the armor's creator home.","_intro#2":"Systems green. Engaging target."},"duelist":{"_intro":"I am Sol, the Seven-Star Blade. Let us make this beautiful.","_intro#2":"A duel is a dance with one survivor."},"maximo":{"_intro":"The crowd wants the greatest match ever! Let's give it to them!","_intro#2":"Who's ready for TITAN MASK?!"},"rhea":{"_intro":"There's a curse in my blood. Stand back... or feed it.","_intro#2":"I'm controlling it. Mostly."},"lyra":{"_intro":"I want a stage the whole world can hear! You're my opening act!","_intro#2":"Ready for the show?"},"foe_gouka":{"_intro":"I will salt this festival with its own ashes!","_intro#2":"Burn, little lanterns! BURN!"},"foe_yomi":{"_intro":"Welcome to my bone garden, darling. You'll make a lovely flower.","_intro#2":"The dead are so much more obedient."},"foe_kurogane":{"_intro":"Kneel and be branded, or fall and be buried.","_intro#2":"My ashigaru march. You are in the way."},"vex":{"_intro":"My run... isn't over.","_intro#2":"One fight from the crown. Just one."},"ryo":{"_intro":"I lost the crown to Varro a hundred years ago. Let's go take it back.","_intro#2":"An old man in your corner. Lucky you."}}; /*VOFIX-I*/for(const w in VINTRO_ADD) VINTRO[w]=Object.assign(VINTRO[w]||{},VINTRO_ADD[w]);/*VOFIX-I-END*/
@@ -10138,16 +10234,16 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     Snd.sfx('cutin'); Snd.synth&&Snd.synth(sup?'sting':'whoosh');
     const f=figOf(sprite), dir=E?-1:1, fk=String(sprite).split('/').pop().replace(/\.webp.*$/,'').replace(/^aw_/,''), FF=FIGHTERS[fk]||{}; if(FF.color) col=FF.color; const col2=FF.glow||'#fff';
     // band geometry (screen px): a slanted strip, higher on the attacker's side
-    const bandH=sup?(por?H*.27:H*.38):(por?H*.17:H*.25), midY=sup?(por?H*.42:H*.47):(por?H*.36:H*.4), slant=(por?.06:.09)*W*(sup?1:.7)*dir;
+    const bandH=sup?(por?H*.27:H*.38):H*1.25, midY=sup?(por?H*.42:H*.47):H*.5, slant=sup?(por?.06:.09)*W*dir:0;   /* signature: a full-screen comic panel (no strip, no speed lines) */
     const yL=midY-bandH/2+slant/2, yR=midY-bandH/2-slant/2; // top edge at left / right
     const band=(pad)=>[[-20,yL-pad],[W+20,yR-pad],[W+20,yR+bandH+pad],[-20,yL+bandH+pad]];
     const fX=(E?1-(por?.3:.24):(por?.3:.24))*W;
-    const e=h('div','ci '+(sup?'sup ':'sig ')+side); e.style.setProperty('--c',col); e.style.setProperty('--c2',col2); e.style.setProperty('--dir',dir); e.style.setProperty('--fx',(fX/W*100)+'%'); e.style.setProperty('--tdir',E?'270deg':'90deg');
+    const e=h('div','ci '+(sup?'sup ':'sig full ')+side); e.style.setProperty('--c',col); e.style.setProperty('--c2',col2); e.style.setProperty('--dir',dir); e.style.setProperty('--fx',(fX/W*100)+'%'); e.style.setProperty('--tdir',E?'270deg':'90deg');
     let html='<div class="ci-dim"></div>';
     if(sup) html+=`<div class="lay ci-stripe s1" style="--k:#0c0618;clip-path:${poly(band(bandH*.16))}"></div><div class="lay ci-stripe s2" style="--k:${col2};clip-path:${poly(band(bandH*.09))}"></div><div class="lay ci-stripe s3" style="--k:${col};clip-path:${poly(band(bandH*.05))}"></div>`;
     else html+=`<div class="lay ci-stripe s1" style="--k:#fff;clip-path:${poly(band(bandH*.07))}"></div>`;
     const pc=poly(band(0));
-    html+=`<div class="lay ci-panel" style="clip-path:${pc}"><div class="ci-speed"></div><div class="ci-tone"></div><div class="ci-glint"></div></div>`;
+    html+=`<div class="lay ci-panel" style="clip-path:${pc}"><div class="ci-tone"></div><div class="ci-glint"></div></div>${sup?'':'<div class="ci-ink"></div>'}`;
     // figure: drawn ONCE. Super art: clipped only below the band so the head breaks out above it. Signature: clipped to the strip (eyes close-up).
     const figClip=sup?poly([[-20,-20],[W+20,-20],[W+20,yR+bandH*1.05],[-20,yL+bandH*1.05]]):pc;
     html+=`<div class="ci-fig" style="clip-path:${figClip}"><img class="${tint?'gh':''}" src="${A(sprite)}" alt=""></div><div class="ci-burst"></div>`;
@@ -10161,15 +10257,15 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     // size by the visible figure: super art shows head-to-hips big; signature fills the strip with the face
     let faceY, figH;
     if(sup){ figH=bandH*(por?2.7:3.1); const edge=yL+(yR-yL)*((fX+20)/(W+40)); faceY=edge-bandH*(por?.02:.1); }
-    else { figH=bandH*(por?4.6:4.8); faceY=midY+bandH*.05; }
+    else { figH=H*(por?1.3:1.35); faceY=H*(por?.3:.34); }
     const g=placeFig(img,f,fX,faceY,figH,E);
     if(sup&&g.headTop<H*.04){ const dy=H*.04-g.headTop; img.style.top=(parseFloat(img.style.top)+dy)+'px'; faceY+=dy; }
     e.style.setProperty('--bx',fX+'px'); e.style.setProperty('--by',faceY+'px');
     // title sits on the band, away from the face
     const ttl=$('.ci-ttl',e), tb=$('b',ttl), nch=Math.max(6,String(card.name).length);
     let avail, top;
-    if(por){ avail=W*.9; ttl.style.left='5%'; ttl.style.right='5%'; ttl.style.textAlign='center'; ttl.style.setProperty('--rot','-3deg'); top=Math.max(yL,yR)+bandH*(sup?1.06:1.12); }
-    else { avail=W*(sup?.5:.56); if(E) ttl.style.left='5%'; else ttl.style.right='5%'; top=midY-(sup?bandH*.2:-bandH*.62); }
+    if(por){ avail=W*.9; ttl.style.left='5%'; ttl.style.right='5%'; ttl.style.textAlign='center'; ttl.style.setProperty('--rot','-3deg'); top=sup?Math.max(yL,yR)+bandH*1.06:H*.7; }
+    else { avail=W*(sup?.5:.56); if(E) ttl.style.left='5%'; else ttl.style.right='5%'; top=sup?midY-bandH*.2:H*.62; }
     const fs=Math.min(sup?(por?H*.075:H*.14):(por?H*.055:H*.1), avail/(nch*.52)); tb.style.fontSize=fs+'px'; ttl.style.top=top+'px';
     if(sup){ const o=$('.ci-ono',e); o.style.top=(Math.min(yL,yR)-H*.14)+'px'; if(E){ o.style.left='8%'; o.style.setProperty('--orot','11deg'); } else o.style.right='8%'; }
     const dur=(sup?1500:950); setTimeout(()=>{ if(document.body.contains(e)){ shake(sup?14:7,sup?260:160); if(sup){ Snd.synth&&Snd.synth('boom'); Snd.fx2&&Snd.fx2('smash',.8); } else Snd.fx2&&Snd.fx2('unsheathe',.7); } },(sup?380:200)*speed);
@@ -10454,7 +10550,8 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
   const cdEff=t=>t>=4?'Cancel + Stagger':t===3?'Cancel · strike on Perfect':t===2?`Take ${Math.round(COUNTER.cut2*100)}% less`:`Take ${Math.round(COUNTER.cut1*100)}% less`;
   function cdArt(id){ const c=CARDS[id]; if(!c) return ''; if(c.noart) return `background:#1a1410 url(img/ic_${c.type==='attack'?'fist':'star'}.webp) center/42% no-repeat`; const B=CARDS[c.base||id]; if(B&&B.strip!=null) return `background:url(img/cs_trio.webp) ${B.strip/11*100}% 30%/1200% auto no-repeat`; return `background:url(${A('img/c_'+(c.art||c.base||(/^hc_/.test(id)?id.slice(3).replace(/\+$/,''):id))+'.webp')}) center 30%/cover no-repeat`; }
   function cdIncoming(id,sub){ const C=CARDS[id], t=ctype(C)||'phys'; return `<div class="cd-inc ${t}"><span class="cd-art" style="${cdArt(id)}"></span><span class="cd-t"><b>${C.name}</b><p>${fmt(C.text||'')}</p><em>${sub||CD_TY[t]+' ATTACK'}</em></span></div>`; }
-  function cdStamp(txt,col,x,y,big){ const e=h('div','cd-rstamp'+(big?' big':''),txt); e.style.cssText=`left:${x}px;top:${y}px;--sc:${col}`; document.body.appendChild(e); setTimeout(()=>{ e.classList.add('out'); setTimeout(()=>e.remove(),420); },(big?900:760)*speed); return e; }
+  function cdStamp(txt,col,x,y,big){ const W=String(txt).replace(/!$/,'').split(' '), L=W.length>1?W.slice(0,-1).join(' '):'COUNTER', M=W[W.length-1];
+    const e=h('div','cd-slam'+(big?' big':''),`<i class="dim" style="top:${y}px"></i><div class="w" style="left:${x}px;top:${y}px"><small>${L}</small><b>${M}</b><b class="gh">${M}</b></div>`); e.style.setProperty('--sc',col); document.body.appendChild(e); setTimeout(()=>{ e.classList.add('out'); setTimeout(()=>e.remove(),320); },(big?1150:1000)*speed); return e; }   /* Strive-style: one giant skewed word punches in, drifts, outline echo */
   function counterWindow(eid){ CTRSEQ=null; const opts=b.counterOptions(eid); if(!opts.length){ if(((b.p.poise||0)<COUNTER.poiseCost||b.p.pbrk>0)&&b.p.hand.length&&CARDS[eid]&&CARDS[eid].type==='attack'&&!COUNTER.immune.test(eid)&&!b.p.stunned) poiseWarn(); return Promise.resolve(); } const EC=CARDS[eid], at=ctype(EC);
     CTRSEQ={card:eid,att:'e',def:'p',tier:-1};
     hand.classList.add('ctr-phase');
@@ -10529,7 +10626,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     await sleep(isP?(c.sig||ev.mentor?320:300):760);
     const own=FIGHTERS[c.owner], actV=isP?HERO:(opp.sprite||opp.id), actRate=(!isP&&opp.tint)?0.9:1;
     if(c.sig&&own&&own.deck){ const mine=!isP&&opp.id===c.owner, on_=own.name.replace('Ghost of ',''); Snd.voice(c.owner,(c.base||c.id),{pri:true});
-      setTimeout(()=>annCall('sig'),1300*speed); await superFlash(side,own.color); await cutin(side,c,mine?'Signature technique':ev.mentor?`${on_}\u2019s signature · called by your mentor`:isP?`${on_}\u2019s signature · stolen by ${hero().name}`:`${on_}\u2019s signature · echoed by ${opp.name}`,sprOf(own),false,own.color); Snd.sfx('cheer'); await cutscene(side,c,own.color,sprOf(own),!isP&&opp.tint); }
+      setTimeout(()=>annCall('sig'),1300*speed); await superFlash(side,own.color); await cutin(side,c,mine?'Signature technique':ev.mentor?`${on_}\u2019s signature · called by your mentor`:isP?`${on_}\u2019s signature · stolen by ${hero().name}`:`${on_}\u2019s signature · echoed by ${opp.name}`,sprOf(own),false,own.color); Snd.sfx('cheer'); }   /* the full-screen comic cut-in replaces the old second close-up */
     else if(ev.mentor){ const W=mWho(side)||{id:ms.sprite,name:ms.name}; Snd.voice(W.id,(c.base||c.id),{pri:true}); let ok=false; try{ ok=await mEnter(ev,side,c); }catch(e){ console.warn('mentor assist',e); } if(!ok) await cutin(side,c,'Mentor · '+W.name,'img/'+W.id+'.webp',false,'#ffb52b'); }
     Fx.burst(tx,ty,c.fx==='guard'?'guard':c.fx,14,.8); el.animate([{transform:'none',opacity:1},{transform:`translate(${isP?60:-60}px,-20px) scale(1.25)`,opacity:0}],{duration:200*speed,easing:'ease-in'}).onfinish=()=>el.remove(); await sleep(120); }
   const FXK={fire:'fire',slash:'slash',bolt:'bolt',ice:'ice',shadow:'shadow',gold:'gold',ghost:'ghost',impact:'spark',aura:'aura',guard:'spark'};
@@ -10650,7 +10747,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     launchSplash(att,c,ev,'RUSHDOWN!'); if(!vsay(att,'_launch',1)) vsay(att,'_atk',1); try{ annCall('maxc',true); }catch(e){}
     whiteHit(tgt); impactFrame(); await hitStop(140); shake(22,420); try{ Snd.fx3&&Snd.fx3('impact_h',1); Snd.fx3&&Snd.fx3('whoosh_h',1); }catch(e){}
     { const t=sprC(tgt); shockRing(t.x,t.y,col,true); fxs('dust',t.x,t.top+t.h*.97,t.h*.9,700,0,d<0); }
-    pose(tgt,[['launch',160],['air',99999,{spin:-30*d}]]); smokeTrail(tgt,8,40); camLines(d,col);
+    pose(tgt,[['launch',160],['air',99999,{spin:-30*d}]]); smokeTrail(tgt,8,40); camLines(d,col,tgt);
     await rdGo(tgt,d*W*.9,-14,420,'cubic-bezier(.3,.6,.4,1)').finished.catch(()=>{});
     // the chase
     s.classList.add('rdchase'); const ln=h('div','rdlines '+(d>0?'r':'l')); ln.style.setProperty('--c',col); overlay.appendChild(ln);
@@ -10767,7 +10864,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     const _k=camHit(c,ev,t,first,big); if(big&&first&&ev.amount>0&&camK()&&!c.sig&&!UXD){ splash((c.name||'').toUpperCase(),'',fireOf(ev.card)?'#ff7a2a':(ELC[c.fx]||'#ffd34d'),att,_k,{nf:SK,el:fireOf(ev.card)?'fire':c.fx,v:PHX?'title':/rising|upper|uppercut|launcher/.test(String(ev.card))?'rise':null}); await sleep(170); }
     const PAINT=SK; if(!PAINT) fxs(FXK[c.fx]||'spark',x,y,size,big?620:460,rnd(-25,25),tgt==='p'); if(c.fx==='impact') fxs('dust',x,t.y+t.h*.4,size*.7,520,0,false);
     if(!PAINT) Fx.burst(x,y,c.fx,big?54:24,big?1.6:1);
-    if(ev.amount>0&&(big||ev.amount>=9)&&!UXD){ onoHit(x,y-t.h*.22,c.fx,big); if(big&&first&&!PAINT) speedBurst(x,y); }
+    if(ev.amount>0&&(big||ev.amount>=9)&&!UXD){ onoHit(x,y-t.h*.22,c.fx,big); if(big&&first&&!PAINT) speedBurst(x,y,fireOf(ev.card)?'#ff7a2a':(ELC[c.fx]||'#ffd34d')); }
     if(ev.amount>0){ if(!PAINT){ if(tier>=2&&c.fx!=='slash'){ const hc=fireOf(ev.card)||c.fx==='impact'||c.fx==='gold'?null:(ELC[c.fx]||null); sheetFx('bighit',x,y,t.h*(tier>=3?1.5:1.2),{rot:rnd(0,360),filter:hc?tintF(hc,1.3):null,blend:'screen',dur:330}); if(tier>=3) sheetFx('mz_front_01',x,y,t.h*.9,{rot:rnd(0,90),filter:hc?tintF(hc,1.6):null,blend:'screen',dur:200}); } else sparkV3(x,y,ELC[c.fx]||'#fff',tier,att==='p'?1:-1); } ev._tier=tier; if(!UXD) try{ efxHit(c,ev,x,y,t,tier,att); }catch(_e){} if(first&&tier>=2&&!c.sig&&!String(ev.card||'').startsWith('ctr_')) annCall(tier>=3?'crush':'bighit'); if(!PAINT){ hitLayer(c,ev,x,y,t,big); if(tier>=2){ if(fireOf(ev.card)) tintFrame('#ff7a2a'); else impactFrame(); } } camPunch(tgt,tier); if(tier===3) hitTag(x,t.top+t.h*.02,'CRITICAL','crit'); await hitStop(HSTOP[tier]); if(att==='p'&&ev.amount>0&&first&&(tier>=2||(b.p.hp<b.p.maxHp*.3&&ev.amount>=8))) cheer(tier>=3?1.25:b.p.hp<b.p.maxHp*.3?1.15:.9); HITK=AIR[tgt]?'air':(first&&isLaunchC(c))?'lhit':tier>=2?'heavy':'light'; hurt(tgt,tier>=2); shake([5,8,14,22][tier]+Math.min(10,ev.amount*.3),[200,260,380,520][tier]); if(!Snd.fx3) Snd.sfx(c.fx,big); num(x,t.top+t.h*.12,'-'+ev.amount,'dmg'+(big||ev.amount>=14?' big':'')); if(ev.blocked) num(x+t.w*.3,t.top+t.h*.3,'-'+ev.blocked+' Guard','blk'); if(big&&first){ if(!PHX) flash(); await sleep(70); } }
     else { if(!Snd.fx3((ev.blocked||0)>=10?'block_h':'block',.9)) Snd.sfx('block'); guardSpark(x,y,false); hitStop(45); shockRing(x,y,'#7cc4ff',false); barrier(tgt); num(x,t.top+t.h*.15,'Blocked','txt','#7cc4ff'); shake(4,160); }
     hud(ev.s); await sleep((first&&isLaunchC(c)&&!AIR[tgt])?40:ev.last?(big?460:360):150); }
@@ -10802,21 +10899,26 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
   if(window.__LS_TEST) window.__VFX={fin:(side,el)=>{ const t=sprC(side==='p'?'e':'p'); return vfFin(side,el,t,t.h*1.7,900); },aura:(side,id)=>auraPulse(side,id),run:evs=>runEv(evs),ctr:async eid=>{ if(!b.e.hand.includes(eid)) b.e.hand.push(eid); await counterWindow(eid); const i=b.e.hand.indexOf(eid); if(i>=0&&!b.over){ b.e.energy=Math.max(b.e.energy,9); b.play('e',i); await runEv(b.flush()); } return CTRSEQ&&{tier:CTRSEQ.tier,strike:CTRSEQ.strike}; },pplay:i=>{ busy=false; return tryPlay(handEls[i]); }};
   var LASTP={}; var fireOf=id=>{ const c=CARDS[id]; return !!c&&(c.fx==='fire'||elOf(c)==='fire'); };   // fire fighters (Kaede, Shura...) keep their combo/finisher art in fire colours
     // ── Spirit Finisher: painted ink-brush banner, an explosion in the finisher's own element, and the screen flickering to negative ──
-  async function spFin(ev){ const os=ev.side==='p'?'e':'p', t=sprC(os), cid=ev.card||LASTP[ev.side], C=CARDS[cid]||{};
-    let el=C.el&&C.el!=='none'?C.el:null; if(!el){ try{ const who=ev.side==='p'?HERO:(opp.sprite||opp.id); el=(FIGHTERS[who]&&FIGHTERS[who].el)||(opp&&opp.el)||'none'; }catch(e){ el='none'; } }
-    const E=ELEMENTS[el]||ELEMENTS.none||{color:'#c9a0ff'}, col=E.color||'#c9a0ff';
+  // the finisher's element: the card's own, else the fighter's
+  function finEl(ev,force){ const cid=ev.card||LASTP[ev.side], C=CARDS[cid]||{}; let el=force||(C.el&&C.el!=='none'?C.el:null); if(!el){ try{ const who=ev.side==='p'?HERO:(opp.sprite||opp.id); el=(FIGHTERS[who]&&FIGHTERS[who].el)||(opp&&opp.el)||'none'; }catch(e){ el='none'; } }
+    const E=ELEMENTS[el]||ELEMENTS.none||{color:'#ffb35a'}; return {el,E,col:(el==='none'?(ev.at==='spirit'?'#b98aff':ev.at==='tech'?'#4ee0a0':'#ff9a3c'):E.color)||'#ffb35a',name:E.name||'Finisher'}; }
+  const FIN_KAN={fire:'炎',ice:'氷',storm:'雷',shadow:'影',mind:'心',wind:'風',life:'命',venom:'毒',blood:'血',water:'水',metal:'鋼',sound:'音',none:'極'};
+  // painted finisher banner: a dark under-stroke and an element-coloured brush stroke paint across, a wet highlight runs the stroke, ink flecks fly, then the words slam on
+  function finBan(ev,label,col,sub,el){ const tag=(String(label).replace(/\s*FINISHER$/,'')||String(sub||'').toUpperCase())+' ×'+ev.n;
+    const bn=h('div','fslam n'+ev.n+(ev.side==='e'?' e':''),`<i class="dim"></i><div class="w"><b class="a">FINISH</b><b class="b">FINISH</b><i class="cut"></i><small>${tag}</small></div>`); bn.style.setProperty('--c',col); overlay.appendChild(bn); setTimeout(()=>{ bn.classList.add('out'); setTimeout(()=>bn.remove(),320); },1350*speed); return bn; }   /* Strive-style finisher: FINISH slams in and is sliced in two along the cut */
+  async function spFin(ev){ const os=ev.side==='p'?'e':'p', t=sprC(os); const {el,E,col}=finEl(ev);
     const BL={fire:['fire',0],ice:['ice',0],storm:['bolt',0],shadow:['shadow',0],mind:['shadow',1],wind:['wind',0],life:['wind',1],venom:['wind',1],blood:['blood',0],water:['ice',1],metal:['bolt',1],sound:['bolt',1],none:['bolt',1]}[el]||['bolt',1];
     const PT={fire:'fire',ice:'ice',storm:'bolt',shadow:'shadow',mind:'ghost',wind:'heal',life:'heal',venom:'heal',blood:'blood',water:'ice',metal:'gold',sound:'gold',none:'gold'}[el]||'ghost';
     // 1 · negative flicker over the whole screen
     const neg=h('div','spneg'); overlay.appendChild(neg); setTimeout(()=>neg.remove(),1250*speed);
     Snd.sfx('ghost',true); Snd.fx3&&Snd.fx3('ultboom',.75);
     // 2 · the brush stroke paints across, then the words slam on
-    const bn=h('div','spfin n'+ev.n,`<i class="spb"></i><i class="spb s2"></i><b>SPIRIT FINISHER</b><em>×${ev.n}</em><span class="spk">${E.name||'Spirit'}</span>`); bn.style.setProperty('--c',col); overlay.appendChild(bn); setTimeout(()=>{ bn.classList.add('out'); setTimeout(()=>bn.remove(),420); },1500*speed);
+    finBan(ev,'SPIRIT FINISHER',col,E.name||'Spirit',el);
     await sleep(330);
     // 3 · elemental explosion on the target
     const bx=h('div','spblast'); bx.style.left=t.x+'px'; bx.style.top=t.y+'px'; const S0=t.h*(1.15+ev.n*.18); bx.style.setProperty('--s',S0+'px'); bx.style.setProperty('--c',col);
     bx.innerHTML=`<i class="spr1"></i><i class="spr1 r2"></i><i class="spcore"></i>`; overlay.appendChild(bx); try{ vfFin(ev.side,el,t,S0*1.5,950+ev.n*40); }catch(e){} setTimeout(()=>bx.remove(),1300*speed);
-    Fx.burst(t.x,t.y,PT,40+ev.n*18,1.9); Fx.burst(t.x,t.y,'impact',18,1.4); hurt(os,true); shake(ev.n>=3?24:16,ev.n>=3?520:380); Snd.sfx('impact',true);
+    impactFX(t.x,t.y,col,true); Fx.burst(t.x,t.y,PT,40+ev.n*18,1.9); Fx.burst(t.x,t.y,'impact',18,1.4); hurt(os,true); shake(ev.n>=3?24:16,ev.n>=3?520:380); Snd.sfx('impact',true);
     await sleep(140); Fx.burst(t.x,t.y,PT,20+ev.n*8,2.4); await sleep(200); }
   function evReorder(evs){ const DEF=new Set(['react','terrain','chain','wound']), out=[]; let hold=null, card=null;   /* a reaction, terrain shift or wound set off by an attack plays after that attack's first blow, never before the attack itself */
     for(const ev of evs){ if(ev.t==='play'||ev.t==='turn'){ if(hold) out.push(...hold); hold=null; card=null; out.push(ev); const c=ev.t==='play'&&CARDS[ev.card]; if(c&&c.type==='attack'){ card=ev.card; hold=[]; } continue; }
@@ -10847,7 +10949,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
       case 'turn': spriteSanity(); vfxPreload(); fgcReset('p'); fgcReset('e'); F.p.classList.toggle('myturn',side==='p'); F.e.classList.toggle('myturn',side==='e'); $('.tn',s).textContent='Turn '+ev.n; if(side==='p'){ Snd.sfx('turn'); await banner('Your turn','#e02b2b'); } else if(!TRAIN){ Snd.sfx('eturn'); await banner(opp.name.replace('Ghost of ','')+'’s turn',opp.color); } break;
       case 'guardoff': case 'energy': hud(ev.s); break;
       case 'super': { hud(ev.s); const id=ev.id; if(id==='ito') await itoFx(side,'super'); const __lsq=window.LSQ&&LSQ.has(id)&&(()=>{ const m=OPT().cine||'full'; if(m==='off') return false; if(m==='first'&&run){ const cs=run.cineSeen=run.cineSeen||{}; if(cs[side+id]) return false; cs[side+id]=1; } return true; })(); if(!__lsq){ setTimeout(()=>annCall('super'),1300*speed); if(Snd.has(id,'_sup')) Snd.voice(id,'_sup',{pri:true}); } if(__lsq){ const rp=side==='p'?sprOf(opp):'img/'+HERO+'.webp'; window.__LSQ_BG=(OPT().cineArena!==false)?await lsqArenaBg():null; try{ await LSQ.run(id,PK[rp]||rp,CARDS['sup_'+id].name,CARDS['sup_'+id].fx,side); } finally { window.__LSQ_BG=null; } window.__SEQSKIP='sup_'+id; } else { await superFlash(side,AWAKEN[id].c1); await cutin(side,CARDS['sup_'+id],'Super Art',side==='p'?'img/'+HERO+'.webp':sprOf(opp),side==='e'&&opp.tint,AWAKEN[id].c1,'super'); } break; }
-      case 'awaken': { hud(ev.s); setTimeout(()=>annCall('beyond'),1300*speed); await superFlash(side,(AWAKEN[ev.id]||{}).c1); if(KAWE[ev.id]||KAWE2[ev.id]) await kEyes(side,ev.id); await awakenCine(side,ev.id); setAw(side,true); try{ const t=sprC(side), ac=(AWAKEN[ev.id]||{}).c1; auraPulse(side,ev.id); }catch(_){ } cam({z:.93,y:-10,dur:1100,hold:.3,ox:side==='p'?30:70,oy:55}); camLines(side==='p'?1:-1,(AWAKEN[ev.id]||{}).c1); await sleep(500); break; }
+      case 'awaken': { hud(ev.s); setTimeout(()=>annCall('beyond'),1300*speed); await superFlash(side,(AWAKEN[ev.id]||{}).c1); if(KAWE[ev.id]||KAWE2[ev.id]) await kEyes(side,ev.id); await awakenCine(side,ev.id); setAw(side,true); try{ const t=sprC(side), ac=(AWAKEN[ev.id]||{}).c1; auraPulse(side,ev.id); }catch(_){ } cam({z:.93,y:-10,dur:1100,hold:.3,ox:side==='p'?30:70,oy:55}); camLines(side==='p'?1:-1,(AWAKEN[ev.id]||{}).c1,side); await sleep(500); break; }
       case 'awakenEnd': { const t=sprC(side); setAw(side,false); hud(ev.s); if(ev.why==='shatter'){ flash(); shake(24,600); Snd.sfx('impact',true); num(t.x,t.top+t.h*.15,SOULSCAPE?'Soulscape shattered!':'Awakening shattered!','txt','#ff5a45'); await sleep(700); } else if(ev.why==='time'){ num(t.x,t.top+t.h*.15,'Awakening fades','txt','#cfd6ff'); await sleep(450); } else if(ev.why==='idle'){ Snd.voice(side==='p'?HERO:(opp.sprite||opp.id),'_awkend',{pri:true}); num(t.x,t.top+t.h*.15,'He stopped attacking \u2014 back to Life 8','txt','#8fa6ff'); await sleep(700); } break; }
       case 'clash': { hud(ev.s); updateDomains(); Snd.sfx('vs'); Snd.sfx('impact',true); if(!app.classList.contains('hd3d')) await clashIntro(); break; }
       case 'push': { const t=sprC(side); num(t.x,t.top+t.h*.05,(SOULSCAPE?'Soulscape':'Spirit')+' pushed −'+ev.amount,'txt','#ffe27a'); hud(ev.s); break; }
@@ -10861,11 +10963,11 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
       case 'innatedone': { const I=INNATES[ev.id]; if(I.ops.some(o=>o.draw||o.cycle)){ const c=hand.getBoundingClientRect(); fxs('innate_flurry',c.left+c.width/2,c.top+c.height*.35,Math.min(innerWidth*.7,R*3.2),800,0,false); } await sleep(220); break; }
       case 'discard': { const i=side==='p'?handEls.findIndex(e=>e.dataset.id===ev.card):-1; if(i>=0){ const el=handEls.splice(i,1)[0]; el.style.transition='opacity .25s,transform .25s'; el.style.opacity=0; el.style.transform+=' translateY(-2.5rem) scale(.8)'; setTimeout(()=>el.remove(),260); layout(); Snd.sfx('draw'); await sleep(120); } break; }
       case 'upgrade': { const i=handEls.findIndex(e=>e.dataset.id===ev.card.replace(/\+$/,'')); if(i>=0){ const old=handEls[i], r=old.getBoundingClientRect(); const el=cardEl(ev.card); el.className=old.className.replace(/\bin\b/,''); el.addEventListener('pointerenter',e=>{ if(e.pointerType==='mouse'&&!busy) select(el); }); el.addEventListener('pointerleave',e=>{ if(e.pointerType==='mouse'&&sel===el) select(null); }); el.addEventListener('click',e=>{ e.stopPropagation(); if(busy) return; if(lastPointer==='mouse'||sel===el) tryPlay(el); else select(el); }); hand.replaceChild(el,old); handEls[i]=el; layout(); fxs('innate_free',r.left+r.width/2,r.top+r.height/2,r.width*2.2,700,0,false); Snd.sfx('power'); await sleep(260); } break; }
-      case 'burn': { const t=sprC(side); fxs('fire',t.x,t.y+t.h*.1,t.h*.7,460,0,false); Fx.rise(t.x,t.y,'fire',18); Snd.sfx('burn'); hurt(side); num(t.x,t.top+t.h*.12,'-'+ev.amount,'dmg'); num(t.x,t.top+t.h*.34,'Burn','txt','#ff7a2b'); hud(ev.s); await sleep(520); break; }
-      case 'shock': { const t=sprC(side); fxs('bolt',t.x,t.y+t.h*.1,t.h*(ev.conduct?1:.7),420,0,false); Fx.burst(t.x,t.y,'bolt',ev.conduct?26:12,1); Snd.sfx('bolt',!!ev.conduct); hurt(side); if(ev.conduct) shake(10,260); num(t.x,t.top+t.h*.12,'-'+ev.amount,'dmg'); num(t.x,t.top+t.h*.34,ev.conduct?'Conduct! Shock ×2':'Shock','txt','#ffe14a'); hud(ev.s); await sleep(ev.conduct?460:340); break; }
-      case 'poison': { const t=sprC(side); fxs('ghost',t.x,t.y+t.h*.1,t.h*.7,460,0,false); Fx.rise(t.x,t.y,'heal',16); Snd.sfx('status'); hurt(side); num(t.x,t.top+t.h*.12,'-'+ev.amount,'dmg'); num(t.x,t.top+t.h*.34,'Poison','txt','#9be34a'); hud(ev.s); await sleep(480); break; }
-      case 'bleed': { const t=sprC(side); fxs('slash',t.x,t.y,t.h*.6,380,rnd(-20,20),side==='p'); Snd.sfx('slash'); hurt(side); num(t.x,t.top+t.h*.12,'-'+ev.amount,'dmg'); num(t.x,t.top+t.h*.34,'Bleed','txt','#ff4d6a'); hud(ev.s); await sleep(360); break; }
-      case 'sudden': { const t=sprC(side); if(ev.first&&side==='p'){ toast('Sudden Death! Both fighters lose more HP every turn.'); Snd.synth&&Snd.synth('sting'); } fxs('shadow',t.x,t.y,t.h*.7,420,0,side==='p'); hurt(side); shake(8,240); num(t.x,t.top+t.h*.12,'-'+ev.amount,'dmg'); num(t.x,t.top+t.h*.34,'Sudden Death','txt','#ff3355'); hud(ev.s); await sleep(360); break; }
+      case 'burn': { const t=sprC(side); fxs('fire',t.x,t.y+t.h*.1,t.h*.7,460,0,false); Fx.rise(t.x,t.y,'fire',18); Snd.sfx('burn'); hurt(side,false,1); num(t.x,t.top+t.h*.12,'-'+ev.amount,'dmg'); num(t.x,t.top+t.h*.34,'Burn','txt','#ff7a2b'); hud(ev.s); await sleep(520); break; }
+      case 'shock': { const t=sprC(side); fxs('bolt',t.x,t.y+t.h*.1,t.h*(ev.conduct?1:.7),420,0,false); Fx.burst(t.x,t.y,'bolt',ev.conduct?26:12,1); Snd.sfx('bolt',!!ev.conduct); hurt(side,false,1); if(ev.conduct) shake(10,260); num(t.x,t.top+t.h*.12,'-'+ev.amount,'dmg'); num(t.x,t.top+t.h*.34,ev.conduct?'Conduct! Shock ×2':'Shock','txt','#ffe14a'); hud(ev.s); await sleep(ev.conduct?460:340); break; }
+      case 'poison': { const t=sprC(side); fxs('ghost',t.x,t.y+t.h*.1,t.h*.7,460,0,false); Fx.rise(t.x,t.y,'heal',16); Snd.sfx('status'); hurt(side,false,1); num(t.x,t.top+t.h*.12,'-'+ev.amount,'dmg'); num(t.x,t.top+t.h*.34,'Poison','txt','#9be34a'); hud(ev.s); await sleep(480); break; }
+      case 'bleed': { const t=sprC(side); fxs('slash',t.x,t.y,t.h*.6,380,rnd(-20,20),side==='p'); Snd.sfx('slash'); hurt(side,false,1); num(t.x,t.top+t.h*.12,'-'+ev.amount,'dmg'); num(t.x,t.top+t.h*.34,'Bleed','txt','#ff4d6a'); hud(ev.s); await sleep(360); break; }
+      case 'sudden': { const t=sprC(side); if(ev.first&&side==='p'){ toast('Sudden Death! Both fighters lose more HP every turn.'); Snd.synth&&Snd.synth('sting'); } fxs('shadow',t.x,t.y,t.h*.7,420,0,side==='p'); hurt(side,false,1); shake(8,240); num(t.x,t.top+t.h*.12,'-'+ev.amount,'dmg'); num(t.x,t.top+t.h*.34,'Sudden Death','txt','#ff3355'); hud(ev.s); await sleep(360); break; }
       case 'react': { const t=sprC(side); const R_={steam:['Steam Burst!','#ffd7b0'],smoke:['Toxic Smoke! +2 Poison','#9be34a'],hemorrhage:['Hemorrhage! +'+ev.amount+' per hit','#ff4d6a'],shatter:['Shatter! −'+ev.amount,'#bfefff'],toxic:['Toxic Blood! +'+ev.amount+' Poison','#9be34a'],cardiac:['Cardiac Arrest! −'+ev.amount,'#ff6a8a'],wildfire:['Wildfire! +'+ev.amount+' Burn','#ffb06a'],squall:['Squall! −'+ev.amount,'#7fd8ff'],blizzard:['Blizzard! −'+ev.amount+' · whiteout','#d8fff4'],typhoon:['Typhoon! −'+ev.amount,'#8ff0c8'],frostbite:['Frostbite! −'+ev.amount+' · +1 Bleed','#bfefff'],neuro:['Neurotoxin! +'+ev.amount+' Poison','#b6f06a'],numb:['Numbing Venom! −'+ev.amount+' · +1 Chill','#a8e6cf']}[ev.k]; const b_=h('div','num txt react',R_[0]); b_.style.left=t.x+'px'; b_.style.top=(t.top+t.h*.02)+'px'; b_.style.setProperty('--k',R_[1]); overlay.appendChild(b_); setTimeout(()=>b_.remove(),1300);
         Snd.fx2&&Snd.fx2({shatter:'shatter',steam:'water',smoke:'poison',toxic:'poison',hemorrhage:'slash',cardiac:'zap',frostbite:'shatter',neuro:'poison',numb:'poison',wildfire:'fire',squall:'water',blizzard:'shatter',typhoon:'zap'}[ev.k]||'zap',.9);
         if(ev.k==='cardiac'||ev.k==='frostbite'||ev.k==='numb'){ fxs(ev.k==='cardiac'?'bolt':ev.k==='frostbite'?'ice':'shadow',t.x,t.y,t.h*.9,520,0,false); Fx.burst(t.x,t.y,ev.k==='cardiac'?'blood':ev.k==='frostbite'?'ice':'ghost',40,1.4); shake(10,280); hurt(side,true); num(t.x,t.top+t.h*.2,'-'+ev.amount,'dmg'); } else if(ev.k==='neuro'){ fxs('ghost',t.x,t.y,t.h*.9,500,0,false); Fx.burst(t.x,t.y,'shadow',28,1.2); }
@@ -10875,7 +10977,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
         else if(ev.k==='smoke'){ fxs('ghost',t.x,t.y+t.h*.1,t.h*.9,520,0,false); fxs('fire',t.x,t.y+t.h*.15,t.h*.6,420,0,false); Snd.sfx('fire'); }
         else { fxs('slash',t.x,t.y,t.h*.9,460,rnd(-20,20),side==='p'); Fx.burst(t.x,t.y,'impact',24,1.2); Snd.sfx('slash',true); }
         hud(ev.s); await sleep(620); break; }
-      case 'bloodprice': { const t=sprC(side); fxs('slash',t.x,t.y,t.h*.6,380,rnd(-20,20),side==='p'); Snd.sfx('slash'); hurt(side); num(t.x,t.top+t.h*.12,'-'+ev.amount,'dmg'); num(t.x,t.top+t.h*.34,'Blood Price','txt','#ff4d6a'); hud(ev.s); await sleep(340); break; }
+      case 'bloodprice': { const t=sprC(side); fxs('slash',t.x,t.y,t.h*.6,380,rnd(-20,20),side==='p'); Snd.sfx('slash'); hurt(side,false,1); num(t.x,t.top+t.h*.12,'-'+ev.amount,'dmg'); num(t.x,t.top+t.h*.34,'Blood Price','txt','#ff4d6a'); hud(ev.s); await sleep(340); break; }
       case 'camp': { const t=sprC(side); hud(ev.s); try{ kkGlow(side,ev.total); }catch(e){}
         if(ev.reset){ Fx.burst(t.x,t.y,'fire',10+(-ev.amount)*3,1); num(t.x,t.top+t.h*.3,ev.reset==='launch'?'Knocked out of her corner! Camp reset':'Too much damage! Camp reset','txt','#ffd23f'); Snd.sfx('break'); try{ if(Snd.has('kaiko','_hitbig')) Snd.voice('kaiko','_hitbig'); }catch(e){} await sleep(320); }
         else if(ev.amount>0){ Fx.rise(t.x,t.y+t.h*.2,'fire',6+ev.amount*3); num(t.x,t.top+t.h*.3,'+'+ev.amount+' Camp ('+ev.total+'/5)','txt','#ffd23f'); Snd.sfx('energy'); await sleep(200); } break; }
@@ -10910,7 +11012,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
       case 'charm': { const t=sprC('p'); Snd.sfx('heal'); flash(); num(t.x,t.top+t.h*.2,'Lucky Charm!','txt','#ffc93d'); hud(ev.s); await sleep(600); break; }
       case 'spirit': hud(ev.s); break;
       case 'combo': { hud(ev.s); const t=sprC(side), FC=fireOf(LASTP[side]); Snd.sfx(FC?'fire':ev.at==='spirit'?'bolt':'gold'); fxs('combo_'+(FC?'phys':ev.at),t.x,t.y-t.h*.08,t.h*(.55+ev.n*.18),520+ev.n*80,0,false); Fx.burst(t.x,t.y,FC?'fire':ev.at==='spirit'?'ghost':'gold',6+ev.n*5,.8); num(t.x,t.top-4,ev.n>=3?'MAX CHAIN!':'Combo ×'+ev.n,'txt',FC?'#ff9a3c':ev.at==='spirit'?'#c9a0ff':'#ffb35a'); await sleep(190); break; }
-      case 'finisher': { if(ev.at==='spirit'&&!fireOf(ev.card||LASTP[ev.side])){ await spFin(ev); break; } const t=sprC(ev.side==='p'?'e':'p'), sp=ev.at==='spirit', FF=fireOf(ev.card||LASTP[ev.side]); const pl=h('div','finbanner '+(FF?'phys fire':ev.at)+' n'+ev.n,`<span class="fb-l"></span><i class="cty ${FF?'phys':ev.at}"></i><b>${FF?'FIRE FINISHER':sp?'SPIRIT FINISHER':'FINISHER'}</b><em>×${ev.n}</em><span class="fb-r"></span>`); overlay.appendChild(pl); setTimeout(()=>pl.remove(),1250*speed); Snd.sfx(FF?'fire':sp?'ghost':'impact',true); if(FF) tintFrame('#ff7a2a'); else impactFrame(); await sleep(430); { const C=CARDS[ev.card||LASTP[ev.side]]||{}; vfFin(ev.side,FF?'fire':(C.el&&C.el!=='none'?C.el:(sp?fighterEl(ev.side):'tech')),t,t.h*(1.55+ev.n*.2),860+ev.n*40); } Fx.burst(t.x,t.y,FF?'fire':sp?'ghost':'gold',30+ev.n*16,1.6); if(ev.n>=3){ flash(); shake(18,380); } else shake(9,260); await sleep(60); break; }
+      case 'finisher': { if(ev.at==='spirit'&&!fireOf(ev.card||LASTP[ev.side])){ await spFin(ev); break; } const t=sprC(ev.side==='p'?'e':'p'), sp=ev.at==='spirit', FF=fireOf(ev.card||LASTP[ev.side]); { const fe=finEl(ev,FF?'fire':null); finBan(ev,FF?'FIRE FINISHER':sp?'SPIRIT FINISHER':ev.at==='tech'?'TECH FINISHER':'FINISHER',fe.col,fe.name,fe.el); } Snd.sfx(FF?'fire':sp?'ghost':'impact',true); await sleep(330); { const fe=finEl(ev,FF?'fire':null); impactFX(t.x,t.y,fe.col,true); } await sleep(100); { const C=CARDS[ev.card||LASTP[ev.side]]||{}; vfFin(ev.side,FF?'fire':(C.el&&C.el!=='none'?C.el:(sp?fighterEl(ev.side):'tech')),t,t.h*(1.55+ev.n*.2),860+ev.n*40); } Fx.burst(t.x,t.y,FF?'fire':sp?'ghost':'gold',30+ev.n*16,1.6); if(ev.n>=3){ flash(); shake(18,380); } else shake(9,260); await sleep(60); break; }
       case 'ult': ls3dCall('sweep'); hud(ev.s); if(ev.id==='ito'&&!(window.__ITV!=='off'&&window.__itU11&&__itU11())) await itoFx(side,'ult'); setTimeout(()=>annCall('ultimate'),1300*speed); if(ev.id==='shura'&&window.__SHV!=='off'&&typeof kUltShura==='function'){ try{ const L=window.__CUREVS||[], i0=L.indexOf(ev), hs=[]; for(let i=i0+1;i0>=0&&i<L.length;i++){ const e=L[i]; if(e.t==='hit'&&e.from===side&&/^ult_/.test(String(e.card||''))) hs.push(e); else if(e.t==='hit') break; } window.__ULTHITS=hs; }catch(_){ window.__ULTHITS=[]; } if(await kUltShura(side,ev.id,window.__SHV||'a')){ UXDONE[side]=1; break; } } if(ev.id==='ito'&&window.__ITV!=='off'){ window.__ULTHITS=itHits(ev,side,/^ult_/); if(await kUltIto(side,ev.id)){ UXDONE[side]=1; break; } } if(ev.id==='nia'&&window.__NIV!=='off'){ try{ const L=window.__CUREVS||[], i0=L.indexOf(ev), hs=[]; for(let i=i0+1;i0>=0&&i<L.length;i++){ const e=L[i]; if(e.t==='hit'&&e.from===side&&/^ult_/.test(String(e.card||''))) hs.push(e); else if(e.t==='hit') break; } window.__ULTHITS=hs; }catch(_){ window.__ULTHITS=[]; } if(await kUltNia(side,ev.id)){ UXDONE[side]=1; break; } } if(ev.id==='rasetsu'&&window.__RAV!=='off'){ try{ const L=window.__CUREVS||[], i0=L.indexOf(ev), hs=[]; for(let i=i0+1;i0>=0&&i<L.length;i++){ const e=L[i]; if(e.t==='hit'&&e.from===side&&/^ult_/.test(String(e.card||''))) hs.push(e); else if(e.t==='hit') break; } window.__ULTHITS=hs; }catch(_){ window.__ULTHITS=[]; } if(await kUltRas(side,ev.id)){ UXDONE[side]=1; break; } } if(ev.id==='suzu'&&window.__SZV!=='off'){ try{ const L=window.__CUREVS||[], i0=L.indexOf(ev), hs=[]; for(let i=i0+1;i0>=0&&i<L.length;i++){ const e=L[i]; if(e.t==='hit'&&e.from===side&&/^ult_/.test(String(e.card||''))) hs.push(e); else if(e.t==='hit') break; } window.__ULTHITS=hs; }catch(_){ window.__ULTHITS=[]; } if(await kUltSuzu(side,ev.id,window.__SZV||'c')){ UXDONE[side]=1; break; } } if(kSupCan('ult_'+ev.id,side)){ UXDONE[side]=0; { const UV=window.__ULTV||'kick'; if(UV==='ink'&&await kUltInk(side,ev.id)){ UXDONE[side]=1; break; } if(UV==='meteor'&&await kUltMeteor(side,ev.id)){ UXDONE[side]=1; break; } if(UV==='kick'){ try{ const L=window.__CUREVS||[], i0=L.indexOf(ev), hs=[]; for(let i=i0+1;i0>=0&&i<L.length;i++){ const e=L[i]; if(e.t==='hit'&&e.from===side&&/^ult_/.test(String(e.card||''))) hs.push(e); else if(e.t==='hit') break; } window.__ULTHITS=hs; }catch(_){ window.__ULTHITS=[]; } if(await kUltKick(side,ev.id)){ UXDONE[side]=1; break; } } } if(ULTX6[ev.id]&&await kUltX6(side,ev.id)){ UXDONE[side]=1; break; } if(ULTX5[ev.id]&&await kUltX5(side,ev.id)){ UXDONE[side]=1; break; } if(ULTX4[ev.id]&&await kUltX4(side,ev.id)){ UXDONE[side]=1; break; } if(ULTX[ev.id]&&await kUltX(side,ev.id)){ UXDONE[side]=1; break; } await secretOpen(side,ev.id); if(ULTX[ev.id]&&uxOk(ev.id)) await kWindX(side,ev.id); break; } { const A_=AWAKEN[ev.id]||{}; await superFlash(side,A_.c1); await cutin(side,{name:ULTS[ev.id].name,fx:'aura'},'Ultimate',side==='p'?'img/'+HERO+'.webp':sprOf(opp),side==='e'&&opp.tint,A_.c1||'#ffd34d','sig'); } await ultCine(side,ULTS[ev.id],side==='p'?'img/'+HERO+'.webp':sprOf(opp),side==='e'&&opp.tint); break;
       case 'summon': hud(ev.s); await smSummon(ev); break;
       case 'smhit': await smStrike(ev); break;
@@ -10919,7 +11021,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
       case 'smtarget': await smAimTag(ev); break;
       case 'smst': { const el=SMEL[ev.side]; if(el){ const c=smC(ev.side); num(c.x,c.top+c.h*.3,'Shrugged off','txt','#fff3d6'); } break; }
       case 'play': hud(ev.s); poseLoad('p'); poseLoad('e'); { const pc=CARDS[ev.card]; if(pc&&pc.type!=='attack'&&!ev.mentor&&(ev.side==='p'||ev.side==='e')&&!GACT[ev.side]) gHand(ev.side,String(ev.card).replace(/\+$/,'')); } await present(ev); if(ev.card&&/^hn_/.test(ev.card)&&ev.side!==undefined) await hnCard(ev.side,ev.card); break;
-      case 'counter': { if(side==='e') cheer(.9); if(ev.tier===undefined){ const t=sprC(side), o=sprC(side==='p'?'e':'p'); lunge(side==='p'?'e':'p',Math.abs(t.x-o.x)*.2,260); await sleep(100); sheetFx('impact',t.x,t.y,t.h*1.05,{flipX:side==='p',rot:rnd(-15,15),blend:'screen',dur:400}); Fx.burst(t.x,t.y,'slash',30,1.2); Snd.sfx('slash',true); hurt(side,true); shake(12,300); num(t.x,t.top+t.h*.3,'Counter!','txt','#c9d2ff'); if(ev.amount) num(t.x,t.top+t.h*.1,'-'+ev.amount,'dmg'); hud(ev.s); await sleep(420); break; } const def=ev.side||'p', att=def==='p'?'e':'p', tr=ev.tier;
+      case 'counter': { if(side==='e') cheer(.9); if(ev.tier===undefined){ const t=sprC(side), o=sprC(side==='p'?'e':'p'); lunge(side==='p'?'e':'p',Math.abs(t.x-o.x)*.2,260); await sleep(100); sheetFx('impact',t.x,t.y,t.h*1.05,{flipX:side==='p',rot:rnd(-15,15),blend:'screen',dur:400}); Fx.burst(t.x,t.y,'slash',30,1.2); Snd.sfx('slash',true); hurt(side,true,1); shake(12,300); num(t.x,t.top+t.h*.3,'Counter!','txt','#c9d2ff'); if(ev.amount) num(t.x,t.top+t.h*.1,'-'+ev.amount,'dmg'); hud(ev.s); await sleep(420); break; } const def=ev.side||'p', att=def==='p'?'e':'p', tr=ev.tier;
         if(!CTRSEQ||CTRSEQ.card!==ev.eid) CTRSEQ={card:ev.eid,att,def}; Object.assign(CTRSEQ,{tier:tr,res:ev.res,rel:ev.rel,ct:ev.ct,pid:ev.card,strike:0,strikeS:null});
         for(let k=evs.indexOf(ev)+1;k<evs.length;k++){ const x=evs[k]; if(x.t==='hit'&&x.card==='ctr_'+ev.card){ x._ctrShown=true; CTRSEQ.strike+=x.amount||0; CTRSEQ.strikeS=x.s; } }   // the cut back is drawn by the outcome script, not as a second attack
         if(def==='p') hud(ev.s||b.snap()); if(tr>=1) vsay(def,'_counter',true); if(def!=='e'&&ev.rel==='adv'&&tr===3) annCall('effective',true); else if(def==='p'&&tr>=1&&tr<4) annCall('counter',true);

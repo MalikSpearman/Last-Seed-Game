@@ -1,5 +1,18 @@
 [
  {
+  "version": "0.3.47",
+  "date": "Nov 25, 2026",
+  "title": "Slam words and impact frames",
+  "items": [
+   "Counter results are now one big slanted word that punches in and drifts (DEFLECTED, PERFECT…) with a small COUNTER tag, instead of a boxed stamp",
+   "Finishers match: FINISH slams in and gets sliced in two along a white cut, tagged with the element and chain (e.g. FIRE ×3), in the finisher's element colour",
+   "Speed lines are gone from hits, dashes, camera punches and signature cut-ins; heavy hits now flash a two-frame black-and-white impact frame with ink spikes",
+   "Signature attacks play as a full-screen comic panel: halftone dots, ink border and manga lettering for the move name",
+   "Your hit counter no longer resets during your own turn from pauses like burn, shock, poison or bleed ticks; it only ends with your turn or a counter",
+   "Tick or thorns damage taken on your own turn no longer cuts off the attack animation you're in the middle of"
+  ]
+ },
+ {
   "version": "0.3.46",
   "date": "Nov 25, 2026",
   "title": "Stronger shadows",
