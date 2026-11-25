@@ -1,5 +1,14 @@
 [
  {
+  "version": "0.3.42",
+  "date": "Nov 25, 2026",
+  "title": "True-scale 3D sets",
+  "items": [
+   "Every 3D set now shows fighters at their real size: railings, fences, bar and stall counters sit around the waist instead of the knee, and trains, stalls and bridges no longer look like toys next to giants",
+   "Backup foes in group fights are drawn in to match the closer camera"
+  ]
+ },
+ {
   "version": "0.3.41",
   "date": "Nov 25, 2026",
   "title": "Rush cards in the menus",

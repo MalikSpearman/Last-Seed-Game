@@ -116,7 +116,9 @@ function groundAt(x, y, gy) {
 
 // ── camera fit: choose distance, lateral shift and aim so the clearing's two marks sit under the fighters' feet ──
 // sz: how much of the set one fighter-gap spans; under 1 brings the camera in so the set reads at the fighters' true size (no giants on a tiny bridge)
-const gapNow = () => (P.sz || 1) * (P.cover ? P.gap * Math.min(1, D.camera.aspect / P.cover) * fz : P.gap);
+const SZ_DEF = .5;   // the built 3D sets are at real scale; .5 puts a fighter at about a person's height on them (painted sets keep their own framing)
+const szOf = () => window.__ls3dSz || P.sz || (P.painted ? 1 : SZ_DEF);
+const gapNow = () => szOf() * (P.cover ? P.gap * Math.min(1, D.camera.aspect / P.cover) * fz : P.gap);
 function solveFit(F) {
   // exact: with the camera's angle fixed, two marks at the same depth pin its position (depth from their spacing, offset from their midpoint)
   const [cx, cy, cz] = P.c, cam = D.camera, ph = P.pitch;
@@ -270,7 +272,7 @@ function groupPlace(F) {
     const dep = ref(side) / cam.position.distanceTo(w); el.style.setProperty('--d3s', (dep / base).toFixed(3)); return dep;
   };
   const gp = [...document.querySelectorAll('.scr.battle .gpack .gpk')];
-  const at = (sl) => P.rel ? [P.c[0] + gapNow() * sl[0], P.c[2] + sl[1]] : P.sz ? [P.c[0] + (sl[0] - P.c[0]) * P.sz, P.c[2] + (sl[1] - P.c[2]) * P.sz] : sl;   // a tighter set (sz) draws its crew in toward the fighters too
+  const at = (sl) => P.rel ? [P.c[0] + gapNow() * sl[0], P.c[2] + sl[1]] : szOf() !== 1 ? [P.c[0] + (sl[0] - P.c[0]) * szOf(), P.c[2] + (sl[1] - P.c[2]) * szOf()] : sl;   // a tighter set (sz) draws its crew in toward the fighters too
   // the crew is laid out around the main enemy as seen on screen (behind-right, behind-left, further back), then dropped onto
   // the set's ground there, so it always frames its boss and takes the depth and size of the spot it lands on, on any stage and screen
   const E = F && F.e, LAY = [[.62, .2], [-.66, .28], [.12, .38]];
