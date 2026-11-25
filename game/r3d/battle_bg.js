@@ -64,7 +64,7 @@ const MODELED = { festival: () => import('./scene_festival.js'), blight: () => i
   rushhour: () => import('./scene_rushhour.js'), rushhour2: () => import('./scene_rushhour.js'),
   reno: () => import('./scene_reno.js'), proctor: () => import('./scene_proctor.js'), proctor2: () => import('./scene_proctor.js'), oba: () => import('./scene_oba.js'), oba2: () => import('./scene_oba.js'),
   kuzuryu: () => import('./scene_kuzuryu.js'), kuzuryu2: () => import('./scene_kuzuryu.js'), holdline: () => import('./scene_holdline.js'), holdline2: () => import('./scene_holdline.js'),
-  golfdad: () => import('./scene_golfdad.js'), golfdad2: () => import('./scene_golfdad.js') };
+  golfdad: () => import('./scene_golfdad.js'), golfdad2: () => import('./scene_golfdad.js'), road: () => import('./scene_road.js') };
 let modeled = null;
 async function modeledCtx(name) {
   if (modeled && modeled.name === name) { use(modeled); await modeled.ready; return modeled; }

@@ -29,6 +29,7 @@ Set `window.__lsPainted = true` to force the old painted relief for comparison.
 - nw_pachinko: Pachinko Parlour
 - nw_casino: Star Casino
 - nw_web: Spider Roof
+- road: Sunset Road (the festival road at dusk)
 - tama / zoomies: Tama's room by day / 3 a.m.
 - landlord, calamity, reno
 - weather(2), sun(2), rushhour(2), proctor(2), oba(2), kuzuryu(2), holdline(2), golfdad(2): boss arenas with a phase-two look (name ending in 2)
