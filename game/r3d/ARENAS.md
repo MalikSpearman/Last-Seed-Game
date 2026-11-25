@@ -29,6 +29,7 @@ Set `window.__lsPainted = true` to force the old painted relief for comparison.
 - nw_pachinko: Pachinko Parlour
 - nw_casino: Star Casino
 - nw_web: Spider Roof
+- w_bamboo: Bamboo Grove (real-world scale; painted props rg_jizo/iris/bamclump/mossrock/shimrope/hitodama; the stage painting as far backdrop)
 - shrine → fox_shrine: Fox Shrine Stairs (real-world scale; painted 2D props rg_kitsune/maple/lily/mbush/shimenawa/leaves; the stage painting as far backdrop)
 - road: Sunset Road (the festival road at dusk)
 - tama / zoomies: Tama's room by day / 3 a.m.
@@ -36,7 +37,7 @@ Set `window.__lsPainted = true` to force the old painted relief for comparison.
 - weather(2), sun(2), rushhour(2), proctor(2), oba(2), kuzuryu(2), holdline(2), golfdad(2): boss arenas with a phase-two look (name ending in 2)
 
 ## Still painted relief
-none: every fight location now has a modelled set (the painted relief remains as the fallback)
+none: every stage now has a modelled set every fight location now has a modelled set (the painted relief remains as the fallback)
 
 ## Later
 - Fidelity test: pick ONE modelled map and try raising its fidelity with AI image-to-3D hero props (Figma Weave

@@ -61,7 +61,7 @@ const MODELED = { festival: () => import('./scene_festival.js'), blight: () => i
   nw_express: () => import('./scene_nw_express.js'), w_village: () => import('./scene_w_village.js'), w_graves: () => import('./scene_w_graves.js'),
   sakebar: () => import('./scene_sakebar.js'), nw_teahouse: () => import('./scene_nw_teahouse.js'), nw_roof: () => import('./scene_nw_roof.js'),
   e_whale: () => import('./scene_e_whale.js'), e_light: () => import('./scene_e_light.js'), e_dojo: () => import('./scene_e_dojo.js'), w_mill: () => import('./scene_w_mill.js'),
-  nw_snack: () => import('./scene_nw_snack.js'), nw_pachinko: () => import('./scene_nw_pachinko.js'), nw_casino: () => import('./scene_nw_casino.js'), nw_web: () => import('./scene_nw_web.js'), fox_shrine: () => import('./scene_shrine.js'),
+  nw_snack: () => import('./scene_nw_snack.js'), nw_pachinko: () => import('./scene_nw_pachinko.js'), nw_casino: () => import('./scene_nw_casino.js'), nw_web: () => import('./scene_nw_web.js'), fox_shrine: () => import('./scene_shrine.js'), w_bamboo: () => import('./scene_w_bamboo.js'),
   tama: () => import('./scene_catroom.js'), zoomies: () => import('./scene_catroom.js'), landlord: () => import('./scene_landlord.js'), calamity: () => import('./scene_calamity.js'),
   weather: () => import('./scene_weather.js'), weather2: () => import('./scene_weather.js'), sun: () => import('./scene_sun.js'), sun2: () => import('./scene_sun.js'),
   rushhour: () => import('./scene_rushhour.js'), rushhour2: () => import('./scene_rushhour.js'),
@@ -213,6 +213,17 @@ function placeExtraCasters(X) {
   }
   for (const k in casters) if (k !== 'p' && k !== 'e' && !seen.has(k)) { casters[k].m.visible = false; if (!document.querySelector(`[data-l3="${k}"]`)) { D.scene.remove(casters[k].m); casters[k].tex.dispose(); delete casters[k]; } }
 }
+// ── the set's own shadows falling ON the fighters: rays from the fighter's feet, waist and head toward the set's main light;
+//    whatever solid scenery is in the way (bamboo walls, stalls, buildings) shades the 2D sprite, eased so it never pops ──
+const RAY = new T.Raycaster(), ENVS = { p: 0, e: 0, t: 0 };
+function envShade(F, t) {
+  if (t - ENVS.t < .12) return; ENVS.t = t; const L = cur && cur.moon ? cur.moon.position.clone().sub(cur.moon.target.position).normalize() : null;
+  for (const side of ['p', 'e']) { const fd = F[side], c = casters[side]; if (!fd || !c || !c.m.visible || !L) { if (fd) fd.f.style.removeProperty('--envshd'); continue; }
+    const base = c.m.position, hw = c.hw || 1.7; let hit = 0;
+    for (const k of [.25, .6, .92]) { RAY.set(base.clone().add(new T.Vector3(0, hw * k, 0)), L); RAY.near = .3; RAY.far = 45; RAY.camera = D.camera;
+      const h = RAY.intersectObjects(D.scene.children, true).find(i => { const o = i.object, m = o.material; if (!o.visible || o.isPoints || o.isSprite || o.isLine || o.matrixAutoUpdate === false) return false; const g = o.geometry; if (g) { if (!g.boundingSphere) g.computeBoundingSphere(); const sc = o.getWorldScale(new T.Vector3()); if (g.boundingSphere.radius * Math.max(sc.x, sc.y, sc.z) > 40) return false; }   /* the sky wall, ground and far painting never shade anyone */ if (m && (m.colorWrite === false || (m.transparent && !m.depthWrite) || m.blending === T.AdditiveBlending)) return false; return true; });
+      if (h) hit++; }
+    ENVS[side] += (hit / 3 - ENVS[side]) * .35; fd.f.style.setProperty('--envshd', ENVS[side].toFixed(3)); } }
 function placeCasters(F) {
   const [cx, cy, cz] = P.c, cam = D.camera; shadowDir();
   for (const side of ['p', 'e']) {
@@ -224,7 +235,7 @@ function placeCasters(F) {
     const sp = base.clone().project(cam), [nx] = ndc(r.left + r.width / 2, fd.y), dist = cam.position.distanceTo(base);
     const wPerNdc = dist * Math.tan(cam.fov * Math.PI / 360) * cam.aspect; base.x += (nx - sp.x) * wPerNdc;
     const k = 2 * dist * Math.tan(cam.fov * Math.PI / 360) / innerHeight, lift = Math.max(0, fd.y - r.bottom) * k;
-    layShadow(c, base, r.height * k, r.width * k, side === 'e', lift, true);
+    c.hw = r.height * k; layShadow(c, base, r.height * k, r.width * k, side === 'e', lift, true);
   }
 }
 
@@ -242,7 +253,7 @@ const CSS = `/* 3D sets with cast shadows: the flat drop-shadow behind each spri
 .portrait .scr.battle,.portrait.scr.battle{--fxo:23%}
 #app.hd3d .gpk .gim{scale:var(--d3s,1);transform-origin:50% 100%}
 #app.hd3d .scr.battle .fighter{z-index:30}
-#app.hd3d .scr.battle .fighter .spr .flip,#app.hd3d .scr.battle .fighter>canvas{filter:url(#ls3dlit)}
+#app.hd3d .scr.battle .fighter .spr .flip,#app.hd3d .scr.battle .fighter>canvas{filter:url(#ls3dlit) brightness(calc(1 - var(--envshd,0) * .42)) saturate(calc(1 - var(--envshd,0) * .15))}
 #app.hd3d .smn .smi{scale:var(--d3s,1);transform-origin:50% 100%}
 .lit3d{position:absolute;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-size:100% 100%;mask-size:100% 100%;z-index:2;transition:opacity .4s}
 .lit3d.shade{mix-blend-mode:multiply;background:
@@ -357,7 +368,7 @@ function ensure() {
     else releaseMarks();
     D.camera.updateProjectionMatrix(); D.camera.updateMatrixWorld();
     D.focus = { x: cx, z: cz }; D.followShadow(new T.Vector3(cx, cy, cz));
-    if (OTS.k > 0) { for (const sd in casters) casters[sd].m.visible = false; } else placeCasters(lastF);
+    if (OTS.k > 0) { for (const sd in casters) casters[sd].m.visible = false; } else { placeCasters(lastF); envShade(lastF, t); }
     litTick(t);
     groupPlace(lastF); const X = extras(); zoomFor(lastF, X); placeExtraCasters(X); lightExtras(X, t);
     // paper sprites: the set's light also falls over the paper cut-outs (dappled shade + warm lantern rim, masked to whatever image the fighter shows: idle, counter pose, kneel, awakened)
@@ -430,7 +441,7 @@ export function start(host, k, bgUrl) {
 const NEXT = { w_graves: 'w_mill', w_mill: 'w_village', w_village: 'road', road: 'festival', festival: 'sakebar', sakebar: 'nw_street', nw_street: 'nw_teahouse',
   nw_teahouse: 'nw_snack', nw_snack: 'nw_roof', nw_roof: 'nw_express', nw_express: 'harbor', harbor: 'e_dojo', e_dojo: 'e_light', e_light: 'e_whale', e_whale: 'e_light',
   nw_pachinko: 'nw_casino', nw_casino: 'nw_street', nw_web: 'nw_roof', marsh: 'sunken', sunken: 'seacave', seacave: 'harbor', blight: 'mountain_pass',
-  mountain_pass: 'rooftops', rooftops: 'nw_roof', ring: 'festival', fox_shrine: 'festival' };
+  mountain_pass: 'rooftops', rooftops: 'nw_roof', ring: 'festival', fox_shrine: 'festival', w_bamboo: 'w_graves' };
 export function nextStage() { return (D && !D.paused && NEXT[key]) || null; }
 export function transition(host) { const n = nextStage(); if (!n || !host) return Promise.resolve(null); return start(host, n, null).then(() => n, () => null); }
 // ── FIELD EFFECTS on the 3D ground (Rime Field first): frost creeping out over the floor around both fighters, a few

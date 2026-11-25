@@ -8,6 +8,12 @@ import { kit, rng, sky, pbr, stoneLantern, torii, pagoda, hills, scatter, decals
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -1.8], [-4.4, -2], [1.6, -2.8]], sum: [-5.6, .8], exposure: 1.6 };
 
+// the flagstones fade into the forest floor instead of ending on a hard line: a soft-edged alpha mask (sx/sz = fade share of each side)
+function softEdge(mat, sx, sz) { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'), d = g.createImageData(256, 256);
+  for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) { const u = x / 255, v = y / 255, ex = Math.min(u, 1 - u) / sx, ey = Math.min(v, 1 - v) / sz, k = Math.max(0, Math.min(1, Math.min(ex, ey))), n = (Math.sin(x * .37) * Math.sin(y * .29) + Math.sin(x * .11 + y * .07)) * .08, a = Math.max(0, Math.min(1, k * k * (3 - 2 * k) + n * (1 - k) * 2)) * 255;
+    const i = (y * 256 + x) * 4; d.data[i] = d.data[i + 1] = d.data[i + 2] = a; d.data[i + 3] = 255; }
+  g.putImageData(d, 0, 0); const t = new T.CanvasTexture(c); mat.alphaMap = t; mat.transparent = true; mat.depthWrite = false; mat.needsUpdate = true; }
+
 export async function build(D) {
   const K = kit(D), { S, add, box } = K, R = rng(517);
   S.fog = new T.Fog(0x4a2a52, 26, 120); S.background = new T.Color(0x3a2048);
@@ -25,7 +31,7 @@ export async function build(D) {
 
   // ── the ground and the landing the fight happens on ──
   { const g = new T.Mesh(new T.PlaneGeometry(220, 160), M.ground); g.rotation.x = -Math.PI / 2; g.position.set(0, -.03, -40); g.receiveShadow = true; S.add(g);
-    const f = new T.Mesh(new T.PlaneGeometry(14, 6.5), M.flag); f.rotation.x = -Math.PI / 2; f.position.set(0, .01, .6); f.receiveShadow = true; S.add(f); }
+    const f = new T.Mesh(new T.PlaneGeometry(17, 9), M.flag); f.rotation.x = -Math.PI / 2; f.position.set(0, .01, 0); f.receiveShadow = true; softEdge(f.material, .24, .3); f.renderOrder = -1; S.add(f); }
   // ── the stairs: a long flight straight up the hill behind the fighters, with mossy curbs and the hill rising either side ──
   const N = 30, SH = .17, SD = .36, W = 3.4, z0 = -2.6;   // real steps: 17 cm rise, 36 cm tread, 3.4 m wide
   for (let i = 0; i < N; i++) { box(W, SH * (i + 1), SD, M.step, 0, 0, z0 - i * SD); }

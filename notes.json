@@ -1,5 +1,15 @@
 [
  {
+  "version": "0.3.51",
+  "date": "Nov 25, 2026",
+  "title": "Bamboo Grove in 3D, scenery shadows on fighters",
+  "items": [
+   "Bamboo Grove is now a full 3D stage: a rain-wet clearing walled in by bamboo, a misty pond with lanterns and blue spirit flames, mossy jizo, irises and streamer ropes. Every stage now has a 3D set",
+   "On 3D stages the scenery's shadows fall on the fighters: stand in the shade of bamboo, stalls or buildings and your fighter darkens",
+   "Fox Shrine Stairs and Bamboo Grove: the flagstone floor fades softly into the ground"
+  ]
+ },
+ {
   "version": "0.3.50",
   "date": "Nov 25, 2026",
   "title": "Fox Shrine Stairs in 3D",
