@@ -1,5 +1,15 @@
 [
  {
+  "version": "0.3.21",
+  "date": "Nov 25, 2026",
+  "title": "Counter poses for the roster",
+  "items": [
+   "25 more fighters now have their own counter poses: an over-the-shoulder ready, dodge and return strike, plus front-on swing, stagger and kneel",
+   "New: Bruna, Suzu, Nyx, Orin, Varro, Shura, Rasetsu, Maya, Rei, Azami, Maximo, Nia, Tetsu, Mirei, Lyra, Rhea, Shio, Gozen, the Duelist, Valka, Jo, Gogo, Wukong, Kuro and Ito",
+   "Nyx and Azami's counters now use blade slashes"
+  ]
+ },
+ {
   "version": "0.3.20",
   "date": "Nov 25, 2026",
   "title": "Living 3D arenas",

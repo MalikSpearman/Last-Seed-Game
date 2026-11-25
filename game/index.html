@@ -6353,7 +6353,7 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
   // ── Counter-window camera: you swing into the foreground (bottom left), the rival is pushed back and turned in 3D ──
   // ── Counter v90: over-the-shoulder shot. The defender is seen close from behind (back 3/4), the attacker far, front 3/4.
   //    Pose sprites are pure movement (no effects baked in); effects are layered in code. Fighters without pose art keep their cut-out.
-  const CTR_SPR={kaede:['b_ready','b_evade','b_strike','f_swing','f_stagger','f_kneel'],jin:['b_ready','b_evade','b_strike','f_swing','f_stagger','f_kneel']};
+  const CTR_P6=['b_ready','b_evade','b_strike','f_swing','f_stagger','f_kneel'], CTR_SPR=Object.fromEntries('kaede jin bruna suzu nyx orin varro shura rasetsu maya rei azami maximo nia tetsu mirei lyra rhea shio gozen duelist valka jo gogo wukong kuro ito'.split(' ').map(k=>[k,CTR_P6]));
   const CTR_EYE={kaede:{x:.62,y:.121},jin:{x:.735,y:.105}};
   const ctrHas=(side,pose)=>{ const L=CTR_SPR[phxWho(side)]; return !!(L&&L.includes(pose)); };
   setTimeout(()=>{ for(const sd of ['p','e']) (CTR_SPR[phxWho(sd)]||[]).forEach(k=>{ const i=new Image(); i.src=`img/ctr/${phxWho(sd)}_${k}.webp`; }); },600);
@@ -6393,7 +6393,7 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
     const place=()=>{ const ih=sh/.1, iw=ih*(pic.naturalWidth||640)/(pic.naturalHeight||1020), fx=side==='p'?sr.width*.3:sr.width*.7, ex=side==='p'?E.x:1-E.x; pic.style.cssText=`height:${ih}px;width:${iw}px;top:${sh*.5-E.y*ih}px;left:${fx-ex*iw}px;${side==='e'?'transform:scaleX(-1)':''}`; };
     if(pic.complete) place(); else pic.onload=place; st.appendChild(pic); const t=h('b','','READ'); t.style[side==='p'?'left':'right']='58%'; st.appendChild(t); overlay.appendChild(st); setTimeout(()=>st.remove(),1000*speed); }
   // animated hit sheets: blades leave a slash in the fighter's element, fists/hammers/everything else land a blunt impact
-  const CT_BLADE=/^(jin|rasetsu|duelist|valka|uzume)$/;
+  const CT_BLADE=/^(jin|rasetsu|duelist|valka|uzume|akane|nyx|azami)$/;
   const CTR_SL={fire:'sl_fire',blood:'sl_fire',water:'sl_water',ice:'sl_water',storm:'sl_lightning',venom:'sl_poisonous',shadow:'sl_poisonous',mind:'sl_poisonous',sound:'sl_poisonous',wind:'sl_double',life:'sl_double',metal:'sl_ultimate',none:'sl_ultimate'};
   const ctrFx=(k,x,y,w,o)=>sheetFx(k,x,y,w,Object.assign({blend:'screen',dur:400},o||{}));
   function ctrSwipe(side,x,y,S0,big){ const id=phxWho(side), el=((b.S(side)||{}).el)||'none';
