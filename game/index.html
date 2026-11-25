@@ -6353,7 +6353,7 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
   // ── Counter-window camera: you swing into the foreground (bottom left), the rival is pushed back and turned in 3D ──
   // ── Counter v90: over-the-shoulder shot. The defender is seen close from behind (back 3/4), the attacker far, front 3/4.
   //    Pose sprites are pure movement (no effects baked in); effects are layered in code. Fighters without pose art keep their cut-out.
-  const CTR_P6=['b_ready','b_evade','b_strike','f_swing','f_stagger','f_kneel'], CTR_SPR=Object.fromEntries('kaede jin bruna suzu nyx orin varro shura rasetsu maya rei azami maximo nia tetsu mirei lyra rhea shio gozen duelist valka jo gogo wukong kuro ito'.split(' ').map(k=>[k,CTR_P6]));
+  const CTR_P6=['b_ready','b_evade','b_strike','f_swing','f_stagger','f_kneel'], CTR_SPR=Object.fromEntries('kaede jin bruna suzu nyx orin varro shura rasetsu maya rei azami maximo nia tetsu mirei lyra rhea shio gozen duelist valka jo gogo wukong kuro ito akane hana uzume'.split(' ').map(k=>[k,CTR_P6]));
   const CTR_EYE={kaede:{x:.62,y:.121},jin:{x:.735,y:.105}};
   const ctrHas=(side,pose)=>{ const L=CTR_SPR[phxWho(side)]; return !!(L&&L.includes(pose)); };
   setTimeout(()=>{ for(const sd of ['p','e']) (CTR_SPR[phxWho(sd)]||[]).forEach(k=>{ const i=new Image(); i.src=`img/ctr/${phxWho(sd)}_${k}.webp`; }); },600);
