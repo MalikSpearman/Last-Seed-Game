@@ -1,5 +1,17 @@
 [
  {
+  "version": "0.3.22",
+  "date": "Nov 25, 2026",
+  "title": "Every arena in 3D",
+  "items": [
+   "Every fight location is now a fully built 3D set, 36 in all",
+   "New: Whalebone Shore, Lighthouse Point (with a sweeping beam), Cliffside Dojo, Watermill Stream (the wheel turns), the Snack Bar, Pachinko Parlour, Star Casino and Spider Roof",
+   "Boss arenas: Tama's room and its 3 a.m. Zoomies, the Landlord's corridor, the Calamity colosseum and the Reno site",
+   "Boss arenas change when the boss does: Weather's studio is torn open by a hurricane, Sun's shore catches fire, the express tears into Rush Hour's station, Proctor's hall turns red, Oba's kitchen boils over green, Kuzuryu's pool becomes a whirlpool, Holdline's office is pulled into a vortex, and Golf Dad's course is hit by a thunderstorm",
+   "Storms bring lightning, rain and flying debris"
+  ]
+ },
+ {
   "version": "0.3.21",
   "date": "Nov 25, 2026",
   "title": "Counter poses for the roster",

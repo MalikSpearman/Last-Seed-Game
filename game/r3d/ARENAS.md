@@ -21,11 +21,20 @@ Set `window.__lsPainted = true` to force the old painted relief for comparison.
 - sakebar: Sake Bar Alley
 - nw_teahouse: Neon Teahouse
 - nw_roof: Neon Ward Rooftop
+- e_whale: Whalebone Shore
+- e_light: Lighthouse Point
+- e_dojo: Cliffside Dojo
+- w_mill: Watermill Stream
+- nw_snack: Snack Bar
+- nw_pachinko: Pachinko Parlour
+- nw_casino: Star Casino
+- nw_web: Spider Roof
+- tama / zoomies: Tama's room by day / 3 a.m.
+- landlord, calamity, reno
+- weather(2), sun(2), rushhour(2), proctor(2), oba(2), kuzuryu(2), holdline(2), golfdad(2): boss arenas with a phase-two look (name ending in 2)
 
-## Still painted relief (build order: most-used first)
-e_whale, e_light,
-e_dojo, w_mill, tama, nw_web, nw_snack, nw_pachinko, nw_casino, landlord, calamity, zoomies, weather(2), sun(2),
-rushhour(2), reno, proctor(2), oba(2), kuzuryu(2), holdline(2), golfdad(2)
+## Still painted relief
+none: every fight location now has a modelled set (the painted relief remains as the fallback)
 
 ## Later
 - Fidelity test: pick ONE modelled map and try raising its fidelity with AI image-to-3D hero props (Figma Weave

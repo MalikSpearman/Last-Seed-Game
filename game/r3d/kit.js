@@ -415,3 +415,62 @@ export function crowd(D, R, { spots = [], n = 12, types = PEDS, rim = '#ffb060',
       a.m.position.set(a.x, y, a.z); a.blob.position.set(a.x, y + .02, a.z); });
   }
 }
+
+// ── coast pieces: open sea with drifting foam lines, waves breaking on rocks ──
+export function sea(D, R, { z = -60, w = 300, d = 110, y = -.9, color = 0x1a1238, sky = ['#8a2a4a', '#2a1440'], shore = -8, foam = 6 } = {}) {
+  const m = water(D, 0, z, w, d, color, { y, sky, flow: [.02, .016], scale: 8 }); m.material.emissive = new T.Color(0x120820);
+  const fm = new T.MeshBasicMaterial({ color: 0xe8e0f0, transparent: true, opacity: .5, depthWrite: false }), L = [];
+  for (let i = 0; i < foam; i++) { const f = new T.Mesh(new T.PlaneGeometry(R.r(20, 60), R.r(.4, 1)), fm.clone()); f.rotation.x = -Math.PI / 2; f.position.set(R.r(-40, 40), y + .03, shore - i * 3); D.scene.add(f); L.push([f, R() * 6, shore - i * 3]); }
+  D.updaters.push(t => { for (const [f, ph, z0] of L) { const u = (Math.sin(t * .5 + ph) + 1) / 2; f.position.z = z0 + u * 2.2; f.material.opacity = .15 + u * .45; f.scale.y = .6 + u; } });
+  return m;
+}
+export function breakers(D, R, spots, { y = -.6 } = {}) {   // white spray bursting off rocks on a cycle
+  const sm = new T.SpriteMaterial({ color: 0xf0f0ff, transparent: true, opacity: .6, depthWrite: false }), L = [];
+  for (const [x, z, s] of spots) for (let k = 0; k < 5; k++) { const p = new T.Sprite(sm.clone()); D.scene.add(p); L.push([p, x + R.r(-1, 1) * s, z, s, R() * 6]); }
+  D.updaters.push(t => { for (const [p, x, z, s, ph] of L) { const u = ((t * .35 + ph) % 1.6) / 1.6, burst = Math.sin(Math.min(1, u * 1.4) * Math.PI);
+    p.position.set(x, y + burst * 2.2 * s, z); p.scale.setScalar((.6 + u * 2.4) * s); p.material.opacity = Math.max(0, burst * .55); } });
+}
+// a wet wooden deck the fight stands on, with its posts, front rope and stone lanterns at the back corners
+export function deck(D, K, R, { w = 30, d = 9, z = 1.2, mat, post, stone, lanterns = true, rope = true } = {}) {
+  K.box(w, .4, d, mat, 0, -.4, z); for (let x = -w / 2 + 1; x <= w / 2 - 1; x += 2.6) for (const zz of [z - d / 2 + .3, z + d / 2 - .3]) K.box(.5, 1.6, .5, post, x, -1.8, zz);
+  if (lanterns) { stoneLantern(D, K, -w / 2 + 2.6, z - d / 2 + .6, 1.4, { mat: stone }); stoneLantern(D, K, w / 2 - 2.6, z - d / 2 + .6, 1.4, { mat: stone }); }
+  if (rope) for (const s of [-1, 1]) { const x = s * (w / 2 - 1.2); K.box(.6, 1.1, .6, post, x, 0, z + d / 2 - .8); for (let k = 0; k < 3; k++) K.add(new T.TorusGeometry(.42 - k * .08, .07, 5, 14), new T.MeshStandardMaterial({ color: 0xb89a60 }), x, .9 + k * .08, z + d / 2 - .8, { rx: Math.PI / 2 }); }
+}
+
+// ── boss-phase effects ──
+// lightning: jagged additive bolts that strike at random, with a flash of light across the set
+export function lightning(D, R, { color = 0xb0c0ff, area = [-40, 40, -40, -90], every = [2, 6], top = 60 } = {}) {
+  const bm = new T.LineBasicMaterial({ color, transparent: true, opacity: 0, fog: false }), flash = new T.PointLight(color, 0, 200, 1); flash.position.set(0, 40, -30); D.scene.add(flash);
+  let line = null, next = R.r(...every), life = 0, given = 0;
+  D.updaters.push((t, dt) => { dt = dt || .016;
+    if (t > next) { if (line) { line.removeFromParent(); line.geometry.dispose(); } const x = R.r(area[0], area[1]), z = R.r(area[3], area[2]), pts = []; let px = x, py = top;
+      while (py > -2) { pts.push(new T.Vector3(px, py, z)); py -= R.r(2, 6); px += R.r(-3, 3); } pts.push(new T.Vector3(px, -2, z));
+      line = new T.Line(new T.BufferGeometry().setFromPoints(pts), bm); D.scene.add(line); life = .35; next = t + R.r(...every); flash.position.set(x, 30, z + 20); }
+    life = Math.max(0, life - dt); const f = life > 0 ? (Math.sin(life * 60) > 0 ? 1 : .4) * life / .35 : 0; bm.opacity = f; flash.intensity = f * 400;
+    // add only this bolt's own share of the screen flash and take it back as it fades, so nothing is left behind
+    if (D.post) { const u = D.post.uniforms.flash, mine = f * .1; u.value = Math.max(0, u.value - given + mine); given = mine; } });
+}
+// a turning vortex in the sky (storm eye, curse swirl): a spiral painted on a disc that slowly rotates
+export function vortex(D, x, y, z, r, color = '#d070ff', { speed = .08, opacity = .8 } = {}) {
+  const c = cvs(512, 512, (g, W) => { g.translate(W / 2, W / 2); for (let a = 0; a < 26; a += .02) { const rr = a * 9; g.fillStyle = color; g.globalAlpha = Math.max(0, .09 - a * .003); g.beginPath(); g.arc(Math.cos(a) * rr, Math.sin(a) * rr, 6 + a * 1.2, 0, 7); g.fill(); } });
+  const m = new T.Mesh(new T.CircleGeometry(r, 48), new T.MeshBasicMaterial({ map: ctex(c), transparent: true, opacity, blending: T.AdditiveBlending, depthWrite: false, fog: false })); m.position.set(x, y, z); D.scene.add(m);
+  D.updaters.push(t => { m.rotation.z = t * speed; }); return m;
+}
+// paper / leaves / debris tumbling through the air
+export function flurry(D, R, n, { area = [-14, 14, -2, -16], y0 = 0, y1 = 9, color = 0xf4f0e8, size = [.25, .45], speed = 1 } = {}) {
+  const mat = new T.MeshStandardMaterial({ color, side: T.DoubleSide, roughness: .8 }), L = [];
+  for (let i = 0; i < n; i++) { const s = R.r(...size), m = new T.Mesh(new T.PlaneGeometry(s, s * 1.3), mat); D.scene.add(m); L.push([m, R.r(area[0], area[1]), R.r(area[3], area[2]), R() * 20, R.r(.5, 1.2)]); }
+  D.updaters.push(t => { for (const [m, x, z, ph, v] of L) { const u = ((t * .08 * v * speed + ph) % 1); m.position.set(x + Math.sin(t * .7 * v + ph) * 2, y1 - u * (y1 - y0), z + Math.cos(t * .5 + ph) * 1.5); m.rotation.set(t * v + ph, t * .7 * v, ph); } });
+}
+// fire: flickering additive flames standing on the ground
+export function flames(D, R, spots, { color = 0xff6a20 } = {}) {
+  const tex = ctex(cvs(64, 128, (g, W, H) => { const gr = g.createRadialGradient(32, 96, 2, 32, 80, 64); gr.addColorStop(0, 'rgba(255,250,200,1)'); gr.addColorStop(.35, 'rgba(255,170,60,.9)'); gr.addColorStop(1, 'rgba(255,60,0,0)'); g.fillStyle = gr; g.beginPath(); g.moveTo(32, 0); g.quadraticCurveTo(64, 70, 48, 128); g.lineTo(16, 128); g.quadraticCurveTo(0, 70, 32, 0); g.fill(); }));
+  const L = []; for (const [x, z, s] of spots) for (let k = 0; k < 3; k++) { const sp = new T.Sprite(new T.SpriteMaterial({ map: tex, color, blending: T.AdditiveBlending, transparent: true, depthWrite: false })); D.scene.add(sp); L.push([sp, x + R.r(-.4, .4) * s, z, s * R.r(.7, 1.2), R() * 6]); D.glow(x, .6 * s, z, 3 * s, color); }
+  D.updaters.push(t => { for (const [sp, x, z, s, ph] of L) { const f = .85 + Math.sin(t * 11 + ph) * .1 + Math.sin(t * 23 + ph * 2) * .06; sp.scale.set(s * 1.1, s * 2.2 * f, 1); sp.position.set(x + Math.sin(t * 3 + ph) * .05, s * 1.05 * f, z); } });
+  D.fireflies(spots.length * 10, spots[0][0], spots[0][1], 20, 10, { y0: .5, y1: 8, color: 0xffa040, size: 8 });
+}
+// a phase-2 restyle: retint fog, sky and moonlight, and optionally pulse the hemisphere light
+export function restyle(D, { fog, bg, moon, moonI, amb, ambI, hemiSky, hemiGround } = {}) {
+  if (fog != null) D.scene.fog.color.set(fog); if (bg != null) D.scene.background.set(bg);
+  D.scene.traverse(o => { if (o.isDirectionalLight && moon != null) { o.color.set(moon); if (moonI != null) o.intensity = moonI; } if (o.isAmbientLight && amb != null) { o.color.set(amb); if (ambI != null) o.intensity = ambI; } if (o.isHemisphereLight) { if (hemiSky != null) o.color.set(hemiSky); if (hemiGround != null) o.groundColor.set(hemiGround); } });
+}

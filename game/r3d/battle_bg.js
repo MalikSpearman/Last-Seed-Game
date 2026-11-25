@@ -56,12 +56,20 @@ const MODELED = { festival: () => import('./scene_festival.js'), blight: () => i
   seacave: () => import('./scene_seacave.js'), harbor: () => import('./scene_harbor.js'), nw_street: () => import('./scene_nw_street.js'),
   sunken: () => import('./scene_sunken.js'), mountain_pass: () => import('./scene_mountain_pass.js'), rooftops: () => import('./scene_rooftops.js'),
   nw_express: () => import('./scene_nw_express.js'), w_village: () => import('./scene_w_village.js'), w_graves: () => import('./scene_w_graves.js'),
-  sakebar: () => import('./scene_sakebar.js'), nw_teahouse: () => import('./scene_nw_teahouse.js'), nw_roof: () => import('./scene_nw_roof.js') };
+  sakebar: () => import('./scene_sakebar.js'), nw_teahouse: () => import('./scene_nw_teahouse.js'), nw_roof: () => import('./scene_nw_roof.js'),
+  e_whale: () => import('./scene_e_whale.js'), e_light: () => import('./scene_e_light.js'), e_dojo: () => import('./scene_e_dojo.js'), w_mill: () => import('./scene_w_mill.js'),
+  nw_snack: () => import('./scene_nw_snack.js'), nw_pachinko: () => import('./scene_nw_pachinko.js'), nw_casino: () => import('./scene_nw_casino.js'), nw_web: () => import('./scene_nw_web.js'),
+  tama: () => import('./scene_catroom.js'), zoomies: () => import('./scene_catroom.js'), landlord: () => import('./scene_landlord.js'), calamity: () => import('./scene_calamity.js'),
+  weather: () => import('./scene_weather.js'), weather2: () => import('./scene_weather.js'), sun: () => import('./scene_sun.js'), sun2: () => import('./scene_sun.js'),
+  rushhour: () => import('./scene_rushhour.js'), rushhour2: () => import('./scene_rushhour.js'),
+  reno: () => import('./scene_reno.js'), proctor: () => import('./scene_proctor.js'), proctor2: () => import('./scene_proctor.js'), oba: () => import('./scene_oba.js'), oba2: () => import('./scene_oba.js'),
+  kuzuryu: () => import('./scene_kuzuryu.js'), kuzuryu2: () => import('./scene_kuzuryu.js'), holdline: () => import('./scene_holdline.js'), holdline2: () => import('./scene_holdline.js'),
+  golfdad: () => import('./scene_golfdad.js'), golfdad2: () => import('./scene_golfdad.js') };
 let modeled = null;
 async function modeledCtx(name) {
   if (modeled && modeled.name === name) { use(modeled); await modeled.ready; return modeled; }
   const old = modeled, cx = modeled = blank(new T.Scene()); cx.name = name; cx.painted = false; cx.modeled = true;
-  use(cx); cx.ready = MODELED[name]().then(async mod => { await mod.build(D); cx.P = mod.PRESET; cx.fx = FX = new ArenaFX(D); D.renderer.toneMappingExposure = cx.P.exposure || 1.75; });
+  use(cx); cx.ready = MODELED[name]().then(async mod => { await mod.build(D, /2$/.test(name) ? 2 : 1, name); /* boss arenas: a name ending in 2 is the second-phase look */ cx.P = mod.PRESET; cx.fx = FX = new ArenaFX(D); D.renderer.toneMappingExposure = cx.P.exposure || 1.75; });
   if (old && old !== cx) disposeCtx(old);
   await cx.ready; return cx;
 }
