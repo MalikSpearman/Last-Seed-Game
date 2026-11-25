@@ -5,7 +5,8 @@ import { T } from './diorama.js';
 const DEP = new URL('./depth/', import.meta.url).href;
 let META = null;
 export async function setsMeta() { if (!META) META = await fetch(DEP + 'sets.json').then(r => r.json()).catch(() => ({})); return META; }
-export function nameOf(url) { const m = /bg_([a-z0-9_]+)\.webp/.exec(url || ''); return m ? m[1] : null; }
+export function nameOf(url) { if (/(^|\/)arena\.webp/.test(url || '')) return 'ring';   // the main tournament ring
+  const m = /bg_([a-z0-9_]+)\.webp/.exec(url || ''); return m ? m[1] : null; }
 
 const FOV = 30, ASP = 1.5, GAP = 3.4, WANT = [[-.5, -.52], [.5, -.52]];
 const loadImg = u => new Promise((res, rej) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = rej; i.src = u; });

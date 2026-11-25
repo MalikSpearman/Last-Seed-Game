@@ -16,7 +16,7 @@ const LOOKS = {
   bright: { bloom: .16, thr: 1.8, env: .12 },          // daylight-bright interiors (pale floors, white light): almost no glow, or it washes out          // glossy office/studio/station floors
 };
 const LOOK_OF = { nw_street: 'neon', nw_express: 'neon', nw_teahouse: 'neon', nw_roof: 'neon', nw_snack: 'neon', nw_pachinko: 'neon', nw_casino: 'neon', nw_web: 'neon', festival: 'neon', sakebar: 'neon',
-  blight: 'fire', sun: 'fire', sun2: 'fire', calamity: 'fire', reno: 'fire',
+  ring: 'fire', blight: 'fire', sun: 'fire', sun2: 'fire', calamity: 'fire', reno: 'fire',
   proctor: 'golden', proctor2: 'fire', oba: 'golden', oba2: 'neon', golfdad: 'golden', golfdad2: 'wet', mountain_pass: 'golden', road: 'golden',
   e_whale: 'wet', e_light: 'wet', e_dojo: 'wet', w_village: 'wet', w_graves: 'wet', w_mill: 'wet', harbor: 'wet', marsh: 'wet', sunken: 'wet', seacave: 'wet', kuzuryu: 'wet', kuzuryu2: 'wet', rooftops: 'wet',
   tama: 'room', zoomies: 'room', landlord: 'room',

@@ -1,5 +1,13 @@
 [
  {
+  "version": "0.3.28",
+  "date": "Nov 25, 2026",
+  "title": "The Tournament Ring in 3D",
+  "items": [
+   "The main tournament ring is now a full 3D arena when 3D sets are on: flagstone floor with the gold ring, packed lantern-lit stands, floodlights, bracket banners on stone pillars, flaming braziers and the judges' pagoda under a full moon"
+  ]
+ },
+ {
   "version": "0.3.27",
   "date": "Nov 25, 2026",
   "title": "Kaiko, a connected world, and polished arenas",
