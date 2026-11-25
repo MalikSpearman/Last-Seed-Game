@@ -2,15 +2,13 @@
  {
   "version": "0.3.31",
   "date": "Nov 25, 2026",
-  "title": "Mentors join the fight, and paper sprites",
+  "title": "Online 1v1",
   "items": [
-   "Mentors now dash into the fight beside you and perform their technique with their own moves, then leave. Rival mentors come in from the other side",
-   "Four new mentors to meet in free roam: Old Genzo the Forgemaster and Karasu the Mountain Tengu on the Bamboo Road, Mama Koi the Neon Ward Fixer on the Neon streets and express, and Tamamo the Fox Priestess on the rooftops. Talk to one to unlock them for your next run",
-   "Paper sprites (test): every fighter redrawn in a bold new shonen style as paper cut-outs that sway on the stage. Switch between Classic and Paper in the fight menu (Esc), right under the Arena switch, or in Settings",
-   "Fixed: the red wound slash and elemental reactions played before an attack instead of after the hit",
-   "Fixed: the Shock effect showed a black box behind the lightning",
-   "Kaiko now has her bust on the map token",
-   "Settings no longer get cut off on narrow phone screens"
+   "Online versus (desktop launcher): Versus › Online 1v1. Create a room and send the five-letter code, or join a friend's room with theirs",
+   "Online fights are fully synced: you answer your rival's attacks in your own counter window, they answer yours, and either of you can call a rematch",
+   "Versus is now an even fight: no rival stat bonuses or fight modifiers, both sides start with 4 Energy, and fighter HP is evened out (big fighters still have more, but the gap is much smaller)",
+   "Hana's STOP. hauls the sign back, whips it overhead with afterimages and crashes into the rival with a freeze-frame, shockwave, clang and knockback",
+   "Bios show only the fighter's own height"
   ]
  },
  {

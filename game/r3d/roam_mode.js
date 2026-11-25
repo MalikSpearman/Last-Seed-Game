@@ -170,7 +170,7 @@ export async function createRoam(host, cfg) {
       entry = from === 'east' ? { x: b.x - 1.4, z: b.z } : { x: a.x + 1.4, z: a.z };
       if (!MEM[name]) MEM[name] = zoneSpawn(name, P);
     }
-    FOES = MEM[name].FOES; ITEMS = MEM[name].ITEMS;
+    FOES = MEM[name].FOES; ITEMS = MEM[name].ITEMS; try { cfg.music && cfg.music(name); } catch (_) {}
     for (const ex of EX) signpost(ex.x - ex.dir * .2, ex.z - 1.1, ex.y, (ZONE[ex.to] || [ex.to])[0], ex.dir);
     fill = new T.PointLight(0xffe2c0, 9, 7, 1.4); D.scene.add(fill);
     for (const it of ITEMS) { it.mesh = await A(it.img, it.x, it.z, it.h, { y: it.y || 0 }); if (it.done) { if (it.kind === 'chest' || it.kind === 'rchest') { it.mesh.material = it.mesh.material.clone(); it.mesh.material.color.set(0x8a8a8a); } else it.mesh.visible = false; } }
