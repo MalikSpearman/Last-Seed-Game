@@ -160,3 +160,25 @@ export function pbr(name, rep = [1, 1], o = {}) {
   if (o.glow) { m.emissiveMap = ltex(o.glow + '_e', rep, true); m.emissive = new T.Color(o.emissive ?? 0xffffff); m.emissiveIntensity = o.ei ?? 1; }
   return m;
 }
+
+// lit shoji walls: a paper-window grid whose lit panes glow (colour + matching emissive map from one seed)
+const SHOJI = {};
+export function shojiMat(sd, rep = [1, 1], o = {}) {
+  sd = sd % 8 + 1; rep = rep.map(v => Math.max(.5, Math.round(v * 2) / 2)); const key = sd + '|' + rep + '|' + JSON.stringify(o); if (SHOJI[key]) return SHOJI[key];
+  const draw = glow => { const R = rng(sd); return cvs(256, 128, (g, W, H) => { g.fillStyle = glow ? '#000' : (o.frame || '#3a2418'); g.fillRect(0, 0, W, H);
+    for (let x = 6; x < W; x += 50) { const on = R() < (o.lit ?? .8); g.fillStyle = glow ? (on ? '#ffb060' : '#000') : on ? '#ffd090' : '#2a1810'; g.fillRect(x, 20, 40, 80);
+      g.fillStyle = glow ? '#000' : (o.frame || '#3a2418'); g.fillRect(x + 19, 20, 3, 80); g.fillRect(x, 58, 40, 3); } }); };
+  return (SHOJI[key] = new T.MeshStandardMaterial({ map: ctex(draw(0), rep), emissiveMap: ctex(draw(1), rep), emissive: 0xffa050, emissiveIntensity: o.ei ?? 1.3, roughness: .8 }));
+}
+// a pagoda-roofed hall: lit walls, tiers of hipped roofs with flared eaves; returns its top height
+export function pagoda(K, D, x, z, { w = 6, d = 5, h = 3, tiers = 2, y = 0, wall, roof, beam, sd = 1, lamp = true, ry = 0 } = {}) {
+  const g = new T.Group(); g.position.set(x, y, z); g.rotation.y = ry; K.S.add(g); let yy = 0;
+  for (let t = 0; t < tiers; t++) { const s = 1 - t * .22, ww = w * s, dd = d * s, hh = t ? h * .6 : h, wm = wall || shojiMat(sd + t, [ww / 4, 1]);
+    const b = K.add(new T.BoxGeometry(ww, hh, dd), [wm, wm, roof, roof, wm, wm], 0, yy + hh / 2, 0, { to: g });
+    if (beam) { K.add(new T.BoxGeometry(ww + .2, .18, dd + .2), beam, 0, yy + hh - .05, 0, { to: g }); for (const sx of [-1, 1]) for (const sz of [-1, 1]) K.add(new T.BoxGeometry(.22, hh, .22), beam, sx * ww / 2, yy + hh / 2, sz * dd / 2, { to: g }); }
+    yy += hh; const r = K.add(new T.ConeGeometry(Math.max(ww, dd) * .86, 1.3 * s + .4, 4, 1), roof, 0, yy + .55 * s, 0, { to: g, ry: Math.PI / 4 }); r.scale.set(ww / Math.max(ww, dd) * 1.25, 1, dd / Math.max(ww, dd) * 1.25);
+    yy += .9 * s; }
+  K.add(new T.ConeGeometry(.12, 1, 6), beam || roof, 0, yy + .6, 0, { to: g });
+  if (lamp) D.lantern(x, y + h * .55, z + d / 2 + 1, { intensity: 12, distance: 10, glow: 0 });
+  return y + yy;
+}

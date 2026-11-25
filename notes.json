@@ -1,5 +1,15 @@
 [
  {
+  "version": "0.3.18",
+  "date": "Nov 24, 2026",
+  "title": "Three more 3D arenas",
+  "items": [
+   "The Sunken Shrine is now a full 3D set: ruined stone gates, drowned pillars and the old hall standing in glowing water",
+   "The Mountain Pass is a snowy 3D set at sunset, with a rope bridge over the gorge, icicles over the cave and snow settling in the path",
+   "The Rooftop Terrace is a 3D balcony over a city of lit pagodas, with the colosseum and its searchlights on the hill"
+  ]
+ },
+ {
   "version": "0.3.17",
   "date": "Nov 24, 2026",
   "title": "Real 3D arenas",

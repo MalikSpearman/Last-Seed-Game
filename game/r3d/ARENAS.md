@@ -12,9 +12,12 @@ Set `window.__lsPainted = true` to force the old painted relief for comparison.
 - seacave: Sea Cave
 - harbor: Pirate Harbor
 - nw_street: Neon Ward Street
+- sunken: Sunken Shrine
+- mountain_pass: Mountain Pass (sunset, snow)
+- rooftops: Rooftop Terrace
 
 ## Still painted relief (build order: most-used first)
-sunken, mountain_pass, rooftops, nw_express, w_village, w_graves, sakebar, nw_teahouse, nw_roof, e_whale, e_light,
+nw_express, w_village, w_graves, sakebar, nw_teahouse, nw_roof, e_whale, e_light,
 e_dojo, w_mill, tama, nw_web, nw_snack, nw_pachinko, nw_casino, landlord, calamity, zoomies, weather(2), sun(2),
 rushhour(2), reno, proctor(2), oba(2), kuzuryu(2), holdline(2), golfdad(2)
 
