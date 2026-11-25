@@ -1,5 +1,17 @@
 [
  {
+  "version": "0.3.17",
+  "date": "Nov 24, 2026",
+  "title": "Real 3D arenas",
+  "items": [
+   "Six arenas are now fully built 3D sets instead of a painting with depth: Festival Avenue, the Blight, Lotus Marsh, the Sea Cave, Pirate Harbor and Neon Ward Street",
+   "Real surfaces throughout: stone, planks, roof tiles, bark, rock and metal, all lit and wet where they should be",
+   "The Blight's lava runs through the seams of the flagstones and the Sea Cave's floor glows cyan through its cracks",
+   "Brighter night lighting on the new sets",
+   "Desktop: every save is also written to a file in the app's data folder, and the newer copy is restored at launch, so a run can't roll back to an old save (this needs the new installer)"
+  ]
+ },
+ {
   "version": "0.3.16",
   "date": "Nov 24, 2026",
   "title": "Counters, reworked",

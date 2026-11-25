@@ -31,7 +31,8 @@ function use(cx) {
   for (const k in casters) cx.scene.add(casters[k].m);
   // a painted set already carries its painter's colour: show it as painted (no filmic curve) — the bamboo set keeps its grade
   const tm = cx.painted ? T.NoToneMapping : T.ACESFilmicToneMapping; if (D.renderer.toneMapping !== tm) { D.renderer.toneMapping = tm; D.post.needsUpdate = true; }
-  D.renderer.toneMappingExposure = cx.painted ? 1 : 1.15;
+  // modelled sets are night scenes lit to read like their bright anime paintings, so they run a stronger exposure
+  D.renderer.toneMappingExposure = cx.painted ? 1 : cx.modeled ? (cx.P && cx.P.exposure) || 1.75 : 1.15;
 }
 function blank(scene) { return { scene, moon: null, spots: undefined, pool: undefined, billboards: [], updaters: [], backdropMesh: null, fx: null }; }
 function disposeCtx(cx) {
@@ -50,8 +51,19 @@ async function paintedCtx(name, url) {
   if (old && old !== cx) { if (cur === old) use(cx); disposeCtx(old); }
   await cx.ready; return cx;
 }
+// modelled sets: real 3D dioramas built for a backdrop; they take over from that backdrop's painted relief
+const MODELED = { festival: () => import('./scene_festival.js'), blight: () => import('./scene_blight.js'), marsh: () => import('./scene_marsh.js'),
+  seacave: () => import('./scene_seacave.js'), harbor: () => import('./scene_harbor.js'), nw_street: () => import('./scene_nw_street.js') };
+let modeled = null;
+async function modeledCtx(name) {
+  if (modeled && modeled.name === name) { use(modeled); await modeled.ready; return modeled; }
+  const old = modeled, cx = modeled = blank(new T.Scene()); cx.name = name; cx.painted = false; cx.modeled = true;
+  use(cx); cx.ready = MODELED[name]().then(async mod => { await mod.build(D); cx.P = mod.PRESET; cx.fx = FX = new ArenaFX(D); D.renderer.toneMappingExposure = cx.P.exposure || 1.75; });
+  if (old && old !== cx) disposeCtx(old);
+  await cx.ready; return cx;
+}
 // is there a 3D set for this fight? (a roam fight names its bamboo spot; otherwise the fight's backdrop decides)
-export async function covers(bgUrl, k) { if (k) return true; const n = nameOf(bgUrl); if (!n) return false; if (n === 'w_bamboo') return true; return !!(await setsMeta())[n]; }
+export async function covers(bgUrl, k) { if (k) return true; const n = nameOf(bgUrl); if (!n) return false; if (n === 'w_bamboo' || MODELED[n]) return true; return !!(await setsMeta())[n]; }
 let hitK = 0, hitSide = 1, shake = 0, supT = -1, fit = null;
 const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 const casters = {}, lits = {};
@@ -331,7 +343,8 @@ export function start(host, k, bgUrl) {
   const go = async () => {
     if (g0 !== gen) return; ensure(); k = k || window.__ls3dKey; const n = nameOf(bgUrl);
     let cx;
-    if (!k && n && n !== 'w_bamboo' && (await setsMeta())[n]) { cx = await paintedCtx(n, bgUrl); P = cx.P; key = n; }
+    if (!k && n && MODELED[n] && !window.__lsPainted) { cx = await modeledCtx(n); P = cx.P; key = n; }
+    else if (!k && n && n !== 'w_bamboo' && (await setsMeta())[n]) { cx = await paintedCtx(n, bgUrl); P = cx.P; key = n; }
     else { cx = await bambooCtx(); key = PRESETS[k] ? k : Object.keys(PRESETS)[Math.random() * 3 | 0]; P = PRESETS[key]; cx.P = P; }
     if (g0 !== gen) return; fit = null;
     if (cv.parentNode !== host) host.appendChild(cv); cv.style.display = '';
