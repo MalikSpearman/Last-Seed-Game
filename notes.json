@@ -1,5 +1,21 @@
 [
  {
+  "version": "0.3.19",
+  "date": "Nov 24, 2026",
+  "title": "Counters, rebuilt",
+  "items": [
+   "New counter screen: the rival's card up top with a live countdown, your answers fanned below with stamps showing what each one will do (Perfect, Deflect, Clash, Brace)",
+   "Every counter result now plays its own sequence: a late whiff on a miss, blows landing on your guard when you brace, both blows meeting on a clash, a parry when you deflect, and a slow-motion read and punish on a perfect",
+   "Perfect counters finish by type: Overpower breaks the blow head-on, Unravel slips it and cuts it apart, Phase lets it pass straight through",
+   "No more leftover effects: the cancelled attack no longer replays or shatters afterwards, and your strike back plays once",
+   "A cancelled attack no longer counts toward combos, finishers or Poise Break",
+   "Counter decisions and the timing rings run in real time, so Fast animations no longer shorten them",
+   "Keyboard: 1-9 picks an answer, Esc takes the hit, Space times the rings",
+   "Poise Break: stars now circle the fighter's head and they darken slightly; a launch takes priority over the kneel until they land",
+   "Fixed fighters sometimes vanishing after a counter pose"
+  ]
+ },
+ {
   "version": "0.3.18",
   "date": "Nov 24, 2026",
   "title": "Three more 3D arenas",
