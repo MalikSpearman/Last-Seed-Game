@@ -1,7 +1,7 @@
 // Lotus Marsh: a rain-slick boardwalk deck over a black pond, stilt houses with lit shoji, a boardwalk winding
 // off to the sacred tree on its island (rope, paper streamers, a waterfall), blue will-o-wisps, under a blood moon.
 import { T } from './diorama.js';
-import { kit, rng, ctex, cvs, sky, moon, planks, rough, rail, stoneLantern, water, drift, pbr } from './kit.js';
+import { kit, rng, ctex, cvs, sky, moon, planks, rough, rail, stoneLantern, water, drift, pbr, farPainting, groundFill, scatter, cityBlocks, walkers, clutter } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.2, -1.6], [-4.4, -1.8], [7.2, -5.5]], sum: [-5.6, .8], exposure: 1.4 };
 
@@ -36,7 +36,7 @@ export async function build(D) {
   };
 
   // ── the pond and the deck the fight is on ──
-  water(D, 0, -30, 160, 70, 0x24306a, { y: -.4 }).material.emissive = new T.Color(0x0c1440);
+  water(D, 0, -30, 160, 70, 0x24306a, { y: -.4, sky: ['#6a4a9a', '#2a2a5a'], rings: 24 }).material.emissive = new T.Color(0x0a1030);
   { const o = new T.Mesh(new T.PlaneGeometry(200, 120), pbr('mud_forest', [30, 20], { color: 0x5a5a60 })); o.rotation.x = -Math.PI / 2; o.position.set(0, -.6, 40); S.add(o); }
   box(24, .3, 9, M.deck, 0, -.3, .9);
   for (let x = -11; x <= 11; x += 2.2) for (const z of [-3.3, 5]) box(.4, 1.6, .4, M.old, x, -1.6, z);
@@ -107,4 +107,11 @@ export async function build(D) {
   { const n = 500, g = new T.BufferGeometry(), p = new Float32Array(n * 3); for (let i = 0; i < n; i++) { p[i * 3] = R.r(-20, 20); p[i * 3 + 1] = R.r(0, 14); p[i * 3 + 2] = R.r(-20, 6); } g.setAttribute('position', new T.BufferAttribute(p, 3));
     const rain = new T.Points(g, new T.PointsMaterial({ color: 0xc8d0ff, size: .05, transparent: true, opacity: .5, depthWrite: false })); S.add(rain);
     D.updaters.push((t, dt) => { const a = g.attributes.position; for (let i = 0; i < n; i++) { let y = a.array[i * 3 + 1] - (dt || .016) * 9; if (y < 0) y += 14; a.array[i * 3 + 1] = y; } a.needsUpdate = true; }); }
+
+  // ── detail wave 2: painted far backdrop, ground to the horizon, near scatter ──
+  const R2 = rng(790);
+  farPainting(D, 'marsh', { v1: .5, z: -145 });
+  scatter(D, R2, { area: [-11, 11, -3, 5], puddles: 7, petals: 220, leaves: 50, leaf: 0x4a7a3a, avoid: 4 });
+  // background life and mid-ground clutter
+  await clutter(D, K, R2, 'wild', { area: [-12, 12, 4.8, 5.6], n: 8, clear: 7 });
 }

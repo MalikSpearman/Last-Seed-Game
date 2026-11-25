@@ -2,7 +2,7 @@
 // a shrine gate at the end of the street, a corner shop with vending machines and a ramen stall, wires strung between
 // poles, and towers wrapped in giant screens (koi, sakura) with neon bands.
 import { T } from './diorama.js';
-import { kit, rng, ctex, cvs, sky, torii, drift, pbr } from './kit.js';
+import { kit, rng, ctex, cvs, sky, torii, drift, pbr, farPainting, groundFill, scatter, cityBlocks, walkers, clutter } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -2.2], [-4.6, -2.6], [1.6, -4.6]], sum: [-5.6, .8] };
 
@@ -113,4 +113,14 @@ export async function build(D) {
     S.add(new T.Points(g, new T.PointsMaterial({ color: 0xc8d0ff, size: .06, transparent: true, opacity: .55, depthWrite: false })));
     D.updaters.push((t, dt) => { const a = g.attributes.position.array; for (let i = 0; i < n; i++) { let y = a[i * 3 + 1] - (dt || .016) * 14; if (y < 0) y += 16; a[i * 3 + 1] = y; } g.attributes.position.needsUpdate = true; }); }
   D.petals(70, -6, -2, 9, { color: 0xff7ad0 }); drift(D, 30, 0, -20, 12, 10, 0x80e0ff, { y0: 1, y1: 8, size: 6 });
+
+  // ── detail wave 2: painted far backdrop, ground to the horizon, near scatter ──
+  const R2 = rng(358);
+  farPainting(D, 'nw_street', { v1: .5, z: -145 });
+  cityBlocks(K, D, R2, { x0: -40, x1: 40, z0: -38, z1: -60, n: 16, hMin: 8, hMax: 24, skipX: [0, 10] });
+  scatter(D, R2, { area: [-12, 12, -3, 7], puddles: 12, petals: 160, petal: 0xff7ad0, pebbles: 40, stone: 0x3a3440 });
+  // background life and mid-ground clutter
+  await walkers(D, R2, { rim: '#c060ff', z: -5.6, x0: -14, x1: 14, umbrellas: .55, group: 3, every: [3, 7], zJit: .7 });
+  await walkers(D, R2, { rim: '#c060ff', z: -27, x0: -12, x1: 12, umbrellas: .5, group: 2, every: [5, 10] });
+  await clutter(D, K, R2, 'city', { area: [-21, -12.5, 2, -40], n: 18, clear: 0, y: .18 }); await clutter(D, K, R2, 'city', { area: [12.5, 21, 2, -40], n: 18, clear: 0, y: .18 });
 }

@@ -2,7 +2,7 @@
 // A wet flagstone avenue between food stalls and parasols, lantern strings overhead, crimson laurel banners,
 // sakura over the rooftops, and the tournament colosseum at the top of the stairs under a full moon.
 import { T } from './diorama.js';
-import { pbr } from './kit.js';
+import { pbr, farPainting, groundFill, scatter, cityBlocks, rng, walkers, clutter, crowd } from './kit.js';
 const TX = n => new URL('./tex/' + n + '.webp', import.meta.url).href;
 const BASE = new URL('./img/', import.meta.url).href;
 const I = n => BASE + n + '.webp';
@@ -135,8 +135,10 @@ export async function build(D) {
     await A(person(i % 3).toDataURL(), x, z, rnd(1.5, 1.8), { y, blob: false, shadow: false, tint: 0x8070a0 }); }
 
   // ── food stalls down both sides ──
+  const SPOTS = [];
   const stall = async (x, z, s) => {           // s = -1 left side (faces +x), +1 right side
     const w = 3.4, d = 1.9, h = 2.5, fx = x - s * d / 2;  // fx: the counter edge on the avenue
+    if (z < -5) SPOTS.push([fx - s * 1.05, z - .6, s], [fx - s * 1.05, z + .7, s]);   // where shoppers stand, facing the counter
     for (const [px, pz] of [[x - d / 2, z - w / 2], [x + d / 2, z - w / 2], [x - d / 2, z + w / 2], [x + d / 2, z + w / 2]]) box(.14, h + (px === fx ? 0 : .5), .14, M.wood, px, 0, pz);
     box(d - .3, .95, w - .2, M.dark, x, 0, z);                                           // counter
     const cl = new T.Mesh(new T.PlaneGeometry(w - .2, .8), M.cloth); cl.position.set(fx - s * .02, .5, z); cl.rotation.y = -s * Math.PI / 2; cl.receiveShadow = true; S.add(cl);
@@ -189,4 +191,11 @@ export async function build(D) {
   D.petals(160, 0, -6, 12); D.petals(120, 0, -26, 12); D.fireflies(70, 0, -18, 9, 22, { y0: 2.5, y1: 6, color: 0xffc070, size: 10 });
   // a few barrels and crates at the near corners
   await A('rp_barrel', -5.2, 1.2, 1); await A('rp_crates', 5.4, .8, 1.1, { flip: 1 });
+
+  // ── detail wave 2: painted far backdrop, ground to the horizon, near scatter ──
+  const R2 = rng(246);
+  farPainting(D, 'festival', { v1: .5, z: -145 });
+  scatter(D, R2, { area: [-13, 13, -3, 9], puddles: 9, petals: 420, pebbles: 50 });
+  // background life and mid-ground clutter
+  crowd(D, R2, { spots: SPOTS, n: 16, rim: '#ffb060', cross: .06 });
 }

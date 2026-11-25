@@ -15,9 +15,15 @@ Set `window.__lsPainted = true` to force the old painted relief for comparison.
 - sunken: Sunken Shrine
 - mountain_pass: Mountain Pass (sunset, snow)
 - rooftops: Rooftop Terrace
+- nw_express: Neon Expressway
+- w_village: Willow Village
+- w_graves: Willow Graves
+- sakebar: Sake Bar Alley
+- nw_teahouse: Neon Teahouse
+- nw_roof: Neon Ward Rooftop
 
 ## Still painted relief (build order: most-used first)
-nw_express, w_village, w_graves, sakebar, nw_teahouse, nw_roof, e_whale, e_light,
+e_whale, e_light,
 e_dojo, w_mill, tama, nw_web, nw_snack, nw_pachinko, nw_casino, landlord, calamity, zoomies, weather(2), sun(2),
 rushhour(2), reno, proctor(2), oba(2), kuzuryu(2), holdline(2), golfdad(2)
 

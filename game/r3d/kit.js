@@ -104,10 +104,24 @@ export function stoneLantern(D, K, x, z, s = 1, { mat, color = 0xffa040, y = 0, 
 }
 // low rolling hills on the horizon (smooth cones squashed flat)
 export function hills(K, list, mat) { for (const [x, z, r, h] of list) { const m = K.add(new T.SphereGeometry(1, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), mat, x, 0, z, { cast: false }); m.scale.set(r, h, r * .6); } }
-// still dark water that mirrors its lights (glossy plane, a little ripple)
-export function water(D, x, z, w, d, color = 0x1a1438, { y = -.25 } = {}) {
-  const m = new T.Mesh(new T.PlaneGeometry(w, d, 1, 1), new T.MeshStandardMaterial({ color, roughness: .08, metalness: .6, transparent: true, opacity: .94 }));
-  m.rotation.x = -Math.PI / 2; m.position.set(x, y, z); m.receiveShadow = true; D.scene.add(m); return m;
+// living water: two layers of ripple normals drifting against each other, a reflected sky (so it reads as a surface,
+// not a flat sheet), glints off every light, and rain rings where it rains
+export function water(D, x, z, w, d, color = 0x1a1438, { y = -.25, sky = ['#3a2a6a', '#120c2a'], rings = 0, flow = [.012, .008], scale = 6 } = {}) {
+  const nt = TL.load(TEXB + 'water_n.webp'); nt.wrapS = nt.wrapT = T.RepeatWrapping; nt.repeat.set(w / scale, d / scale);
+  const env = ctex(cvs(256, 128, (g, W, H) => { const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, sky[0]); gr.addColorStop(.5, sky[1]); gr.addColorStop(1, '#05040a'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    const R = rng(9); for (let i = 0; i < 50; i++) { g.fillStyle = `rgba(255,${R.r(170, 230) | 0},${R.r(120, 200) | 0},${R.r(.3, .9)})`; g.fillRect(R() * W, H * R.r(.38, .5), R.r(1, 4), R.r(1, 3)); } }));
+  env.mapping = T.EquirectangularReflectionMapping;
+  const m = new T.Mesh(new T.PlaneGeometry(w, d, 1, 1), new T.MeshStandardMaterial({ color, roughness: .06, metalness: .55, normalMap: nt, envMap: env, envMapIntensity: 1.4, transparent: true, opacity: .95 }));
+  m.material.normalScale.set(.55, .55); m.rotation.x = -Math.PI / 2; m.position.set(x, y, z); m.receiveShadow = true; D.scene.add(m);
+  // a second, larger ripple layer read through the same normal map at another scale (detail + swell)
+  const n2 = nt.clone(); n2.needsUpdate = true; n2.repeat.set(w / (scale * 3.3), d / (scale * 3.3));
+  const swell = new T.Mesh(new T.PlaneGeometry(w, d), new T.MeshStandardMaterial({ color, roughness: .1, metalness: .7, normalMap: n2, envMap: env, transparent: true, opacity: .35, depthWrite: false }));
+  swell.rotation.x = -Math.PI / 2; swell.position.set(x, y + .01, z); D.scene.add(swell);
+  D.updaters.push(t => { nt.offset.set(t * flow[0], t * flow[1]); n2.offset.set(-t * flow[1] * .6, t * flow[0] * .4); });
+  if (rings) { const R = rng(rings), rm = new T.MeshBasicMaterial({ color: 0xd8e0ff, transparent: true, opacity: .5, depthWrite: false, blending: T.AdditiveBlending }), L = [];
+    for (let i = 0; i < rings; i++) { const r = new T.Mesh(new T.RingGeometry(.86, 1, 20), rm.clone()); r.rotation.x = -Math.PI / 2; D.scene.add(r); L.push([r, R() * 2]); }
+    D.updaters.push(t => { for (const e of L) { const r = e[0], u = ((t * .9 + e[1]) % 2) / 2; if (u < .02 || !r.userData.p) { r.userData.p = 1; r.position.set(x + (Math.random() - .5) * w * .5, y + .02, z + (Math.random() - .5) * Math.min(d, 30)); } r.scale.setScalar(.05 + u * .6); r.material.opacity = (1 - u) * .45; } }); }
+  return m;
 }
 // a glowing particle drift: embers, will-o-wisps, sparks
 export const drift = (D, n, cx, cz, rx, rz, color, o = {}) => D.fireflies(n, cx, cz, rx, rz, Object.assign({ color }, o));
@@ -181,4 +195,223 @@ export function pagoda(K, D, x, z, { w = 6, d = 5, h = 3, tiers = 2, y = 0, wall
   K.add(new T.ConeGeometry(.12, 1, 6), beam || roof, 0, yy + .6, 0, { to: g });
   if (lamp) D.lantern(x, y + h * .55, z + d / 2 + 1, { intensity: 12, distance: 10, glow: 0 });
   return y + yy;
+}
+
+// ── Neon Ward pieces: rain, window-grid towers with neon bands, giant curved screens ──
+export function rain(D, n, [x0, x1], [y0, y1], [z0, z1], { speed = 14, color = 0xc8d0ff, size = .06 } = {}) {
+  const R = rng(n), g = new T.BufferGeometry(), p = new Float32Array(n * 3); for (let i = 0; i < n; i++) { p[i * 3] = R.r(x0, x1); p[i * 3 + 1] = R.r(y0, y1); p[i * 3 + 2] = R.r(z0, z1); }
+  g.setAttribute('position', new T.BufferAttribute(p, 3)); D.scene.add(new T.Points(g, new T.PointsMaterial({ color, size, transparent: true, opacity: .55, depthWrite: false })));
+  D.updaters.push((t, dt) => { const a = g.attributes.position.array; for (let i = 0; i < n; i++) { let y = a[i * 3 + 1] - (dt || .016) * speed; if (y < y0) y += y1 - y0; a[i * 3 + 1] = y; } g.attributes.position.needsUpdate = true; });
+}
+const TOWER = {};
+function towerMat(sd, rep) { const k = sd % 6 + '|' + rep; if (TOWER[k]) return TOWER[k];
+  const draw = glow => { const R = rng(sd % 6 + 1); return cvs(128, 512, (g, W, H) => { g.fillStyle = glow ? '#000' : '#1a1428'; g.fillRect(0, 0, W, H);
+    for (let y = 6; y < H; y += 14) for (let x = 6; x < W; x += 14) { if (R() > .35) continue; const warm = R() < .5; g.fillStyle = glow ? (warm ? '#ffc070' : '#80d0ff') : warm ? '#ffd090' : '#a0e0ff'; g.fillRect(x, y, 8, 8); } }); };
+  return (TOWER[k] = new T.MeshStandardMaterial({ map: ctex(draw(0), rep), emissiveMap: ctex(draw(1), rep), emissive: 0xffffff, emissiveIntensity: .9, roughness: .5 })); }
+export function neonTower(K, x, z, w, d, h, sd, { y = 0, bands = true } = {}) {
+  const R = rng(sd + 3); K.box(w, h, d, towerMat(sd, [Math.max(1, Math.round(w / 6)), Math.max(1, Math.round(h / 24))]), x, y, z, { cast: false });
+  if (bands) { const nc = [0xff40c0, 0x40e0ff, 0xb060ff][sd % 3], nm = new T.MeshBasicMaterial({ color: nc, fog: false }); for (let yy = 6; yy < h; yy += R.r(6, 12)) K.box(w + .1, .25, d + .1, nm, x, y + yy, z, { cast: false }); }
+}
+export function screenTex(kind) { return cvs(256, 512, (g, W, H) => { const gr = g.createLinearGradient(0, 0, 0, H); const R = rng(kind.length * 7);
+  if (kind === 'koi') { gr.addColorStop(0, '#2a1a7a'); gr.addColorStop(1, '#5a20a0'); g.fillStyle = gr; g.fillRect(0, 0, W, H); g.strokeStyle = 'rgba(120,200,255,.35)'; g.lineWidth = 3; for (let y = 0; y < H; y += 30) { g.beginPath(); for (let x = 0; x <= W; x += 16) g.lineTo(x, y + Math.sin(x * .05 + y) * 6); g.stroke(); }
+    g.fillStyle = '#ff9ad8'; g.beginPath(); g.ellipse(128, 220, 46, 110, .35, 0, 7); g.fill(); g.beginPath(); g.moveTo(150, 320); g.quadraticCurveTo(210, 420, 150, 470); g.quadraticCurveTo(120, 400, 120, 330); g.fill();
+    g.fillStyle = '#fff'; for (const [x, y] of [[100, 170], [140, 260], [110, 300]]) { g.beginPath(); g.ellipse(x, y, 18, 12, .4, 0, 7); g.fill(); } }
+  else if (kind === 'face') { gr.addColorStop(0, '#6a2a8a'); gr.addColorStop(1, '#c04aa0'); g.fillStyle = gr; g.fillRect(0, 0, W, H); g.fillStyle = '#ffd8f0'; g.beginPath(); g.ellipse(140, 250, 70, 96, -.1, 0, 7); g.fill();
+    g.fillStyle = '#2a0a3a'; g.beginPath(); g.ellipse(120, 180, 96, 120, -.3, Math.PI, 0); g.fill(); g.fillRect(40, 170, 40, 260); g.strokeStyle = '#6a2a5a'; g.lineWidth = 4; for (const x of [112, 162]) { g.beginPath(); g.arc(x, 246, 14, .2, Math.PI - .2); g.stroke(); } g.fillStyle = '#e04a8a'; g.beginPath(); g.ellipse(140, 300, 14, 6, 0, 0, 7); g.fill();
+    for (let i = 0; i < 60; i++) { g.fillStyle = `hsla(${R.r(300, 340)},90%,80%,.8)`; g.beginPath(); g.arc(R() * W, R() * H * .4, R.r(4, 12), 0, 7); g.fill(); } }
+  else { gr.addColorStop(0, '#5a1060'); gr.addColorStop(1, '#a02a8a'); g.fillStyle = gr; g.fillRect(0, 0, W, H); for (let i = 0; i < 140; i++) { g.fillStyle = `hsla(${R.r(300, 340)},90%,${R.r(70, 90)}%,${R.r(.5, .9)})`; g.beginPath(); g.arc(R() * W, R() * H, R.r(4, 14), 0, 7); g.fill(); } }
+  g.fillStyle = 'rgba(0,0,0,.25)'; for (let y = 0; y < H; y += 4) g.fillRect(0, y, W, 1); }); }
+// a flat billboard screen in a steel frame (w x h), facing +z after ry
+export function billboard(K, D, x, y, z, w, h, kind, { ry = 0, frame } = {}) {
+  const t = ctex(screenTex(kind)); t.center.set(.5, .5); t.rotation = w > h ? Math.PI / 2 : 0;
+  const m = K.add(new T.PlaneGeometry(w, h), new T.MeshBasicMaterial({ map: t, fog: false }), x, y, z, { ry, cast: false });
+  if (frame) { K.add(new T.BoxGeometry(w + .4, .3, .3), frame, x, y + h / 2 + .1, z - .1, { ry }); K.add(new T.BoxGeometry(w + .4, .3, .3), frame, x, y - h / 2 - .1, z - .1, { ry }); }
+  D.glow(x, y, z + 1, Math.max(w, h) * 1.1, kind === 'koi' ? 0x8060ff : 0xff60c0); return m;
+}
+export function skyline(K, D, R, { zNear = -40, zFar = -140, n = 40, spread = 90, spire = true, y = 0 } = {}) {
+  for (let i = 0; i < n; i++) neonTower(K, R.r(-spread, spread), R.r(zNear, zFar), R.r(6, 14), R.r(6, 12), R.r(20, 80) - y, i + 7, { y });
+  if (spire) { const sp = new T.MeshStandardMaterial({ color: 0x2a1a40, emissive: 0xa040ff, emissiveIntensity: .5 }); K.box(6, 70, 6, sp, 4, 0, zFar - 10, { cast: false }); K.add(new T.ConeGeometry(3, 40, 6), sp, 4, 90, zFar - 10, { cast: false }); D.glow(4, 110, zFar - 10, 10, 0xff60ff); }
+}
+
+// ── detail wave: far painted backdrop, ground fill, near scatter, mid-distance city blocks ──
+const IMGB = new URL('../img/', import.meta.url).href;
+// the location's own painting as the far backdrop: its upper band (sky + distance, v0..v1 from the top), mirrored
+// sideways so it never ends; sits behind every 3D layer so the horizon is always painted, never empty colour
+export function farPainting(D, name, { v0 = 0, v1 = .55, z = -120, yb = -6, h = 120, w = 420, tint = 0xd8d0e8, x = 0 } = {}) {
+  z = Math.max(z, -146);   // always in front of the sky wall (z -150), which writes depth
+  const t = TL.load(IMGB + 'bg_' + name + '.webp'); t.colorSpace = T.SRGBColorSpace; t.wrapS = T.MirroredRepeatWrapping;
+  const tileW = h * 1.5 / (v1 - v0); t.repeat.set(w / tileW, v1 - v0); t.offset.set(.5 - w / tileW / 2, 1 - v1);
+  const m = new T.Mesh(new T.PlaneGeometry(w, h), new T.MeshBasicMaterial({ map: t, color: tint, fog: false, depthWrite: false })); m.position.set(x, yb + h / 2, z); m.renderOrder = -1; D.scene.add(m);
+  // a soft fog skirt where the painting meets the 3D ground
+  const sk = cvs(4, 64, (g) => { const gr = g.createLinearGradient(0, 0, 0, 64); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(1, 'rgba(255,255,255,1)'); g.fillStyle = gr; g.fillRect(0, 0, 4, 64); });
+  const fc = D.scene.fog ? D.scene.fog.color : new T.Color(0x201838);
+  const s = new T.Mesh(new T.PlaneGeometry(w, h * .16), new T.MeshBasicMaterial({ color: fc, alphaMap: ctex(sk, null, false), transparent: true, fog: false, depthWrite: false })); s.position.set(x, yb + h * .08, z + .5); s.renderOrder = -1; D.scene.add(s);
+  return m;
+}
+// a big ground plane that runs out to the backdrop, so nothing floats over empty colour
+export function groundFill(D, mat, { y = -.05, z0 = 20, z1 = -130, w = 320 } = {}) {
+  const m = new T.Mesh(new T.PlaneGeometry(w, z0 - z1), mat); m.rotation.x = -Math.PI / 2; m.position.set(0, y, (z0 + z1) / 2); m.receiveShadow = true; D.scene.add(m); return m;
+}
+const inst = (D, geo, mat, list, shadow = false) => { const m = new T.InstancedMesh(geo, mat, list.length), o = new T.Object3D();
+  list.forEach((p, i) => { o.position.set(p[0], p[1], p[2]); o.rotation.set(p[3] || 0, p[4] || 0, p[5] || 0); o.scale.setScalar(p[6] || 1); o.updateMatrix(); m.setMatrixAt(i, o.matrix); });
+  m.castShadow = shadow; m.receiveShadow = true; D.scene.add(m); return m; };
+// near scatter: puddles that mirror the lights, pebbles and debris, grass tufts, fallen petals/leaves lying on the floor
+export function scatter(D, R, { area = [-14, 14, -3, 6], y = 0, puddles = 0, pebbles = 0, tufts = 0, petals = 0, leaves = 0, petal = 0xff9ad0, leaf = 0xc04020, tuft = 0x5a7a3a, stone = 0x6a6070, avoid = 3.6 } = {}) {
+  const [x0, x1, z0, z1] = area, pick = (keep = true) => { for (let k = 0; k < 20; k++) { const x = R.r(x0, x1), z = R.r(z0, z1); if (!keep || Math.abs(z) > 1.4 || Math.abs(Math.abs(x) - 3.4) > avoid * .5) return [x, z]; } return [R.r(x0, x1), R.r(z0, z1)]; };
+  if (puddles) { const pm = new T.MeshStandardMaterial({ color: 0x0c0a18, roughness: .04, metalness: .9, transparent: true, opacity: .75, polygonOffset: true, polygonOffsetFactor: -2 });
+    for (let i = 0; i < puddles; i++) { const [x, z] = pick(false), p = new T.Mesh(new T.CircleGeometry(1, 20), pm); p.rotation.x = -Math.PI / 2; p.position.set(x, y + .012, z); p.scale.set(R.r(.6, 2.2), R.r(.4, 1.2), 1); p.rotation.z = R() * 3; p.receiveShadow = true; D.scene.add(p); } }
+  if (pebbles) { const L = []; for (let i = 0; i < pebbles; i++) { const [x, z] = pick(false); L.push([x, y + .03, z, R() * 3, R() * 3, R() * 3, R.r(.04, .16)]); }
+    inst(D, new T.DodecahedronGeometry(1, 0), new T.MeshStandardMaterial({ color: stone, roughness: .9, flatShading: true }), L, true); }
+  if (tufts) { const L = []; for (let i = 0; i < tufts; i++) { const [x, z] = pick(); for (let k = 0; k < 5; k++) L.push([x + R.r(-.15, .15), y + .12, z + R.r(-.15, .15), R.r(-.4, .4), R() * 3, R.r(-.4, .4), R.r(.5, 1)]); }
+    inst(D, new T.ConeGeometry(.03, .3, 3), new T.MeshStandardMaterial({ color: tuft, roughness: 1 }), L); }
+  for (const [n, col, sz] of [[petals, petal, .07], [leaves, leaf, .1]]) if (n) { const L = []; for (let i = 0; i < n; i++) { const [x, z] = pick(false); L.push([x, y + .015, z, -Math.PI / 2, 0, R() * 6, R.r(.7, 1.3)]); }
+    const g = new T.CircleGeometry(sz, 5); g.scale(1, .6, 1); inst(D, g, new T.MeshStandardMaterial({ color: col, roughness: .8, side: T.DoubleSide, polygonOffset: true, polygonOffsetFactor: -1 }), L); }
+}
+// vertical neon shop signs with glyph-like strokes
+const SIGN = {};
+function signMat(sd) { const k = sd % 10; if (SIGN[k]) return SIGN[k]; const R = rng(k + 3), col = ['#ff4ac0', '#40e0ff', '#ffd040', '#b070ff', '#ff6a40'][k % 5];
+  const c = cvs(64, 256, (g, W, H) => { g.fillStyle = '#140a1c'; g.fillRect(0, 0, W, H); g.strokeStyle = col; g.lineWidth = 5; g.strokeRect(4, 4, W - 8, H - 8); g.lineWidth = 4; g.lineCap = 'round';
+    for (let y = 22; y < H - 20; y += 46) { for (let s = 0; s < 4; s++) { g.beginPath(); const x0 = R.r(14, 50), y0 = y + R.r(-10, 10); g.moveTo(x0, y0); g.lineTo(x0 + R.r(-14, 14), y0 + R.r(-14, 14)); g.stroke(); } } });
+  return (SIGN[k] = new T.MeshBasicMaterial({ map: ctex(c), fog: true })); }
+// a block of low-rise city: lit storefronts, upper windows, vertical neon signs, roof clutter; fills the middle distance
+export function cityBlocks(K, D, R, { x0 = -40, x1 = 40, z0 = -16, z1 = -40, n = 14, hMin = 5, hMax = 16, skipX = null, y = 0 } = {}) {
+  const wall = new T.MeshStandardMaterial({ color: 0x2a2236, roughness: .8 }), roof = new T.MeshStandardMaterial({ color: 0x1a1624, roughness: .9 }), ac = new T.MeshStandardMaterial({ color: 0x8a8a94, metalness: .3, roughness: .5 });
+  for (let i = 0; i < n; i++) { const x = R.r(x0, x1); if (skipX && Math.abs(x - skipX[0]) < skipX[1]) continue; const z = R.r(z0, z1), w = R.r(5, 9), d = R.r(5, 8), h = R.r(hMin, hMax);
+    const win = towerMat(i * 5 + 1, [Math.max(1, Math.round(w / 5)), Math.max(1, Math.round(h / 10))]);
+    K.add(new T.BoxGeometry(w, h, d), [win, win, roof, roof, win, win], x, y + h / 2, z, { cast: false });
+    const shop = shojiMat(i, [Math.max(1, Math.round(w / 3)), 1], { lit: .95, frame: '#20141c' }); K.add(new T.PlaneGeometry(w * .92, 2.4), shop, x, y + 1.3, z + d / 2 + .02, { cast: false });
+    K.add(new T.BoxGeometry(w + .3, .2, 1.2), new T.MeshStandardMaterial({ color: [0xb02030, 0x203a8a, 0x2a2a2a][i % 3] }), x, y + 2.7, z + d / 2 + .5, { cast: false, rx: .3 });
+    const sh = R.r(3, 6); K.add(new T.PlaneGeometry(1, sh), signMat(i), x + R.r(-w / 3, w / 3), y + Math.min(h - 1, 3.4 + sh / 2 + R.r(0, 3)), z + d / 2 + .6, { cast: false });
+    if (R() < .6) K.box(1.2, .9, .8, ac, x + R.r(-w / 3, w / 3), y + h, z + R.r(-d / 3, d / 3), { cast: false });
+    if (R() < .35) { K.add(new T.CylinderGeometry(.9, .9, 1.6, 12), ac, x + R.r(-w / 4, w / 4), y + h + 1.6, z, { cast: false }); for (const dx of [-.6, .6]) K.box(.1, .8, .1, ac, x + dx, y + h, z, { cast: false }); }
+    if (R() < .3) K.box(.08, R.r(2, 5), .08, ac, x + R.r(-w / 3, w / 3), y + h, z + R.r(-d / 3, d / 3), { cast: false });
+    if (i % 3 === 0) D.glow(x, y + 2, z + d / 2 + 1, 3, 0xffb060); }
+}
+
+// ── background life: animated silhouette pedestrians (several builds, 8-frame walk cycles drawn once) ──
+// types: proportions + props; heights in metres
+const SIL_T = {
+  suit:    { h: 1.82, sh: 24, hip: 15, head: 16, arm: 1, lw: 15, briefcase: 1 },
+  coat:    { h: 1.86, sh: 25, hip: 17, head: 16, arm: 1, lw: 16, coat: 1, hat: 1 },
+  woman:   { h: 1.66, sh: 19, hip: 18, head: 16, arm: .95, lw: 12, skirt: 1, hair: 1, bag: 1 },
+  student: { h: 1.70, sh: 21, hip: 15, head: 17, arm: 1, lw: 14, hood: 1, phone: 1, backpack: 1 },
+  kid:     { h: 1.15, sh: 17, hip: 14, head: 22, arm: .9, lw: 13, backpack: 1, bounce: 1.6, kid: 1 },
+  elder:   { h: 1.58, sh: 21, hip: 17, head: 16, arm: .95, lw: 14, hunch: .25, cane: 1, slow: 1 },
+  big:     { h: 1.80, sh: 31, hip: 27, head: 17, arm: 1, lw: 19, belly: 1 } };
+const SIL = {};
+function silSheet(type, rim) {
+  const k = type + rim; if (SIL[k]) return SIL[k]; const o = SIL_T[type], FW = 128, FH = 256, N = 8;
+  const c = cvs(FW * N, FH, (g) => {
+    for (let f = 0; f < N; f++) { g.save(); g.translate(f * FW + FW / 2, 0);
+      const p = f / N * Math.PI * 2, H = 236, ground = FH - 8, kid = !!o.kid;
+      // proportions: heads are ~1/7 of height (kids ~1/5); legs ~0.47 H
+      const legL = H * (kid ? .42 : .47), thL = legL * .52, shL = legL * .48, bob = (1 - Math.abs(Math.cos(p))) * 5 * (o.bounce || 1);
+      const hipY = ground - legL + 6 - bob, torso = H * (kid ? .27 : .3), shY = hipY - torso, lean = (o.hunch || 0) * 34;
+      const seg = (x0, y0, a, l, w0, w1) => { const x1 = x0 + Math.sin(a) * l, y1 = y0 + Math.cos(a) * l, nx = Math.cos(a), ny = -Math.sin(a);
+        g.beginPath(); g.moveTo(x0 + nx * w0 / 2, y0 + ny * w0 / 2); g.lineTo(x1 + nx * w1 / 2, y1 + ny * w1 / 2); g.arc(x1, y1, w1 / 2, Math.atan2(ny, nx), Math.atan2(-ny, -nx)); g.lineTo(x0 - nx * w0 / 2, y0 - ny * w0 / 2); g.arc(x0, y0, w0 / 2, Math.atan2(-ny, -nx), Math.atan2(ny, nx)); g.fill(); return [x1, y1]; };
+      const leg = (s) => { const q = p + (s < 0 ? Math.PI : 0), th = .42 * Math.sin(q), knee = .62 * Math.max(0, Math.sin(q + 2.3)) ** 1.3;
+        const kn = seg(s * 2, hipY, th, thL, o.lw * 1.25, o.lw), an = seg(kn[0], kn[1], th - knee, shL, o.lw, o.lw * .7);
+        g.beginPath(); g.moveTo(an[0] - 4, an[1] - 3); g.lineTo(an[0] + o.lw * 1.3, an[1] + 3); g.lineTo(an[0] - 4, an[1] + 5); g.fill(); };
+      const arm = (s, front) => { const q = p + (s > 0 ? Math.PI : 0), sw = .38 * Math.sin(q) * (o.arm || 1), ax = lean + s * o.sh * .55, aL = H * .17;
+        if (front && o.phone) { const el = seg(ax, shY + 6, .2, aL, o.lw * .8, o.lw * .65); return seg(el[0], el[1], Math.PI - .7, aL * .9, o.lw * .65, o.lw * .55); }
+        const el = seg(ax, shY + 6, sw, aL, o.lw * .85, o.lw * .65); return seg(el[0], el[1], sw + .25 + Math.max(0, sw) * .5, aL * .92, o.lw * .65, o.lw * .55); };
+      const draw = (fill) => { g.fillStyle = fill; g.strokeStyle = fill; g.lineCap = 'round'; g.lineJoin = 'round';
+        leg(-1); const back = arm(-1); if (o.briefcase) { g.beginPath(); g.roundRect(back[0] - 15, back[1] - 2, 30, 22, 3); g.fill(); }
+        if (o.backpack) { g.beginPath(); g.roundRect(-o.sh - 14 + lean, shY + 8, 20, torso * .72, 7); g.fill(); }
+        // torso: rounded shoulders down to the hips
+        g.beginPath(); g.moveTo(-o.hip, hipY + 6); g.lineTo(-o.sh + lean, shY + 10); g.quadraticCurveTo(-o.sh + lean, shY, -o.sh + 10 + lean, shY); g.lineTo(o.sh - 10 + lean, shY); g.quadraticCurveTo(o.sh + lean, shY, o.sh + lean, shY + 10); g.lineTo(o.hip, hipY + 6); g.closePath(); g.fill();
+        if (o.belly) { g.beginPath(); g.ellipse(8 + lean * .5, (shY + hipY) / 2 + 8, o.sh * .95, torso * .48, 0, 0, 7); g.fill(); }
+        if (o.coat) { const sw = Math.sin(p) * 6; g.beginPath(); g.moveTo(-o.hip - 3, hipY - 6); g.lineTo(o.hip + 3, hipY - 6); g.lineTo(o.hip + 10 + sw, hipY + thL * 1.25); g.lineTo(-o.hip - 10 + sw, hipY + thL * 1.25); g.closePath(); g.fill(); }
+        if (o.skirt) { const sw = Math.sin(p) * 5; g.beginPath(); g.moveTo(-o.hip, hipY - 8); g.lineTo(o.hip, hipY - 8); g.lineTo(o.hip + 13 + sw, hipY + thL * 1.05); g.lineTo(-o.hip - 13 + sw, hipY + thL * 1.05); g.closePath(); g.fill(); }
+        leg(1); const front = arm(1, true);
+        if (o.bag) { g.beginPath(); g.ellipse(-o.sh + 4 + lean, hipY - 4, 12, 14, 0, 0, 7); g.fill(); g.lineWidth = 3; g.beginPath(); g.moveTo(-o.sh + 4 + lean, hipY - 16); g.lineTo(o.sh * .4 + lean, shY + 2); g.stroke(); }
+        if (o.cane) { g.lineWidth = 5; g.beginPath(); g.moveTo(front[0], front[1]); g.lineTo(front[0] + 12 + Math.sin(p) * 10, ground); g.stroke(); }
+        if (o.phone) { g.beginPath(); g.roundRect(front[0] - 5, front[1] - 16, 10, 18, 2); g.fill(); }
+        // neck and head (with hair, hat or hood)
+        const hx = lean * 1.35 + (o.hunch ? 10 : 2), hy = shY - o.head * .95 - 4;
+        g.beginPath(); g.roundRect(lean - o.head * .35 + 1, hy + o.head * .5, o.head * .7, o.head, 4); g.fill();
+        g.beginPath(); g.ellipse(hx, hy, o.head * .88, o.head, 0, 0, 7); g.fill(); g.beginPath(); g.ellipse(hx + o.head * .7, hy + o.head * .25, o.head * .28, o.head * .22, 0, 0, 7); g.fill();
+        if (o.hair) { g.beginPath(); g.moveTo(hx - o.head * .7, hy - o.head * .6); g.quadraticCurveTo(hx - o.head * 1.6, hy + o.head * 1.8, hx - o.head * .4, hy + o.head * 2.4); g.lineTo(hx + o.head * .1, hy + o.head * .4); g.closePath(); g.fill(); }
+        if (o.hat) { g.beginPath(); g.ellipse(hx, hy - o.head * .55, o.head * 1.5, o.head * .22, 0, 0, 7); g.fill(); g.beginPath(); g.roundRect(hx - o.head * .85, hy - o.head * 1.45, o.head * 1.7, o.head * .95, 4); g.fill(); }
+        if (o.hood) { g.beginPath(); g.ellipse(hx - 4, hy - 1, o.head * 1.12, o.head * 1.18, 0, 0, 7); g.fill(); } };
+      // a thin coloured rim behind (light catching the edge), then the dark figure
+      g.save(); g.translate(-2.5, -1); draw(rim); g.restore(); draw('#0b0912');
+      g.restore(); } });
+  const t = ctex(c); t.repeat.set(1 / N, 1); return (SIL[k] = { tex: t, N, h: o.h, slow: o.slow }); }
+export const PEDS = Object.keys(SIL_T);
+export async function walkers(D, R, { z = -6, x0 = -16, x1 = 16, every = [4, 9], group = 3, umbrellas = 0, speed = [1.2, 1.7], y = 0, types = PEDS, zJit = .9, rim = '#7a5ac8', scale = 1 } = {}) {
+  const pool = [];
+  const umbM = [0x1a1424, 0x2a1a2a, 0x141a2a, 0x3a1a24].map(c => new T.MeshStandardMaterial({ color: c, roughness: .4, side: T.DoubleSide }));
+  for (let i = 0; i < 9; i++) { const type = types[i % types.length], sh = silSheet(type, rim), tex = sh.tex.clone(); tex.needsUpdate = true;
+    const hh = sh.h * scale, ww = hh * .5, geo = new T.PlaneGeometry(ww, hh); geo.translate(0, hh / 2, 0);
+    const m = new T.Mesh(geo, new T.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: .4, depthWrite: true })); m.visible = false; D.scene.add(m); D.billboards.push(m);
+    const blob = D.blob(0, 0, .4 * scale, y); blob.visible = false; let umb = null;
+    if (umbrellas && type !== 'kid') { umb = new T.Group(); const c2 = new T.Mesh(new T.ConeGeometry(.72 * scale, .36 * scale, 12, 1, true), umbM[i % umbM.length]); c2.position.y = hh + .2; umb.add(c2); const st = new T.Mesh(new T.CylinderGeometry(.012, .012, .8), umbM[0]); st.position.y = hh - .2; umb.add(st); umb.visible = false; D.scene.add(umb); }
+    pool.push({ m, tex, sh, blob, umb, on: false, d: 0 }); }
+  let next = R.r(.5, 2);
+  D.updaters.push((t, dt) => { dt = dt || .016;
+    if (t > next) { const n = 1 + (R() * group | 0), dir = R() < .5 ? 1 : -1; let k = 0;
+      for (const p of shuffleIn(pool, R)) { if (p.on || k >= n) continue; k++; p.on = true; p.dir = dir; p.v = R.r(...speed) * (p.sh.slow ? .6 : 1); p.x = (dir > 0 ? x0 : x1) - dir * k * R.r(.7, 1.5); p.z = z + R.r(-zJit, zJit); p.d = R() * 3;
+        p.m.visible = p.blob.visible = true; p.m.scale.x = dir > 0 ? 1 : -1; if (p.umb) p.umb.visible = R() < umbrellas; }
+      next = t + R.r(...every); }
+    for (const p of pool) { if (!p.on) continue; const step = p.dir * p.v * dt; p.x += step; p.d += Math.abs(step);
+      const stride = p.sh.h * scale * .78, f = Math.floor(p.d / stride * p.sh.N) % p.sh.N; p.tex.offset.x = f / p.sh.N;
+      p.m.position.set(p.x, y, p.z); p.blob.position.set(p.x, y + .02, p.z); if (p.umb) p.umb.position.set(p.x + p.dir * .08, y, p.z);
+      if ((p.dir > 0 && p.x > x1 + 1) || (p.dir < 0 && p.x < x0 - 1)) { p.on = false; p.m.visible = p.blob.visible = false; if (p.umb) p.umb.visible = false; } } });
+}
+const shuffleIn = (a, R) => a.slice().sort(() => R() - .5);
+
+// ── mid-ground clutter by theme, scattered through a band behind the fighters (keeps the centre lane clear) ──
+export async function clutter(D, K, R, theme, { area = [-16, 16, -6, -22], n = 24, clear = 5, y = 0 } = {}) {
+  const [x0, x1, z0, z1] = area, pos = () => { for (let k = 0; k < 30; k++) { const x = R.r(x0, x1), z = R.r(z1, z0); if (Math.abs(x) > clear || z < z0 - 6) return [x, z]; } return [R.r(x0, x1), R.r(z1, z0)]; };
+  const M = { metal: pbr('metal_plate', [1, 1], { color: 0x6a6878, metal: .6, rough: .6 }), wood: pbr('weathered_planks', [.5, .5], { color: 0x9a7a6a }), stone: pbr('mossy_rock', [.5, .5], { color: 0xb0b0b0 }),
+    rock: pbr('rock_face', [1, 1], { color: 0x8a8090, ns: 1.6 }), bag: new T.MeshStandardMaterial({ color: 0x14141a, roughness: .35, metalness: .2 }), red: new T.MeshStandardMaterial({ color: 0xb02a30, roughness: .6 }),
+    lamp: new T.MeshStandardMaterial({ color: 0xfff0c0, emissive: 0xffa040, emissiveIntensity: 1.8 }), rope: new T.MeshStandardMaterial({ color: 0xc0a070 }) };
+  for (let i = 0; i < n; i++) { const [x, z] = pos(), ry = R.r(-.6, .6), pick = R();
+    if (theme === 'city') {
+      if (pick < .2) { const hue = [200, 340, 30, 120][i % 4], vm = new T.MeshStandardMaterial({ color: `hsl(${hue},60%,45%)`, emissive: `hsl(${hue},80%,55%)`, emissiveIntensity: .5 }); K.box(1, 2, .8, vm, x, y, z, { ry }); D.glow(x, y + 1.2, z + .5, 1.6, 0x80c0ff); }
+      else if (pick < .38) { for (let k = 0; k < 3; k++) { const b = K.add(new T.SphereGeometry(.4, 8, 6), M.bag, x + k * .5 - .5, y + .3, z + R.r(-.2, .2)); b.scale.y = .8; } }
+      else if (pick < .52) { const g = new T.Group(); g.position.set(x, y, z); g.rotation.y = ry + Math.PI / 2 * (R() < .5 ? 1 : 0); D.scene.add(g);   // a bicycle
+        for (const dx of [-.55, .55]) K.add(new T.TorusGeometry(.33, .03, 6, 18), M.metal, dx, .35, 0, { to: g }); K.add(new T.BoxGeometry(1.1, .04, .04), M.red, 0, .55, 0, { to: g, rz: .2 }); K.add(new T.BoxGeometry(.04, .5, .04), M.metal, .3, .65, 0, { to: g }); }
+      else if (pick < .66) { K.box(.6, 1.6, .06, new T.MeshBasicMaterial({ color: [0xff4ac0, 0x40e0ff, 0xffd040][i % 3] }), x, y + .4, z, { ry, cast: false }); K.box(.08, .4, .08, M.metal, x, y, z); }   // A-board sign
+      else if (pick < .8) { K.box(.8, .9, .8, M.wood, x, y, z, { ry }); K.box(.7, .7, .7, M.wood, x + .2, y + .9, z, { ry: ry + .4 }); }
+      else { K.add(new T.CylinderGeometry(.35, .3, .9, 12), M.metal, x, y + .45, z); }   // bin
+    } else if (theme === 'shrine') {
+      if (pick < .3) { K.box(.5, 1.2, .5, M.stone, x, y, z); K.add(new T.ConeGeometry(.45, .35, 4), M.stone, x, y + 1.35, z, { ry: Math.PI / 4 }); D.glow(x, y + 1, z, .8, 0xffa040); }
+      else if (pick < .5) { K.box(1.6, .9, .1, M.wood, x, y + .6, z, { ry }); for (let k = 0; k < 6; k++) K.box(.22, .16, .02, new T.MeshStandardMaterial({ color: 0xe8d8b8 }), x - .6 + k * .24, y + 1.1, z + .06, { ry, cast: false }); K.box(.08, .6, .08, M.wood, x - .7, y, z, { ry }); K.box(.08, .6, .08, M.wood, x + .7, y, z, { ry }); }   // ema board
+      else if (pick < .75) { const b = K.add(new T.DodecahedronGeometry(R.r(.4, .9), 1), M.rock, x, y + .2, z, { ry }); b.scale.y = .6; }
+      else await D.prop(IMG('ferns'), x, z, R.r(.8, 1.4), { y, tint: 0x6a8a6a, flip: R() < .5 });
+    } else if (theme === 'wild') {
+      if (pick < .35) await D.prop(IMG('ferns'), x, z, R.r(.9, 1.8), { y, tint: R() < .5 ? 0x7a9a6a : 0x5a7a5a, flip: R() < .5 });
+      else if (pick < .6) { const b = K.add(new T.DodecahedronGeometry(R.r(.4, 1.2), 1), M.rock, x, y + .2, z, { ry }); b.scale.y = .55; }
+      else if (pick < .75) K.add(new T.CylinderGeometry(.22, .28, R.r(1.6, 3), 8), M.wood, x, y + .25, z, { rz: Math.PI / 2 - .1, ry });   // fallen log
+      else { for (let k = 0; k < 7; k++) K.add(new T.ConeGeometry(.05, R.r(.6, 1.2), 3), new T.MeshStandardMaterial({ color: 0x6a8a4a }), x + R.r(-.3, .3), y + .4, z + R.r(-.3, .3), { rz: R.r(-.3, .3), cast: false }); }   // reeds
+    } else if (theme === 'dock') {
+      if (pick < .3) K.box(R.r(.7, 1.1), R.r(.7, 1.1), R.r(.7, 1.1), M.wood, x, y, z, { ry });
+      else if (pick < .5) { K.add(new T.CylinderGeometry(.42, .42, 1.1, 14), M.wood, x, y + .55, z); for (const yy of [.2, .9]) K.add(new T.TorusGeometry(.43, .03, 5, 16), M.metal, x, y + yy, z, { rx: Math.PI / 2, cast: false }); }
+      else if (pick < .7) for (let k = 0; k < 3; k++) K.add(new T.TorusGeometry(.5 - k * .1, .07, 5, 16), M.rope, x, y + .05 + k * .07, z, { rx: Math.PI / 2 });
+      else { K.box(.4, .9, .4, M.wood, x, y, z); K.add(new T.TorusGeometry(.22, .05, 5, 10), M.rope, x, y + .7, z, { rx: Math.PI / 2 }); }
+    } }
+}
+
+// ── a browsing crowd: silhouettes that drift between stall spots, linger, wander along their side, and only now and
+// then cross over. spots: [[x, z, face]] where face is the way they look while they stand there (-1 left / 1 right)
+export function crowd(D, R, { spots = [], n = 12, types = PEDS, rim = '#ffb060', cross = .12, speed = [.9, 1.5], linger = [2.5, 11], y = 0, jitter = .6 } = {}) {
+  if (!spots.length) return; const side = s => Math.sign(s[0]) || 1;
+  for (let i = 0; i < n; i++) { const type = types[(i * 3 + (R() * types.length | 0)) % types.length], sh = silSheet(type, rim), tex = sh.tex.clone(); tex.needsUpdate = true;
+    const hh = sh.h, geo = new T.PlaneGeometry(hh * .5, hh); geo.translate(0, hh / 2, 0);
+    const m = new T.Mesh(geo, new T.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: .4 })); D.scene.add(m); D.billboards.push(m); const blob = D.blob(0, 0, .38, y);
+    const at = spots[R() * spots.length | 0], a = { m, tex, sh, blob, x: at[0] + R.r(-jitter, jitter), z: at[1] + R.r(-jitter, jitter), spot: at, wait: R.r(0, linger[1]), d: R() * 3, v: R.r(...speed) * (sh.slow ? .6 : 1), face: at[2] || -side(at), sway: R() * 6, tx: 0, tz: 0, moving: false };
+    const pickNext = () => { const same = spots.filter(s => side(s) === side(a.spot) && s !== a.spot), other = spots.filter(s => side(s) !== side(a.spot));
+      // mostly the next stall or two along the same side; rarely across the avenue
+      let to; if (other.length && R() < cross) to = other[R() * other.length | 0]; else { const near = same.sort((p, q) => Math.abs(p[1] - a.spot[1]) - Math.abs(q[1] - a.spot[1])).slice(0, 3); to = near.length ? near[R() * near.length | 0] : a.spot; }
+      a.spot = to; a.tx = to[0] + R.r(-jitter, jitter); a.tz = to[1] + R.r(-jitter, jitter); a.moving = true; };
+    D.updaters.push((t, dt) => { dt = dt || .016;
+      if (!a.moving) { a.wait -= dt; a.tex.offset.x = 0; a.m.scale.x = a.face; // standing: a small idle sway, now and then a glance the other way
+        a.m.rotation.z = Math.sin(t * .8 + a.sway) * .015; if (R() < dt * .08) a.m.scale.x = -a.face; if (a.wait <= 0) pickNext(); }
+      else { const dx = a.tx - a.x, dz = a.tz - a.z, L = Math.hypot(dx, dz); if (L < .08) { a.moving = false; a.wait = R.r(...linger); a.face = a.spot[2] || -side(a.spot); a.m.rotation.z = 0; }
+        else { const st = Math.min(L, a.v * dt); a.x += dx / L * st; a.z += dz / L * st; a.d += st; if (Math.abs(dx) > .05) a.m.scale.x = Math.sign(dx);
+          a.tex.offset.x = (Math.floor(a.d / (a.sh.h * .78) * a.sh.N) % a.sh.N) / a.sh.N; } }
+      a.m.position.set(a.x, y, a.z); a.blob.position.set(a.x, y + .02, a.z); });
+  }
 }

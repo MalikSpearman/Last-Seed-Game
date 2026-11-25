@@ -1,5 +1,19 @@
 [
  {
+  "version": "0.3.20",
+  "date": "Nov 25, 2026",
+  "title": "Living 3D arenas",
+  "items": [
+   "Six more arenas are full 3D sets: Neon Expressway, Willow Village, Willow Graves, Sake Bar Alley, the Neon Teahouse and the Neon Ward Rooftop",
+   "Every 3D arena now has its own painting as the far backdrop, so the horizon is never empty",
+   "Neon Expressway: cars, sports cars, vans and trucks race across the foreground, with pass-by sounds and the odd horn",
+   "People: shoppers browse the festival stalls, and pedestrians cross the Neon Ward street under umbrellas",
+   "Water moves now: ripples, reflections and rain rings",
+   "More detail everywhere: puddles, debris, petals and leaves, vending machines, bikes, signs, shrine lanterns, crates and more",
+   "City blocks fill the gaps between the near sets and the skylines"
+  ]
+ },
+ {
   "version": "0.3.19",
   "date": "Nov 24, 2026",
   "title": "Counters, rebuilt",

@@ -2,7 +2,7 @@
 // a stilt-town of lit warehouses running out along the pier, a cliff temple above, and a red-sailed junk at anchor
 // under a blood moon.
 import { T } from './diorama.js';
-import { kit, rng, ctex, cvs, sky, moon, planks, rough, bannerTex, rail, ship, water, drift, pbr } from './kit.js';
+import { kit, rng, ctex, cvs, sky, moon, planks, rough, bannerTex, rail, ship, water, drift, pbr, farPainting, groundFill, scatter, cityBlocks, walkers, clutter } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.2, -1.8], [-4.6, -2], [1.4, -2.8]], sum: [-5.6, .8] };
 
@@ -33,7 +33,7 @@ export async function build(D) {
     net: new T.MeshStandardMaterial({ map: ctex(netT()), transparent: true, alphaTest: .3, side: T.DoubleSide }),
     lamp: new T.MeshStandardMaterial({ color: 0xfff0c0, emissive: 0xffa040, emissiveIntensity: 2, roughness: .6 }),
   };
-  water(D, 0, -50, 260, 100, 0x120a24, { y: -.8 });
+  water(D, 0, -50, 260, 100, 0x120a24, { y: -.8, sky: ['#8a3a5a', '#2a1440'], flow: [.02, .014], scale: 8 });
 
   // ── the wharf: wet planks on piles, rope-slung bollards along the water edge ──
   box(34, .4, 10, M.deck, 0, -.4, 1.2);
@@ -85,4 +85,11 @@ export async function build(D) {
   // ── the junk at anchor, another out to sea ──
   ship(K, D, 9, -19, 20, { y: -.8, ry: .05 }); ship(K, D, 46, -70, 14, { y: -.8, ry: -.1 });
   drift(D, 60, 0, -8, 14, 8, 0xffb070, { y0: .3, y1: 6, size: 8 }); D.petals(40, -4, 0, 10, { color: 0xff6aa8 });
+
+  // ── detail wave 2: painted far backdrop, ground to the horizon, near scatter ──
+  const R2 = rng(881);
+  farPainting(D, 'harbor', { v1: .5, z: -145 });
+  scatter(D, R2, { area: [-15, 15, -3, 6], puddles: 9, petals: 60, petal: 0xff6aa8, pebbles: 20, stone: 0x5a4a3a });
+  // background life and mid-ground clutter
+  await clutter(D, K, R2, 'dock', { area: [-14, 14, 4.5, 5.6], n: 6, clear: 6 }); await walkers(D, R2, { rim: '#c86a5a', z: -14, x0: -14, x1: -2, group: 2, every: [5, 10], types: ['coat', 'big', 'elder', 'suit'] });
 }

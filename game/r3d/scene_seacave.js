@@ -2,7 +2,7 @@
 // float on black water, a moss-eaten torii stands in the shallows, a wreck lists against the rocks, and a blood moon
 // pours red light through the far opening.
 import { T } from './diorama.js';
-import { kit, rng, ctex, sky, moon, flags, torii, ship, water, drift, pbr } from './kit.js';
+import { kit, rng, ctex, sky, moon, flags, torii, ship, water, drift, pbr, farPainting, groundFill, scatter, cityBlocks, walkers, clutter } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -2.4], [-4.2, -2.8], [1.4, -4]], sum: [-5.4, .8] };
 
@@ -27,7 +27,7 @@ export async function build(D) {
   { box(30, 1.2, 12, pbr('cyan_flags', [4, 1.6], { rmap: 'seaworn_stone_tiles', color: 0x9a80b8, rough: .3, metal: .2, ns: 1.4, glow: 'cyan_flags', ei: 1.3 }), 0, -1.2, 1);
     const pools = new T.MeshStandardMaterial({ color: 0x0a3a40, emissive: 0x1ab0b0, emissiveIntensity: .5, roughness: .05, metalness: .5 });
     for (const [x, z, w, d] of [[-9, 5, 5, 2.2], [8, 5.6, 4, 1.8], [-3, 5.8, 2.4, 1]]) add(new T.PlaneGeometry(w, d), pools, x, .02, z, { rx: -Math.PI / 2, cast: false }); }
-  water(D, 0, -40, 200, 74, 0x0a1a2a, { y: -.7 }).material.emissive = new T.Color(0x05303a);
+  water(D, 0, -40, 200, 74, 0x0a1a2a, { y: -.7, sky: ['#8a2a3a', '#0a3a4a'], flow: [.02, .012] }).material.emissive = new T.Color(0x042a30);
 
   // ── cave walls: heaped faceted boulders both sides, a ceiling arch, crystal stalactites dripping ──
   const boulder = (x, y, z, r, m = M.rock) => { const b = add(new T.DodecahedronGeometry(r, 1), m, x, y, z, { ry: R() * 6 }); b.scale.set(R.r(.8, 1.3), R.r(.6, 1.1), R.r(.8, 1.2)); return b; };
@@ -72,4 +72,11 @@ export async function build(D) {
   D.lantern(0, 2, 2, { color: 0x30c0c0, intensity: 8, distance: 12, glow: 0 });
   drift(D, 40, -10, 1, 4, 4, 0x60fff0, { y0: 0, y1: 2.4, size: 22 }); drift(D, 40, 10, 1, 4, 4, 0x60fff0, { y0: 0, y1: 2.4, size: 22 });
   drift(D, 80, 0, -14, 16, 14, 0xff90a0, { y0: 0, y1: 12, size: 8 });
+
+  // ── detail wave 2: painted far backdrop, ground to the horizon, near scatter ──
+  const R2 = rng(158);
+  farPainting(D, 'seacave', { v1: .58, z: -145, tint: 0xc8b8d0 });
+  scatter(D, R2, { area: [-14, 14, -4, 6], puddles: 7, pebbles: 140, stone: 0x4a4060, tufts: 40, tuft: 0x2a6a5a, petals: 70, petal: 0xf0e8e0 });
+  // background life and mid-ground clutter
+  await clutter(D, K, R2, 'wild', { area: [-14, 14, -4.5, -6.5], n: 10, clear: 4, y: -.1 });
 }

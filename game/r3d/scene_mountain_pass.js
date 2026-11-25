@@ -2,7 +2,7 @@
 // under icicles; crimson laurel banners snap in the wind, a rope bridge spans the gorge to a watchtower, and the
 // range rolls away above a sea of cloud.
 import { T } from './diorama.js';
-import { kit, rng, sky, pbr, stoneLantern, drift, bannerTex, ctex, cvs } from './kit.js';
+import { kit, rng, sky, pbr, stoneLantern, drift, bannerTex, ctex, cvs, farPainting, groundFill, scatter, cityBlocks, walkers, clutter } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -2.2], [-4.2, -2.6], [2, -4.6]], sum: [-5.6, .8], exposure: 1.25 };
 
@@ -64,4 +64,11 @@ export async function build(D) {
     add(new T.ConeGeometry(r, h, 6), M.peak, x, h / 2 - 14, z, { cast: false, ry: R() * 3 }); add(new T.ConeGeometry(r * .38, h * .38, 6), M.peakS, x, h - 14 - h * .19 + .1, z, { cast: false, ry: R() * 3 }); }
   for (let i = 0; i < 26; i++) { const c = add(new T.PlaneGeometry(R.r(30, 70), R.r(6, 12)), M.cloud, R.r(-90, 60), R.r(-10, -2), R.r(-40, -110), { cast: false, rx: -Math.PI / 2 + .3 }); D.updaters.push(t => { c.position.x += Math.sin(t * .05 + i) * .004; }); }
   drift(D, 120, 0, -6, 18, 10, 0xffffff, { y0: 0, y1: 9, size: 7 }); D.petals(30, -12, 0, 6, { color: 0xff5050 });
+
+  // ── detail wave 2: painted far backdrop, ground to the horizon, near scatter ──
+  const R2 = rng(471);
+  farPainting(D, 'mountain_pass', { v1: .45, z: -145, tint: 0xffffff });
+  scatter(D, R2, { area: [-14, 14, -4, 7], pebbles: 90, stone: 0x8a8498, tufts: 40, tuft: 0x8a7a5a, leaves: 70, leaf: 0xd02424 });
+  // background life and mid-ground clutter
+  await clutter(D, K, R2, 'wild', { area: [-18, 16, -5, -16], n: 22, clear: 5 });
 }

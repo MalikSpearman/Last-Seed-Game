@@ -4903,6 +4903,8 @@ const Snd = (() => {
     get vol(){ return V; }, setVol(k,v){ V[k]=Math.max(0,Math.min(1,v)); try{ localStorage.setItem('lastseed_vol',JSON.stringify(V)); }catch(e){} if(!ctx) return; const t=now(); if(k==='master') master.gain.setTargetAtTime(on?0.9*V.master:0,t,.03); if(k==='music') uMus.gain.setTargetAtTime(V.music,t,.03); if(k==='sfx') uSfx.gain.setTargetAtTime(V.sfx,t,.03); if(k==='voice'){ uVox.gain.setTargetAtTime(V.voice,t,.03); if(uVox._rev) uVox._rev.gain.setTargetAtTime(V.voice,t,.03); } }, get on(){return on;},
     resume(){ if(ctx&&ctx.state==='suspended') ctx.resume(); } };
 })();
+// lets the 3D stage modules play a recorded one-shot through the game's SFX volume (snd/<name>.mp3)
+window.__lsSfx = (n, v, r) => { try { Snd.fxFile(n, v, r); } catch (e) {} };
 // LAST SEED — canvas particles: ambient embers + bursts, sparks, confetti
 // LAST SEED — canvas particles: ambient embers + bursts, sparks, confetti
 const Fx = (() => {

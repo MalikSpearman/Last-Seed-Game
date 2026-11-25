@@ -1,7 +1,7 @@
 // The Blight: a cracked flagstone crossroads with lava in the seams, gallows-banners of the horned skull,
 // a red bridge over a poisoned violet river, burning fields, and the demon citadel under a storm eye.
 import { T } from './diorama.js';
-import { kit, rng, ctex, sky, flags, rough, bannerTex, rail, deadTree, hills, water, drift, pbr } from './kit.js';
+import { kit, rng, ctex, sky, flags, rough, bannerTex, rail, deadTree, hills, water, drift, pbr, farPainting, groundFill, scatter, cityBlocks, walkers, clutter } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4, -2.8], [-4.4, -3.4], [1.2, -5.2]], sum: [-5.4, .8] };
 
@@ -38,7 +38,7 @@ export async function build(D) {
     const rd = new T.Mesh(new T.PlaneGeometry(6, 40), pbr('volcanic_rock_tiles', [1.5, 10], { color: 0x9a8090 })); rd.rotation.x = -Math.PI / 2; rd.rotation.z = .35; rd.position.set(-4, .02, -30); rd.receiveShadow = true; S.add(rd); }
 
   // ── the violet river and its red bridge ──
-  { const w = water(D, 12, -14, 7, 80, 0x2a1048, { y: -.3 }); w.rotation.z = -.12; w.material.emissive = new T.Color(0x5a1a8a); w.material.emissiveIntensity = .35;
+  { const w = water(D, 12, -14, 9, 80, 0x2a1048, { y: -.3, sky: ['#a04a8a', '#3a1048'], flow: [.0, .03], scale: 4 }); w.rotation.z = -.12; w.material.emissive = new T.Color(0x5a1a8a); w.material.emissiveIntensity = .35;
     for (const s of [-1, 1]) { const b = box(1.2, .5, 80, M.stone, 12 + s * 4, -.45, -14, { ry: .12 }); b.castShadow = false; }
     // arched deck across the river
     const x0 = 7.4, x1 = 16.8, z = -7, half = 1.1, N = 18, yAt = u => Math.sin(Math.PI * u) * 1.3;
@@ -92,4 +92,14 @@ export async function build(D) {
     D.glow(cx, 44, cz + 4, 18, 0xd060ff); D.glow(cx, 20, cz + 6, 12, 0xff40c0);
     for (const [x0, n] of [[cx - 40, 6], [cx + 14, 5]]) for (let i = 0; i < n; i++) { const x = x0 + i * 4.6; box(1, 12, 1.6, cm, x, 10, cz + 8, { cast: false }); if (i < n - 1) add(new T.TorusGeometry(1.8, .5, 4, 10, Math.PI), cm, x + 2.3, 20, cz + 8, { cast: false }); box(4.6, 1, 1.6, cm, x + 2.3, 21.6, cz + 8, { cast: false }); } }
   drift(D, 60, 0, -2, 14, 8, 0xff9a40, { y0: .2, y1: 5, size: 10 });   // embers on the wind over the plaza
+
+  // ── detail wave 2: painted far backdrop, ground to the horizon, near scatter ──
+  const R2 = rng(652);
+  farPainting(D, 'blight', { v1: .52, z: -145 });
+  scatter(D, R2, { area: [-16, 12, -6, 8], puddles: 3, pebbles: 160, stone: 0x4a3a44, tufts: 50, tuft: 0x4a3024, leaves: 160, leaf: 0x2a1a1e });
+  { const steel = new T.MeshStandardMaterial({ color: 0x8a8a96, metalness: .9, roughness: .3 }), hilt = new T.MeshStandardMaterial({ color: 0x2a1a14 });
+    for (const [x, z, rz, rx] of [[-5.2, -4.4, .25, -.2], [6.4, -4.8, -.3, .15], [-10.4, 3.6, .15, .3], [9.6, 4.2, -.2, -.25]]) { const g = new T.Group(); g.position.set(x, 0, z); g.rotation.set(rx, R2() * 3, rz); D.scene.add(g);
+      const b = new T.Mesh(new T.BoxGeometry(.12, 1.6, .03), steel); b.position.y = .5; b.castShadow = true; g.add(b); const c = new T.Mesh(new T.BoxGeometry(.5, .07, .1), hilt); c.position.y = 1.32; g.add(c); const h = new T.Mesh(new T.CylinderGeometry(.04, .04, .45, 6), hilt); h.position.y = 1.58; g.add(h); } }
+  // background life and mid-ground clutter
+  await clutter(D, K, R2, 'wild', { area: [-24, 6, -6, -30], n: 30, clear: 4 });
 }

@@ -2,7 +2,7 @@
 // drowned pillars stand in glowing water, the old hall waits at the top of its submerged steps under a blood moon,
 // wisteria hangs over the left and blue spirit-flames drift on the water.
 import { T } from './diorama.js';
-import { kit, rng, sky, moon, pbr, stoneLantern, water, drift, pagoda, bannerTex, ctex } from './kit.js';
+import { kit, rng, sky, moon, pbr, stoneLantern, water, drift, pagoda, bannerTex, ctex, farPainting, groundFill, scatter, cityBlocks, walkers, clutter } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -1.8], [-4.4, -2.2], [1.6, -2.8]], sum: [-5.6, .8], exposure: 1.6 };
 
@@ -24,7 +24,7 @@ export async function build(D) {
   // ── the terrace they fight on, broken slabs stepping down into the water ──
   box(30, 1.2, 9, M.floor, 0, -1.2, 1.6);
   for (let i = 0; i < 9; i++) { const x = R.r(-13, 13), z = R.r(-3.4, -5.5); const b = box(R.r(1.2, 2.6), .5, R.r(.8, 1.4), M.floor, x, -.65, z, { ry: R.r(-.3, .3) }); b.rotation.z = R.r(-.1, .1); }
-  const w = water(D, 0, -40, 200, 76, 0x1a4a6a, { y: -.5 }); w.material.emissive = new T.Color(0x0a4a5a); w.material.emissiveIntensity = .6;
+  const w = water(D, 0, -40, 200, 76, 0x1a4a6a, { y: -.5, sky: ['#5a3a8a', '#1a4a6a'], rings: 14 }); w.material.emissive = new T.Color(0x0a4a5a); w.material.emissiveIntensity = .22;
 
   // ── ruined stone torii: one leaning left, one standing right, a fallen lintel between ──
   const stoneGate = (x, z, h, tilt, ry) => { const g = new T.Group(); g.position.set(x, -.5, z); g.rotation.set(0, ry, tilt); S.add(g); const wd = h * .8;
@@ -59,4 +59,11 @@ export async function build(D) {
   for (let i = 0; i < 8; i++) await prop(R() < .5 ? 'bamboo3' : 'rfg_bamboo', R.r(13, 17), R.r(-1, 4), R.r(9, 12), { y: -.4, tint: 0xd8e090, sway: .012, blobW: .2 });
   for (let i = 0; i < 50; i++) { const x = R.r(-70, 70), z = R.r(-44, -70), h = R.r(12, 24); add(new T.ConeGeometry(h * .26, h, 7), M.pine, x, h / 2 - .5, z, { cast: false }); }
   D.petals(60, -6, -2, 10, { color: 0xd890ff });
+
+  // ── detail wave 2: painted far backdrop, ground to the horizon, near scatter ──
+  const R2 = rng(287);
+  farPainting(D, 'sunken', { v1: .5, z: -145 });
+  scatter(D, R2, { area: [-14, 14, -3, 6], puddles: 7, petals: 160, petal: 0xd090ff, tufts: 50, tuft: 0x5a8a3a, pebbles: 60, stone: 0x6a6080 });
+  // background life and mid-ground clutter
+  await clutter(D, K, R2, 'shrine', { area: [-16, 16, -5, -16], n: 16, clear: 4, y: -.5 });
 }
