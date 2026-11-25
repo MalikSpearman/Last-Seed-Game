@@ -2946,7 +2946,8 @@ const CARDS = {
   storybook_summon: {name:'Storybook Summon', owner:'nia', cost:2, type:'skill', fx:'gold', text:'Summon a random creature from your book to fight beside you. Each card you play, it deals 2 and applies its status. Foes can attack it. One at a time; a new one replaces it.', ops:[{summon:1}]},
   teacup_tide: {name:'Teacup Tide', owner:'nia', cost:1, type:'skill', fx:'ice', text:'Apply 2 Soaked. Gain 4 Guard.', ops:[{soaked:2},{guard:4}]},
   once_upon:   {name:'Once Upon a Time', owner:'nia', cost:2, type:'attack', fx:'gold', sig:true, big:true, text:'Deal 3, once plus once for each other card you played this turn. Apply 2 Burn.', ops:[{dmg:3,hitsPlayed:1},{burn:2}]},
-  sup_nia:     {name:'Bookmark', owner:'nia', cost:0, type:'skill', fx:'gold', art:true, ult:true, text:'Draw 2. Gain 1 Energy.', ops:[{draw:2},{energy:1}]},
+  sup_nia:     {name:'Bookmark', owner:'nia', cost:0, type:'skill', fx:'gold', art:true, ult:true, text:'Draw 2. Gain 1 Energy. Add 2 free Paper Cuts to your hand.', ops:[{draw:2},{energy:1},{make:'paper_cut_free',n:2}]},
+  paper_cut_free: {name:'Paper Cut', owner:'nia', cost:0, base:'paper_cut', type:'attack', fx:'slash', exhaust:true, text:'Deal 3 twice. Apply 1 Bleed. Exhaust.', ops:[{dmg:3,hits:2},{bleed:1}]},
   ult_nia:     {name:'Teacup Voyage', owner:'nia', cost:0, type:'attack', fx:'gold', big:true, ult:true, text:'Deal 4 five times. Apply 3 random status effects, 2 of each.', ops:[{dmg:4,hits:5},{randSt:3,amt:2}]},
   crit_nia:    {name:'The End', owner:'nia', cost:0, type:'attack', fx:'gold', big:true, art:true, ult:true, text:'Deal 6, twice plus once for each other card you played this turn.', ops:[{dmg:6,hitsPlayed:2}]},
   // ── Kaede (ember) ──
@@ -8490,7 +8491,7 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
       if(first&&c.sig){ a.pose('phys_w'); a.aura=4; try{ Snd.fx3&&Snd.fx3('charge',.6); }catch(e){} a.ring(a.wx(0),a.wy(a.H*.04),true); await a.go({x:-a.H*.07,ease:E3o},240); a.ring(a.wx(0),a.wy(a.H*.5),true);
         try{ if(!/^(proj|rain|fall|erupt|beam)$/.test(mv[0])&&!(mv[2]&&mv[2].tk)){ const A0=sprC(ev.from), T0=sprC(ev.side); sheetFx('hyperspeed',(A0.x+T0.x)/2,A0.y,Math.abs(T0.x-A0.x)*1.1,{flipX:a.dir<0,filter:tintF(a.C.hex,1.3),blend:'screen',op:.55,dur:360}); } }catch(e){} }
       await gTechnique(a,first,ev,c,c.sig?3:tier,id,mv); }
-    if(ev.air&&!isLaunchC(c)) a.go({z:Math.max(a.S.z,a.H*.22),ease:E3o},90);
+    if(ev.air&&!isLaunchC(c)) a.go({z:Math.max(a.S.z,a.H*.3),ease:E3o},90);
     a.n++;
     if(ev.last){ a.hold=false; const A=a; setTimeout(()=>A.end(),(c.sig?360:tier>=2?280:220)*speed); }
     return true; }
@@ -8596,7 +8597,7 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
       tgtSpr(){ try{ return $('.spr',F[a.tgt]); }catch(e){ return null; } },
     }; }
   // classify a card into a technique (fighter cards are hand-tuned in G_MOVES; everything else reads its name)
-  function gMoveOf(id,c){ if(G_MOVES[id]) return G_MOVES[id]; const n=((c&&c.name)||'').toLowerCase()+' '+id, fx=(c&&c.fx)||'', kind=ctype(c)||(SPIRITFX[fx]?'spirit':'phys'), T=(re)=>re.test(n);
+  function gMoveOf(id,c){ if(G_MOVES[id]) return G_MOVES[id]; if(c&&c.base&&G_MOVES[c.base]) return G_MOVES[c.base]; const n=((c&&c.name)||'').toLowerCase()+' '+id, fx=(c&&c.fx)||'', kind=ctype(c)||(SPIRITFX[fx]?'spirit':'phys'), T=(re)=>re.test(n);
     if(T(/iai|iaido|flash step|measured draw|single stroke|wayward draw|dash in|rooftop|deserter|breach|phantom|overclock|draw\b/)) return ['iai'];
     if(T(/needle thrust|thrust|lance|spear|lunge|piercer|lancet|en garde|stab|knife|nail|beak|peck|pressure string|sept/)) return ['thrust'];
     if(T(/kunai|senbon|shuriken|fan of bones|needles|staple/)) return T(/rain|storm/)?['rain','rain']:['proj','kunai'];
@@ -9389,7 +9390,7 @@ const VINTRO={"ito":{"_intro": "Ito. Just Ito. The hand that made me forgot my l
   function airSlow(on){ if(on&&!AIRSP0){ AIRSP0=speed; speed=+(speed*1.35).toFixed(3); s.classList.add('airtime'); }
     else if(!on&&AIRSP0&&!AIR.p&&!AIR.e){ if(Math.abs(speed-AIRSP0*1.35)<.01) speed=AIRSP0; AIRSP0=0; s.classList.remove('airtime'); } }
   function airClear(side){ const sp=$('.spr',F[side]); AIRA[side].forEach(a=>{ try{ a.cancel(); }catch(e){} }); AIRA[side]=[]; AIR[side]=0; airSlow(false); return sp; }
-  function airBump(side){ if(!AIR[side]) return; const sp=$('.spr',F[side]); sp.animate([{translate:'0 0'},{translate:'0 -4%',offset:.35},{translate:'0 0'}],{duration:300*speed,easing:'ease-out',composite:'add'}); }
+  function airBump(side){ if(!AIR[side]) return; const sp=$('.spr',F[side]); sp.animate([{translate:'0 0'},{translate:'0 -6%',offset:.3},{translate:'0 0'}],{duration:320*speed,easing:'ease-out',composite:'add'}); }
   function smokeTrail(side,n,ms){ for(let i=0;i<n;i++) setTimeout(()=>{ try{ const t=sprC(side); fxs('dust',t.x+rnd(-t.w*.08,t.w*.08),t.top+t.h*(.95+i*.02),t.h*(.22+Math.random()*.1),620,rnd(-20,20),false); }catch(e){} },i*ms*speed); }
   function launchSplash(att,c,ev){ const who=phxWho(att), el=elOf(c)||'none', L=h('div','lsplash '+att); L.style.setProperty('--lc',LCOL[el]||LCOL.none);
     const art=String(ev&&ev.card||c.base||'').replace(/\+$/,''); L.innerHTML=`<div class="band"></div><img src="${A('img/x_'+art+'.webp')}" alt=""><div class="tag">LAUNCH!</div>`;
@@ -9402,21 +9403,21 @@ const VINTRO={"ito":{"_intro": "Ito. Just Ito. The hand that made me forgot my l
     if(!vsay(att,'_launch',1)) vsay(att,'_atk',1); launchSplash(att,c,ev);
     // hit-stun: the target hangs in the hit frame for a beat before going up
     whiteHit(tgt); await hitStop(70);
-    AIR[tgt]=1; airSlow(true); const SPR=!!poseSrc(phxWho(tgt))&&!F[tgt].classList.contains('awk'), up=SPR?-7:-16;
+    AIR[tgt]=1; airSlow(true); const SPR=!!poseSrc(phxWho(tgt))&&!F[tgt].classList.contains('awk'), up=(()=>{ try{ if(!SPR) return -36; const H=poseSrc(phxWho(tgt)).full, f=(H.air||H.launch)[0], lift0=Math.max(0,(f[5]-f[3])/H.idle[0][3]); return -Math.round(Math.max(8,(.5-lift0)*100)); }catch(e){ return -42; } })();   // total height about half the body: sprite air frames that already float get less extra lift
     pose(tgt,[['launch',170],['air',99999,{spin:-16}]]);
     const t=sprC(tgt); shockRing(t.x,t.top+t.h*.97,'#ffffff',true); fxs('dust',t.x,t.top+t.h*.97,t.h*.7,640,0,false); shake(12,280);
     try{ Snd.fx3&&Snd.fx3('whoosh_h',.8); Snd.fx3&&Snd.fx3('impact_h',.5); }catch(e){}
     const st=h('div','lstreak'); st.style.left=(t.x-st.offsetWidth/2)+'px'; st.style.top=(t.top-t.h*.25)+'px'; st.style.height=(t.h*1.2)+'px'; overlay.appendChild(st);
     st.animate([{transform:'scaleY(0)',opacity:1},{transform:'scaleY(1)',opacity:.9,offset:.35},{transform:'scaleY(1.05)',opacity:0}],{duration:420*speed,easing:'ease-out',fill:'forwards'}); setTimeout(()=>st.remove(),450*speed);
     smokeTrail(tgt,6,55);
-    const rise=sp.animate([{translate:'0 0'},{translate:`0 ${up}%`}],{duration:420*speed,easing:'cubic-bezier(.15,.9,.35,1)',fill:'forwards',composite:'add'});
-    AIRA[tgt].push(rise); await sleep(380);
-    if(AIR[tgt]){ const bob=sp.animate([{translate:`0 ${up}%`},{translate:`0 ${up+2}%`},{translate:`0 ${up}%`}],{duration:1500*speed,iterations:Infinity,easing:'ease-in-out',composite:'add'}); rise.cancel(); AIRA[tgt]=[bob]; sp.dataset.up=up; }
+    const rise=sp.animate([{translate:'0 0'},{translate:`0 ${up*1.08}%`,offset:.75},{translate:`0 ${up}%`}],{duration:520*speed,easing:'cubic-bezier(.15,.9,.35,1)',fill:'forwards',composite:'add'});
+    AIRA[tgt].push(rise); await sleep(480);
+    if(AIR[tgt]){ const bob=sp.animate([{translate:`0 ${up}%`},{translate:`0 ${up+3}%`},{translate:`0 ${up}%`}],{duration:1500*speed,iterations:Infinity,easing:'ease-in-out',composite:'add'}); rise.cancel(); AIRA[tgt]=[bob]; sp.dataset.up=up; }
     num(t.x,t.top-t.h*.05,'AIRBORNE','txt','#bfe3ff'); }
-  async function landFx(ev){ const tgt=ev.side; if(!AIR[tgt]) return; const sp=airClear(tgt), up=+(sp.dataset.up||-7), slam=ev.how==='slam';
+  async function landFx(ev){ const tgt=ev.side; if(!AIR[tgt]) return; const sp=airClear(tgt), up=+(sp.dataset.up||-42), slam=ev.how==='slam';
     pose(tgt,slam?[['air',120,{spin:-34}],['down',560,{land:1}]]:[['air',240,{spin:-10}],['down',460,{land:1}]]);
-    const fall=sp.animate([{translate:`0 ${up}%`},{translate:'0 0'}],{duration:(slam?150:300)*speed,easing:'cubic-bezier(.55,0,.9,.4)',fill:'forwards',composite:'add'});
-    await sleep(slam?150:300); fall.cancel(); const t=sprC(tgt);
+    const fall=sp.animate([{translate:`0 ${up}%`},{translate:'0 0'}],{duration:(slam?200:380)*speed,easing:'cubic-bezier(.55,0,.9,.4)',fill:'forwards',composite:'add'});
+    await sleep(slam?200:380); fall.cancel(); const t=sprC(tgt);
     if(slam){ sp.animate([{translate:'0 0'},{translate:'0 -5%',offset:.35},{translate:'0 0'}],{duration:320*speed,easing:'ease-out',composite:'add'}); shockRing(t.x,t.top+t.h*.97,'#ffd27a',true); fxs('dust',t.x,t.top+t.h*.97,t.h*1.1,700,0,false); shake(18,360); await hitStop(110); try{ Snd.fx3&&Snd.fx3('bodyfall',.9); Snd.fx3&&Snd.fx3('impact_h',.7); }catch(e){} hitTag(t.x,t.top+t.h*.35,'GROUND SLAM','crit'); }
     else { fxs('dust',t.x,t.top+t.h*.97,t.h*.55,560,0,false); shake(5,160); }
     await sleep(slam?260:160); }
