@@ -153,6 +153,7 @@ const CSS = `#app.hd3d .fighter .aura{opacity:0!important}
 .portrait .scr.battle,.portrait.scr.battle{--fxo:23%}
 #app.hd3d .gpk .gim{scale:var(--d3s,1);transform-origin:50% 100%}
 #app.hd3d .scr.battle .fighter{z-index:30}
+#app.hd3d .scr.battle .fighter .spr .flip,#app.hd3d .scr.battle .fighter>canvas{filter:url(#ls3dlit)}
 #app.hd3d .smn .smi{scale:var(--d3s,1);transform-origin:50% 100%}
 .lit3d{position:absolute;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-size:100% 100%;mask-size:100% 100%;z-index:2;transition:opacity .4s}
 .lit3d.shade{mix-blend-mode:multiply;background:
@@ -257,7 +258,7 @@ function ensure() {
     D.camera.position.copy(fit.M).add(rel).add(new T.Vector3(sx + hitSide * .12 * k, sy + Math.sin(t * .17) * .03, 0));
     D.camera.lookAt(D.camera.position.clone().add(dir)); D.camera.updateProjectionMatrix(); D.camera.updateMatrixWorld();
     D.focus = { x: cx, z: cz }; D.followShadow(new T.Vector3(cx, cy, cz));
-    placeCasters(lastF); lightSprites(lastF, t);
+    placeCasters(lastF); litTick(t);
     groupPlace(lastF); const X = extras(); zoomFor(lastF, X); placeExtraCasters(X); lightExtras(X, t);
   });
   return built;
@@ -272,6 +273,24 @@ function spriteLight(cx) {
   const top = `rgba(${mix(255, wr, .3)},${mix(255, wg, .3)},${mix(255, wb, .3)},.92)`, mid = 'rgba(250,246,240,.97)', bot = `rgba(${mix(255, fr * 1.7, .45)},${mix(255, fg * 1.7, .45)},${mix(255, fb * 1.7, .45)},.94)`;
   a.style.setProperty('--l3a', top); a.style.setProperty('--l3b', mid); a.style.setProperty('--l3c', bot); a.style.setProperty('--l3d', 'transparent');
   a.style.setProperty('--l3w', `rgba(${wr},${wg},${wb},${cx.P.indoor ? .3 : .24})`);
+}
+// the set's light on the fighters is a colour filter (SVG colour matrix) on their whole sprite layer, so it holds for every sprite,
+// pose, attack frame, awakened form and attack canvas, not just the idle image: a cool or palette shade, plus warm light from the lamps
+let litM = null, litK = { s: [.8, .83, .96], w: [1, .59, .27], wk: .32 };
+function litSvg() {
+  if (litM) return; const ns = 'http://www.w3.org/2000/svg', sv = document.createElementNS(ns, 'svg'); sv.setAttribute('width', 0); sv.setAttribute('height', 0); sv.style.cssText = 'position:absolute;width:0;height:0;pointer-events:none';
+  sv.innerHTML = '<filter id="ls3dlit" color-interpolation-filters="sRGB" x="-150%" y="-150%" width="400%" height="400%"><feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/></filter>';
+  document.body.appendChild(sv); litM = sv.querySelector('feColorMatrix');
+}
+function litSet(cx) {
+  if (!cx.painted) { litK = { s: [.8, .83, .96], w: [1, .59, .27], wk: .3 }; return; }
+  const [wr, wg, wb] = cx.P.warm, [fr, fg, fb] = cx.P.fog, mix = (x, y, k) => x + (y - x) * k, c = v => Math.min(255, v) / 255;
+  const top = [mix(255, wr, .3), mix(255, wg, .3), mix(255, wb, .3)], bot = [mix(255, fr * 1.7, .45), mix(255, fg * 1.7, .45), mix(255, fb * 1.7, .45)];
+  litK = { s: [0, 1, 2].map(i => c((top[i] + 250 + bot[i]) / 3) * .97), w: [wr / 255, wg / 255, wb / 255], wk: cx.P.indoor ? .26 : .2 };
+}
+function litTick(t) {
+  if (!litM) return; const f = .88 + .08 * Math.sin(t * 7.1) + .04 * Math.sin(t * 13.3), k = litK.wk * f, [sr, sg, sb] = litK.s, [wr, wg, wb] = litK.w, row = (s0, w0, i) => [0, 1, 2].map(j => ((j === i ? s0 : 0) + [.3, .59, .11][j] * w0 * k).toFixed(4)).join(' ') + ' 0 0';
+  litM.setAttribute('values', `${row(sr, wr, 0)} ${row(sg, wg, 1)} ${row(sb, wb, 2)} 0 0 0 1 0`);
 }
 function weatherFor(cx) {
   if (window.__ls3dWeather) return window.__ls3dWeather;
@@ -295,7 +314,7 @@ export function start(host, k, bgUrl) {
     else { cx = await bambooCtx(); key = PRESETS[k] ? k : Object.keys(PRESETS)[Math.random() * 3 | 0]; P = PRESETS[key]; cx.P = P; }
     if (g0 !== gen) return; fit = null;
     if (cv.parentNode !== host) host.appendChild(cv); cv.style.display = '';
-    document.getElementById('app').classList.add('hd3d'); spriteLight(cx);
+    document.getElementById('app').classList.add('hd3d'); spriteLight(cx); litSvg(); litSet(cx);
     D.restore(); D.resize(); D.paused = false;
     if (FX) { FX.clear(); FX.life(P.c, cx.painted ? P : null); setWeather(cx, weatherFor(cx)); }
     requestAnimationFrame(() => { cv.style.opacity = 1; });

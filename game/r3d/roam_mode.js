@@ -89,7 +89,7 @@ export async function createRoam(host, cfg) {
     <button class="r3-menu" aria-label="Pause menu"><i></i><i></i><i></i></button>
     <div class="r3-stick"><i></i></div><div class="r3-btns"><button class="act" type="button">ACT</button><button class="atk" type="button">STRIKE</button></div>
     <div class="r3-pause"><div class="r3-card"><h2>Paused</h2><p>Walk with WASD or the arrow keys (the stick on a phone). Strike an enemy first with J or Space for an Ambush: they start hurt and Exposed. If they reach you first, you're Ambushed and they start with Guard. E opens chests and picks things up.</p>
-      <button data-m="resume" type="button">Resume</button><button data-m="settings" type="button">Settings</button><button data-m="quality" class="r3-quality" type="button"></button><button data-m="exit" type="button">Exit to title</button></div></div>`;
+      <button data-m="resume" type="button">Resume</button><button data-m="settings" type="button">Settings</button><button data-m="stage" class="r3-stage" type="button"></button><button data-m="quality" class="r3-quality" type="button"></button><button data-m="exit" type="button">Exit to title</button></div></div>`;
   const $ = q => host.querySelector(q);
   const D = new Diorama($('canvas'), { quality, fogNear: 20, fogFar: 70, fogColor: 0x0c1430 });
   const small = Math.min(innerWidth, innerHeight) < 520;
@@ -146,10 +146,12 @@ export async function createRoam(host, cfg) {
   const jend = () => { jid = null; jv = { x: 0, y: 0 }; knob.style.transform = ''; }; stick.addEventListener('pointerup', jend); stick.addEventListener('pointercancel', jend);
   $('.r3-btns .act').onclick = () => act(); $('.r3-btns .atk').onclick = () => strike();
   $('.r3-menu').onclick = () => setPause(true);
+  { const sb = $('.r3-stage'); if (cfg.stageLabel) sb.textContent = cfg.stageLabel(); else sb.remove(); }
   const qb = $('[data-m=quality]'); qb.textContent = 'Graphics: ' + (quality === 'high' ? 'High' : 'Low') + ' (restarts free roam)';
   host.querySelector('.r3-pause').onclick = e => { const m = e.target.dataset && e.target.dataset.m; if (!m) return;
     if (m === 'resume') setPause(false);
     if (m === 'settings') cfg.settings && cfg.settings();
+    if (m === 'stage' && cfg.pickStage) cfg.pickStage().then(() => { $('.r3-stage').textContent = cfg.stageLabel(); });
     if (m === 'quality') { try { localStorage.setItem('ls_r3q', quality === 'high' ? 'low' : 'high'); } catch (_) {} destroy(); cfg.restart && cfg.restart(); }
     if (m === 'exit') { destroy(); cfg.exit(); } };
   function setPause(on) { paused = on; $('.r3-pause').classList.toggle('on', on); D.paused = on; for (const k in keys) keys[k] = 0; }
