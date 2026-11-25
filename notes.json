@@ -1,5 +1,15 @@
 [
  {
+  "version": "0.3.49",
+  "date": "Nov 25, 2026",
+  "title": "Loading on the VS screen",
+  "items": [
+   "The VS screen now loads the whole fight before it starts: both fighters' sprites, poses, awakened and paper art, ult and signature cut-ins, mentor kit, card art, hit effects and voices",
+   "A loading bar in your fighter's colour sits under the VS screen; if the fight isn't ready when the VS screen ends, it waits (never more than 9 seconds), and anything left keeps loading behind the fight",
+   "Smoother first hits, supers and cut-ins, since their art is already decoded when they play"
+  ]
+ },
+ {
   "version": "0.3.48",
   "date": "Nov 25, 2026",
   "title": "Mixed combos, paper border fix",
