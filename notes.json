@@ -1,5 +1,16 @@
 [
  {
+  "version": "0.3.29",
+  "date": "Nov 25, 2026",
+  "title": "Kaiju-sized, and a 2D/3D switch",
+  "items": [
+   "Kaiko's KAIJU MODE is a real kaiju now: she grows to over twice her size when she awakens",
+   "New fit camera: when a fighter towers over the screen, the view pulls back to keep them in frame, in both 2D and 3D arenas",
+   "Giant enemies are drawn closer to their true size: Kuzuryu, Umibozu, the Gashadokuro, Orochi and friends loom over you",
+   "Arena switch: press Esc in a fight and flip between the painted 2D arena and the 3D set at the top of the menu, or press B"
+  ]
+ },
+ {
   "version": "0.3.28",
   "date": "Nov 25, 2026",
   "title": "The Tournament Ring in 3D",

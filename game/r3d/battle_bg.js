@@ -240,7 +240,8 @@ let fz = 1;
 function zoomFor(F, X) {
   // group fights pull back a little so the whole crew fits; tall enemies pull back until their head clears the HUD band
   const n = X.filter(x => x.dim).length, gz = n >= 2 ? .72 : n === 1 ? .82 : 1;
-  let tz = 1; const e = F.e; if (e && e.h > 4) { const raw = e.h / fz, room = innerHeight * (innerWidth < innerHeight ? .5 : .6); if (raw > room) tz = Math.max(.6, room / raw); }
+  // both sides: Kaiko's KAIJU MODE towers on the player's side, giants on the rival's
+  let tz = 1; for (const sd of ['p', 'e']) { const f = F[sd]; if (f && f.h > 4) { const raw = f.h / fz, room = innerHeight * (innerWidth < innerHeight ? .5 : .6); if (raw > room) tz = Math.min(tz, Math.max(.45, room / raw)); } }
   const want = Math.min(gz, tz); fz += (want - fz) * .08; if (Math.abs(want - fz) < .002) fz = want;
   document.getElementById('app').style.setProperty('--fz3d', fz.toFixed(3));
 }
