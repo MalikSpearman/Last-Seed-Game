@@ -1,5 +1,21 @@
 [
  {
+  "version": "0.3.14",
+  "date": "Nov 24, 2026",
+  "title": "Every location in 3D",
+  "items": [
+   "Every fight location is now a 3D stage built from its own painting: the festival, harbor, Neon Ward, casino, mountain pass, every boss arena and more (47 in all), so the stage always matches where you are on the map",
+   "Stages come alive: lanterns and fires flicker, neon buzzes, the moon glows, rain ripples across wet floors and snow settles on the ground",
+   "Stage select in Versus: pick any stage, or View it full-screen in 3D first (flip through stages, try the weather). The 3D roam pause menu can set the fight stage too",
+   "The red bridge is now a long flat deck, and both fighters stand on it",
+   "Group fights: the crew lines up behind their boss on every stage and screen size",
+   "Fighters take the stage lighting in every pose, attack and awakened form",
+   "Launch hits go straight into the launch pose (no flinch frame first), and a knockout in the air falls from the air pose",
+   "New element auras erupt around a fighter when they awaken (two variations for each element), and soulscapes are off for now: awakening is aura only",
+   "Fixed the 2D map showing for a moment before the 3D stage, choppy 3D backgrounds during the talking camera, and square impact dust"
+  ]
+ },
+ {
   "version": "0.3.13",
   "date": "Nov 24, 2026",
   "title": "Free roam shake-up",
