@@ -1,5 +1,13 @@
 [
  {
+  "version": "0.3.30",
+  "date": "Nov 25, 2026",
+  "title": "Bigger codex cards",
+  "items": [
+   "Meeting a new enemy shows a much bigger codex card, and their portrait now breaks out over the top of the frame instead of being cut off"
+  ]
+ },
+ {
   "version": "0.3.29",
   "date": "Nov 25, 2026",
   "title": "Kaiju-sized, and a 2D/3D switch",

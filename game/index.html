@@ -10702,17 +10702,19 @@ function dealRegion(stage){ const me0=run, dk=run.dk, W=run.world, ev={}, used=n
 .bpop.big{min-width:3.2rem}.bpop.big .bi{width:.62rem;height:.62rem}
 .nfx{position:fixed;inset:0;z-index:9400;display:grid;place-items:center;background:rgba(6,3,12,.72);backdrop-filter:blur(.03rem);font-family:'Barlow Condensed',sans-serif;color:#fff;cursor:pointer;animation:calwIn .3s both}
 .nfx.out{animation:calwOut .35s ease-in forwards}
-.nfx .nc{position:relative;display:flex;align-items:flex-end;gap:.2rem;width:min(92vw,6.4rem);padding:.2rem .3rem .24rem .2rem;background:linear-gradient(160deg,#21102e,#0e0818 70%);border:.025rem solid var(--k,#c77dff);clip-path:polygon(.2rem 0,100% 0,100% calc(100% - .2rem),calc(100% - .2rem) 100%,0 100%,0 .2rem);box-shadow:0 0 .6rem color-mix(in srgb,var(--k,#c77dff) 40%,transparent);animation:nfIn .55s cubic-bezier(.15,1.3,.3,1) both}
+.nfx .nc{--ih:min(5.2rem,74vh);position:relative;isolation:isolate;display:flex;align-items:flex-end;gap:.28rem;width:min(94vw,10rem);min-height:calc(var(--ih)*.5);padding:.28rem .4rem .34rem calc(var(--ih)*.7 + .3rem);box-sizing:border-box;animation:nfIn .55s cubic-bezier(.15,1.3,.3,1) both;filter:drop-shadow(0 0 .5rem color-mix(in srgb,var(--k,#c77dff) 35%,transparent))}
+/* the frame is its own layer, so the portrait can break out of it (head and shoulders over the top edge) */
+.nfx .nc::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(160deg,#21102e,#0e0818 70%);border:.03rem solid var(--k,#c77dff);clip-path:polygon(.26rem 0,100% 0,100% calc(100% - .26rem),calc(100% - .26rem) 100%,0 100%,0 .26rem)}
 @keyframes nfIn{from{opacity:0;transform:scale(.7) rotate(-3deg)}}
-.nfx .nc::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.14) 50%,transparent 60%);background-size:260% 100%;animation:bpShine 1.4s .3s both}
-.nfx .nimg{flex:none;width:2rem;height:2.4rem;background:center bottom/contain no-repeat;filter:drop-shadow(0 0 .14rem var(--k,#c77dff));margin:-.6rem 0 -.1rem;animation:nfImg .7s cubic-bezier(.15,1.2,.3,1) both}
+.nfx .nc::after{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;clip-path:polygon(.26rem 0,100% 0,100% calc(100% - .26rem),calc(100% - .26rem) 100%,0 100%,0 .26rem);background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.14) 50%,transparent 60%);background-size:260% 100%;animation:bpShine 1.4s .3s both}
+.nfx .nimg{position:absolute;left:.1rem;bottom:-.14rem;width:calc(var(--ih)*.7);height:var(--ih);background:center bottom/contain no-repeat;filter:drop-shadow(0 0 .18rem var(--k,#c77dff)) drop-shadow(0 .06rem .1rem rgba(0,0,0,.7));animation:nfImg .7s cubic-bezier(.15,1.2,.3,1) both}
 @keyframes nfImg{from{opacity:0;transform:translateY(.4rem) scale(.9)}}
 .nfx .ntx{flex:1;min-width:0;padding-bottom:.04rem}
-.nfx .ntx small{display:inline-block;padding:.03rem .1rem;background:var(--k,#c77dff);color:#12091c;font:800 .12rem/1 'Barlow Condensed';letter-spacing:.3em;text-transform:uppercase}
-.nfx .ntx b{display:block;margin-top:.08rem;font:400 .46rem/.95 'Anton';text-transform:uppercase;letter-spacing:.02em;text-shadow:.03rem .04rem 0 #000}
-.nfx .ntx em{display:block;font:600 .15rem/1.2 'Barlow Condensed';letter-spacing:.2em;color:var(--k,#c77dff);text-transform:uppercase;font-style:normal;margin-top:.03rem}
-.nfx .ntx p{margin:.1rem 0 0;font:500 .15rem/1.35 'Barlow';color:#e6def4}
-.nfx .ntap{position:absolute;bottom:.06rem;right:.2rem;font:700 .1rem/1 'Barlow Condensed';letter-spacing:.3em;color:#9a8fb8;text-transform:uppercase}
+.nfx .ntx small{display:inline-block;padding:.04rem .13rem;background:var(--k,#c77dff);color:#12091c;font:800 .17rem/1 'Barlow Condensed';letter-spacing:.3em;text-transform:uppercase}
+.nfx .ntx b{display:block;margin-top:.1rem;font:400 .72rem/.95 'Anton';text-transform:uppercase;letter-spacing:.02em;text-shadow:.03rem .04rem 0 #000}
+.nfx .ntx em{display:block;font:600 .22rem/1.2 'Barlow Condensed';letter-spacing:.2em;color:var(--k,#c77dff);text-transform:uppercase;font-style:normal;margin-top:.03rem}
+.nfx .ntx p{margin:.14rem 0 0;font:500 .24rem/1.35 'Barlow';color:#e6def4}
+.nfx .ntap{position:absolute;bottom:.08rem;right:.3rem;font:700 .12rem/1 'Barlow Condensed';letter-spacing:.3em;color:#9a8fb8;text-transform:uppercase}
 .rgx{position:fixed;inset:0;z-index:9400;overflow:hidden;background:#05030a;font-family:'Barlow Condensed',sans-serif;color:#fff;cursor:pointer;animation:calwIn .4s both}
 .rgx.out{animation:calwOut .4s ease-in forwards}
 .rgx .rbg{position:absolute;inset:-5%;background:center/cover;filter:brightness(.55) saturate(1.1);animation:rgPan 9s ease-out both}
@@ -10742,7 +10744,7 @@ function dealRegion(stage){ const me0=run, dk=run.dk, W=run.world, ev={}, used=n
 .warpm .wr:not(.here):hover{border-color:#ffd36b;box-shadow:0 0 .2rem rgba(255,211,107,.4)}
 .rtele{position:absolute;inset:0;z-index:60;pointer-events:none;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.95),rgba(120,200,255,.6) 20%,transparent 60%);animation:rtele .7s ease-out both}
 @keyframes rtele{0%{opacity:0;transform:scale(.2)}30%{opacity:1}100%{opacity:0;transform:scale(1.8)}}
-@media (max-width:620px){.nfx .nc{flex-direction:column;align-items:center;text-align:center}.nfx .nimg{width:1.6rem;height:1.8rem;margin:-.5rem 0 0}.rgx .rtx b{font-size:.56rem}.rgx .rrow{gap:.04rem;flex-wrap:wrap}.rgx .rf{width:.5rem}.rgx .rf i{width:.5rem;height:.66rem}.rgx .rfoes{left:.2rem;bottom:.42rem}.bpop-stack{right:.12rem;top:.9rem}}
+@media (max-width:620px){.nfx .nc{flex-direction:column;align-items:center;text-align:center}.nfx .nc{--ih:min(2.6rem,40vh);padding:calc(var(--ih)*.5) .24rem .34rem;min-height:0}.nfx .nimg{left:50%;bottom:auto;top:calc(var(--ih)*-.55);translate:-50% 0}.rgx .rtx b{font-size:.56rem}.rgx .rrow{gap:.04rem;flex-wrap:wrap}.rgx .rf{width:.5rem}.rgx .rf i{width:.5rem;height:.66rem}.rgx .rfoes{left:.2rem;bottom:.42rem}.bpop-stack{right:.12rem;top:.9rem}}
 `; const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st); })();
 function lzBg(el,p){ if(!el||!p) return; const set=u=>{ el.style.backgroundImage=`url(${u})`; }; const u=A(p), E=PACKS.img&&PACKS.img[p];
   if(/^blob:|^data:/.test(u)||!E){ set(u); return; }
