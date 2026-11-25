@@ -2011,8 +2011,12 @@ body.rm .isub{transition:opacity .2s}
 @keyframes pbkring{from{transform:scale(.2);opacity:1}to{transform:scale(4.5);opacity:0}}
 @keyframes pbkin{0%{transform:translate(-50%,-50%) scale(2.4);opacity:0}12%{transform:translate(-50%,-50%) scale(1);opacity:1}80%{opacity:1}100%{transform:translate(-50%,-60%) scale(1);opacity:0}}
 .portrait .pbk b{font-size:.4rem}.portrait .pbk span{font-size:.13rem}
-.pbroken .spr.p,.pbroken [data-side=p] .spr{filter:drop-shadow(0 0 .1rem #ff2d2d) saturate(1.2)}
-.pbroken .field::after{content:'';position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 1.2rem rgba(255,30,30,.35);z-index:3}
+.fighter.pbknee .spr .flip{filter:brightness(.72) saturate(.8)}
+#app.hd3d .scr.battle .fighter.pbknee .spr .flip{filter:url(#ls3dlit) brightness(.72) saturate(.8)}
+.pbstars{position:absolute;inset:0;pointer-events:none;z-index:40}
+.pbstars i{position:absolute;left:0;top:0;width:var(--sz,20px);height:var(--sz,20px);background:radial-gradient(circle,#fff7c2 0 18%,transparent 60%),#ffd94a;clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);filter:drop-shadow(0 0 4px #ffe66e) drop-shadow(0 0 9px rgba(255,200,40,.7));will-change:transform}
+.pbstars.out{opacity:0;transition:opacity .3s}
+.pbroken .field::after{content:'';position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 1.2rem rgba(0,0,10,.35);z-index:3}
 .portrait .pbk{left:50%!important}.portrait .pbk span{display:block;white-space:normal;max-width:2.4rem;margin:.06rem auto 0;line-height:1.2}
 
 /* ── Gogogo: Internal Alchemy counter, status-kinds chip ── */
@@ -2067,8 +2071,8 @@ body.ctrmode #app.hd3d #bg{filter:saturate(.2) brightness(.66) contrast(1.05)!im
 .ctreyes b{position:absolute;top:50%;transform:translateY(-50%) skewX(-10deg);font:900 .34rem/1 'Barlow Condensed',sans-serif;letter-spacing:.24em;color:#fff;text-shadow:0 0 .1rem var(--c),0 0 .3rem var(--c)}
 @keyframes ctreyes{0%{transform:scaleY(0)}12%{transform:scaleY(1)}84%{transform:scaleY(1);opacity:1}100%{transform:scaleY(0);opacity:0}}
 .fighter .spr{transition:translate .35s,scale .35s,rotate .35s}
-.fighter.pbknee:not(.ctrposed) .spr{translate:0 5%;scale:1 .9;rotate:3deg}
-.fighter.e.pbknee:not(.ctrposed) .spr{rotate:-3deg}
+.fighter.pbknee:not(.ctrposed):not(.airb) .spr{translate:0 5%;scale:1 .9;rotate:3deg}
+.fighter.e.pbknee:not(.ctrposed):not(.airb) .spr{rotate:-3deg}
 .pbcrk{position:absolute;inset:0;pointer-events:none;-webkit-mask:var(--m) center/100% 100% no-repeat;mask:var(--m) center/100% 100% no-repeat;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 160'%3E%3Cg fill='none' stroke='%23ffd66b' stroke-width='1.6' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M52 18 46 34 55 47 44 63 50 80 41 98 47 118 39 142'/%3E%3Cpath d='M55 47 68 55 74 70 86 76'/%3E%3Cpath d='M44 63 30 66 22 80 12 84'/%3E%3Cpath d='M50 80 63 92 61 108 72 120'/%3E%3Cpath d='M41 98 28 104 24 120'/%3E%3Cpath d='M46 34 34 30 26 18'/%3E%3C/g%3E%3C/svg%3E") 50% 30%/62% auto no-repeat,url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 160'%3E%3Cg fill='none' stroke='%23ffd66b' stroke-width='1.6' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M52 18 46 34 55 47 44 63 50 80 41 98 47 118 39 142'/%3E%3Cpath d='M55 47 68 55 74 70 86 76'/%3E%3Cpath d='M44 63 30 66 22 80 12 84'/%3E%3Cpath d='M50 80 63 92 61 108 72 120'/%3E%3Cpath d='M41 98 28 104 24 120'/%3E%3Cpath d='M46 34 34 30 26 18'/%3E%3C/g%3E%3C/svg%3E") 40% 75%/48% auto no-repeat;mix-blend-mode:screen;filter:drop-shadow(0 0 2px #ffb12a);animation:pbcrk 1.1s ease-in-out infinite alternate}
 @keyframes pbcrk{from{opacity:.55}to{opacity:1}}
 .pz.crk i::before{content:'';position:absolute;inset:-15% -10%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 16'%3E%3Cpath d='M18 0 22 5 17 8 23 11 19 16M22 5 30 3M17 8 9 10' fill='none' stroke='%23fff' stroke-width='1.4'/%3E%3C/svg%3E") center/100% 100% no-repeat;opacity:.95}
@@ -6248,7 +6252,9 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
   function ctrPose(side,pose,force){ const fe=F[side], im=fe&&$('.spr img',fe); if(!im) return false;
     if(!pose){ if(im.dataset.osrc){ im.src=im.dataset.osrc; delete im.dataset.osrc; } fe.classList.remove('ctrposed'); if(fe.classList.contains('pbknee')&&ctrHas(side,'f_kneel')) ctrPose(side,'f_kneel',true); ctrMask(side); return true; }
     if(!ctrHas(side,pose)||!(force||stageEl.classList.contains('ots'))) return false;
-    if(!im.dataset.osrc) im.dataset.osrc=im.getAttribute('src'); im.src=`img/ctr/${phxWho(side)}_${pose}.webp`; fe.classList.add('ctrposed'); ctrMask(side); return true; }
+    if(!(typeof AIR!=='undefined'&&AIR[side])){ try{ poseEnd(side); }catch(_){ } const sp=$('.spr',fe); if(sp){ if(sp.style.opacity==='0') sp.style.opacity=''; if(sp.style.visibility==='hidden') sp.style.visibility=''; } im.style.visibility=''; if(im.style.opacity==='0') im.style.opacity=''; if(fe.style.opacity==='0') fe.style.opacity=''; }
+    if(!im.dataset.osrc) im.dataset.osrc=im.getAttribute('src'); im.onerror=()=>{ im.onerror=null; if(im.dataset.osrc){ im.src=im.dataset.osrc; delete im.dataset.osrc; } fe.classList.remove('ctrposed'); };   // a pose that can't load never leaves an empty fighter
+    im.src=`img/ctr/${phxWho(side)}_${pose}.webp`; fe.classList.add('ctrposed'); ctrMask(side); return true; }
   function ctrThreat(side,col){ for(const sd of ['p','e']) if(F[sd]) F[sd].classList.remove('ctrthreat'); if(side&&F[side]){ F[side].classList.add('ctrthreat'); F[side].style.setProperty('--tc',col||'#fff'); } }
   function ctrCam(on,def){ def=def||'p'; const att=def==='p'?'e':'p';
     if(!on){ ctrPose('p',null); ctrPose('e',null); }
@@ -6314,8 +6320,18 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
     try{ sw.playbackRate=1; }catch(_){} vg.classList.add('out'); setTimeout(()=>vg.remove(),260); ctrPose(att,'f_stagger'); await hitStop(220); ctrPose(def,'b_strike'); await sleep(150); dodge.cancel();
     ctrMode(def,0,false); ctrThreat(null); ctrCam(false); impactFrame(); lunge(def,dist*.72,440); await sleep(170); { const t=sprC(att); ctrSwipe(def,t.x,t.y-t.h*.08,S0,true); ctrFx('bighit',t.x,t.y-t.h*.05,S0*.26,{dur:440}); hurt(att,true); }
     try{ Snd.fx3('ultboom',.75); Snd.fx2('boom',.6); }catch(_){} shockRing(mx,my,ecol,false); shake(12,320); if(def!=='e'&&Snd.has('ann','pcounter')) Snd.voice('ann','pcounter',{pri:true}); await sleep(340); }
-  function ctrKneel(side,on){ const fe=F[side]; if(!fe) return; fe.classList.toggle('pbknee',!!on); let c=$('.pbcrk',fe); if(on&&!c){ c=h('i','pbcrk'); const fl=$('.flip',fe); if(fl) fl.appendChild(c); } if(!on&&c) c.remove(); if(on){ if(!fe.classList.contains('ctrposed')) ctrPose(side,'f_kneel',true); ctrMask(side); } else if(!stageEl.classList.contains('ots')) ctrPose(side,null);
+  function ctrKneel(side,on){ const fe=F[side]; if(!fe) return; fe.classList.toggle('pbknee',!!on); pbStars(side,!!on); if(on){ if(!fe.classList.contains('ctrposed')&&!(typeof AIR!=='undefined'&&AIR[side])) ctrPose(side,'f_kneel',true); ctrMask(side); } else if(!stageEl.classList.contains('ots')) ctrPose(side,null);
     const pz=$('.pz[data-side='+side+']'); if(pz){ pz.classList.toggle('crk',!!on); } }
+  // ── Poise Break daze: a ring of stars circles the fighter's head (whatever pose they're in) until poise comes back ──
+  const PBS={};
+  function pbStars(side,on){ const o=PBS[side]; if(!on){ if(o){ cancelAnimationFrame(o.raf); o.el.classList.add('out'); setTimeout(()=>o.el.remove(),320); delete PBS[side]; } return; } if(o) return;
+    const el=h('div','pbstars'+(side==='e'?' e':''),'<i></i><i></i><i></i><i></i>'), st=[...el.children]; overlay.appendChild(el); const t0=performance.now(), S={el,raf:0}; PBS[side]=S;
+    const tick=()=>{ const fe=F[side]; if(!fe||!fe.isConnected){ pbStars(side,false); return; }
+      const ps=$('.spr .pose',fe), im=$('.spr img',fe), r=(ps||im).getBoundingClientRect(), o2=overlay.getBoundingClientRect(); if(r.width<2){ S.raf=requestAnimationFrame(tick); return; }
+      const hx=r.left+r.width*(side==='e'?.44:.56)-o2.left, hy=r.top+r.height*.06-o2.top, rx=Math.max(26,r.width*.24), ry=rx*.28, t=(performance.now()-t0)/1000*(Math.PI*1.25);
+      st.forEach((s2,i)=>{ const a=t+i*Math.PI/2, z=Math.sin(a), sc=.72+.28*(z+1)/2; s2.style.transform=`translate(${hx+Math.cos(a)*rx}px,${hy+z*ry}px) translate(-50%,-50%) scale(${sc.toFixed(3)}) rotate(${(a*57.3*1.6)%360|0}deg)`; s2.style.opacity=(.55+.45*(z+1)/2).toFixed(2); s2.style.zIndex=z>0?2:1; });
+      el.style.setProperty('--sz',Math.max(14,r.height*.075)+'px'); S.raf=requestAnimationFrame(tick); };
+    tick(); }
   // ── Perfect Counter cinematic: the enemy swings, time slows, you slip back leaving a rainbow cut-out trail, then snap back at full speed ──
   async function parryCine(){ const A=sprC('p'), B=sprC('e'), dist=Math.abs(B.x-A.x), sP=$('.spr',F.p), img=$('.spr img',F.p), S0=Math.min(stageEl.clientWidth,stageEl.clientHeight), full=camLv==='full', O=overlay.getBoundingClientRect();
     overlay.querySelectorAll('.clash.ctr .cl-ring,.clash.ctr .cl-head,.clash.ctr .cl-dim,.clash.ctr .cl-res').forEach(r=>{ r.style.visibility='hidden'; });
@@ -9599,7 +9615,7 @@ const VINTRO={"ito":{"_intro": "Ito. Just Ito. The hand that made me forgot my l
   const LCOL={fire:'#ff6a2a',ice:'#7fd8ff',water:'#3aa8ff',storm:'#ffe14a',blood:'#d0102c',venom:'#7be04a',metal:'#c8ccd8',life:'#6fe0a8',sound:'#ff8ad8',wind:'#b8ffe0',mind:'#c79bff',shadow:'#8a5cff',none:'#ffffff'};
   function airSlow(on){ if(on&&!AIRSP0){ AIRSP0=speed; speed=+(speed*1.35).toFixed(3); s.classList.add('airtime'); }
     else if(!on&&AIRSP0&&!AIR.p&&!AIR.e){ if(Math.abs(speed-AIRSP0*1.35)<.01) speed=AIRSP0; AIRSP0=0; s.classList.remove('airtime'); } }
-  function airClear(side){ const sp=$('.spr',F[side]); AIRA[side].forEach(a=>{ try{ a.cancel(); }catch(e){} }); AIRA[side]=[]; AIR[side]=0; airSlow(false); return sp; }
+  function airClear(side){ const sp=$('.spr',F[side]); if(F[side]) F[side].classList.remove('airb'); AIRA[side].forEach(a=>{ try{ a.cancel(); }catch(e){} }); AIRA[side]=[]; AIR[side]=0; airSlow(false); return sp; }
   function airBump(side){ if(!AIR[side]) return; const sp=$('.spr',F[side]); sp.animate([{translate:'0 0'},{translate:'0 -6%',offset:.3},{translate:'0 0'}],{duration:320*speed,easing:'ease-out',composite:'add'}); }
   function smokeTrail(side,n,ms){ for(let i=0;i<n;i++) setTimeout(()=>{ try{ const t=sprC(side); fxs('dust',t.x+rnd(-t.w*.08,t.w*.08),t.top+t.h*(.95+i*.02),t.h*(.22+Math.random()*.1),620,rnd(-20,20),false); }catch(e){} },i*ms*speed); }
   function launchSplash(att,c,ev){ const who=phxWho(att), el=elOf(c)||'none', L=h('div','lsplash '+att); L.style.setProperty('--lc',LCOL[el]||LCOL.none);
@@ -9613,6 +9629,8 @@ const VINTRO={"ito":{"_intro": "Ito. Just Ito. The hand that made me forgot my l
     if(!vsay(att,'_launch',1)) vsay(att,'_atk',1); launchSplash(att,c,ev);
     // hit-stun: the target hangs in the hit frame for a beat before going up
     whiteHit(tgt); await hitStop(70);
+    // a launch outranks a Poise Break kneel: the launch and air poses play until they land, then they drop back to one knee
+    { const fe=F[tgt], im=$('.spr img',fe); if(fe&&fe.classList.contains('ctrposed')&&im){ if(im.dataset.osrc){ im.src=im.dataset.osrc; delete im.dataset.osrc; } fe.classList.remove('ctrposed'); } if(fe) fe.classList.add('airb'); }
     AIR[tgt]=1; airSlow(true); const SPR=!!poseSrc(phxWho(tgt))&&!F[tgt].classList.contains('awk'), up=(()=>{ try{ if(!SPR) return -36; const H=poseSrc(phxWho(tgt)).full, f=(H.air||H.launch)[0], lift0=Math.max(0,(f[5]-f[3])/H.idle[0][3]); return -Math.round(Math.max(8,(.5-lift0)*100)); }catch(e){ return -42; } })();   // total height about half the body: sprite air frames that already float get less extra lift
     pose(tgt,[['launch',170],['air',99999,{spin:-16}]]);
     const t=sprC(tgt); shockRing(t.x,t.top+t.h*.97,'#ffffff',true); fxs('dust',t.x,t.top+t.h*.97,t.h*.7,640,0,false); shake(12,280);
@@ -9630,7 +9648,7 @@ const VINTRO={"ito":{"_intro": "Ito. Just Ito. The hand that made me forgot my l
     await sleep(slam?200:380); fall.cancel(); const t=sprC(tgt);
     if(slam){ sp.animate([{translate:'0 0'},{translate:'0 -5%',offset:.35},{translate:'0 0'}],{duration:320*speed,easing:'ease-out',composite:'add'}); shockRing(t.x,t.top+t.h*.97,'#ffd27a',true); fxs('dust',t.x,t.top+t.h*.97,t.h*1.1,700,0,false); shake(18,360); await hitStop(110); try{ Snd.fx3&&Snd.fx3('bodyfall',.9); Snd.fx3&&Snd.fx3('impact_h',.7); }catch(e){} hitTag(t.x,t.top+t.h*.35,'GROUND SLAM','crit'); }
     else { fxs('dust',t.x,t.top+t.h*.97,t.h*.55,560,0,false); shake(5,160); }
-    await sleep(slam?260:160); }
+    await sleep(slam?260:160); if(F[tgt]&&F[tgt].classList.contains('pbknee')){ setTimeout(()=>{ if(F[tgt].classList.contains('pbknee')&&!AIR[tgt]) ctrPose(tgt,'f_kneel',true); },(slam?560:460)*speed); } }
   async function launchImmune(ev){ const t=sprC(ev.side); pose(ev.side,[['hit_h',260]]); shockRing(t.x,t.top+t.h*.97,'#ffd27a',false); shake(6,200);
     num(t.x,t.top+t.h*.16,{COLOSSAL:'TOO MASSIVE',CALAMITY:'UNMOVED',IMMOVABLE:'IMMOVABLE'}[ev.tag]||'IMMOVABLE','txt','#ffd27a'); try{ Snd.fx3&&Snd.fx3('block_h',.7); }catch(e){} await sleep(360); }
   function hitStop(ms){ s.classList.add('hitstop'); return sleep(ms).then(()=>s.classList.remove('hitstop')); }
