@@ -46,3 +46,15 @@ none: every fight location now has a modelled set (the painted relief remains as
 - `viewMat(name, {u0,u1,v0,v1,tint})` in kit.js: a slice of a `bg_<name>` panorama on an unlit window pane.
 - New panoramas: `bg_sky_neon` (Neon Ward skyline in rain), `bg_sky_school` (sunset town with cherry trees), `bg_sky_cursed` (violet storm, ruined castle), `bg_sky_suburb` (dusk rooftops; not used yet).
 - Exam Hall and Canteen windows now look out on the sunset town (red / toxic tint in phase two); the Snack Bar window shows the neon skyline under the rain streaks; Neon Teahouse has the painted skyline behind its towers; Calamity has the storm horizon above the stands.
+
+## Finishing pass (lighting, real props, decals)
+- diorama.js renders into a half-float target with a depth texture: depth-only ambient occlusion (half res, bilateral blur), mip-chain bloom with a soft threshold, then the existing tilt-shift/vignette/grade. `D.setFX({bloom, thr, knee, ao, aoR, env})`, `D.envLight()` builds an image-based light from the set's own hemisphere/fog/moon/lantern colours. `?fx=0` or localStorage `ls_fx=0` turns it all off. Low quality: no AO.
+- kit.js `look(name)` holds the per-set look (neon / fire / golden / wet / room / gloss); battle_bg applies it when a set opens; painted sets get a light bloom only.
+- kit.js `model(D, name, x, y, z, {s|h, ry, to, tint})` places CC0 Poly Haven props from r3d/mdl/*.glb (credits in mdl/CREDITS.md). Used in harbor, proctor, festival, nw_roof, nw_web, nw_snack, holdline, catroom, reno, landlord, sakebar, nw_teahouse, oba, nw_street.
+- kit.js `decal()` / `decals()` lay floor (or wall) decals: procedural scorch/crack/moss/oil/stain/paper plus ambientCG photo decals (asphalt damage, manholes, gum, leak streaks, road arrow) in r3d/tex/dcl_*. Every modelled set has a decals() call next to its scatter().
+
+## Connected world (free roam)
+- roam_mode.js now runs a chain of areas, west to east: Willow Graves · Watermill · Willow Village · Moonlit Bamboo Road · Sunset Road · Festival Avenue · Sake Bar Alley · Neon Ward Street · Teahouse · Snack Bar · Rooftop · Expressway · Pirate Harbor · Cliffside Dojo · Lighthouse Point · Whalebone Shore. Walking off an area's end fades into the next; a painted signpost names it.
+- Each arena area builds its set, then kit.walkPath() finds a walkable lane through it (ground raycast from just above the feet, box checks against everything solid, wiggling around obstacles). Foes (1–2) and loot (3) are scattered along it; region ends (graves, sake bar, expressway, whalebone) have a guardian and a locked hoard. Areas remember beaten foes and opened loot for the visit.
+- A roam fight in an arena area is fought on that arena (battle_bg takes the area name as its key).
+- 2D painted cut-outs (r3d/img/rg_*, generated in the game's style, keyed from green): commuter train (Rush Hour), sedan/kei truck/scooter traffic (Expressway), vending machines, ramen stall, neon sign cluster, bicycle, festival yatai, goldfish stall, taiko drum, fishing boat, fish-drying rack, weeping willow, village well, signpost. kit.dress() takes 'img:<name>' items to place cut-outs like the models.

@@ -2,7 +2,7 @@
 // wall of glowing bottles, pink paper lanterns, an old CRT showing a cherry-blossom moon, a red booth by the window,
 // a bead curtain, sakura in a vase, and the neon street smeared on the rain-streaked glass.
 import { T } from './diorama.js';
-import { kit, rng, pbr, ctex, cvs, viewMat, scatter, neonTower, rain, drift } from './kit.js';
+import { kit, rng, pbr, ctex, cvs, viewMat, scatter, neonTower, rain, drift, model, decals } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4, -1.4], [-4, -1.6], [1.4, -2.2]], sum: [-5.2, .8], exposure: 1.45 };
 
@@ -30,7 +30,8 @@ export async function build(D) {
   for (let x = -13; x <= 13; x += 3.2) box(.3, .4, 14, M.wood, x, 7.2, -1, { cast: false });
   add(new T.PlaneGeometry(12, 3.4), M.shelf, 2, 3.8, -7.78, { cast: false }); box(12.4, .2, .6, M.wood, 2, 2, -7.5); box(12.4, .2, .6, M.wood, 2, 5.6, -7.5);
   box(14, 1.2, 1.4, M.wood, 2, 0, -5); box(14.4, .14, 1.8, M.top, 2, 1.2, -5); box(14, .06, .06, M.chrome, 2, .25, -4.2, { cast: false });
-  for (let x = -4; x <= 8; x += 2) { add(new T.CylinderGeometry(.38, .34, .16, 16), M.stool, x, .9, -3.6); add(new T.CylinderGeometry(.05, .05, .84, 8), M.chrome, x, .42, -3.6); add(new T.CylinderGeometry(.3, .32, .04, 16), M.chrome, x, .02, -3.6); }
+  for (let x = -4; x <= 8; x += 2) model(D, 'bar_chair_round_01', x, 0, -3.6, { h: 1, ry: x * .7, tint: 0xff8090 });   // real bar stools (Poly Haven), warmed toward the bar's red
+  model(D, 'wine_bottles_01', -5.6, 1.3, -5.5, { s: 1.4, ry: .2 }); model(D, 'wine_bottles_01', 5.2, 1.3, -5.6, { s: 1.4, ry: -.3 });
   for (let i = 0; i < 6; i++) add(new T.CylinderGeometry(.08, .1, .36, 8), new T.MeshStandardMaterial({ color: [0xe8e0c8, 0x3a6a3a, 0x8a3a1a][i % 3], roughness: .2 }), -2 + i * 1.8, 1.45, -5.3);
   // the CRT on the bar end
   { box(1.8, 1.4, 1.2, M.tvBody, 8, 1.3, -5.2); add(new T.PlaneGeometry(1.4, 1), M.crt, 8, 2.05, -4.59, { cast: false }); D.glow(8, 2.05, -4.3, 2.4, 0xc070ff); }
@@ -51,4 +52,5 @@ export async function build(D) {
   for (let i = 0; i < 14; i++) neonTower(K, R.r(-24, -60), R.r(8, -24), R.r(6, 10), R.r(6, 10), R.r(16, 50), i + 3);
   rain(D, 300, [-30, -16], [0, 10], [-14, 8], { speed: 12 }); drift(D, 20, 0, -2, 10, 4, 0xffb0d0, { y0: 1, y1: 6, size: 5 });
   scatter(D, rng(97), { area: [-12, 12, -3, 5], petals: 30, petal: 0xff9ad0, puddles: 0 });
+  decals(D, rng(663), { area: [-12, 12, -3, 5], list: [['stain', 3, [.8, 1.6]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
 }

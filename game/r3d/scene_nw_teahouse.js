@@ -2,7 +2,7 @@
 // a low tea table with cushions; through the wide opening, a red bridge over a koi pond with a waterfall and a red
 // maple, and beyond the garden wall the Neon Ward's towers in the rain under the moon.
 import { T } from './diorama.js';
-import { kit, rng, moon, sky, pbr, ctex, cvs, shojiMat, stoneLantern, water, rain, skyline, drift, farPainting, groundFill, scatter, cityBlocks, walkers, clutter } from './kit.js';
+import { kit, rng, moon, sky, pbr, ctex, cvs, shojiMat, stoneLantern, water, rain, skyline, drift, farPainting, groundFill, scatter, cityBlocks, walkers, clutter, model, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4, -1.4], [-4, -1.6], [1.4, -2.2]], sum: [-5.2, .8], exposure: 1.55 };
 
@@ -37,6 +37,7 @@ export async function build(D) {
   // low tea table, cushions, a vase with a blossom branch
   box(3.2, .14, 1.4, M.top, -8.6, .5, -2.2); for (const dx of [-1.4, 1.4]) box(.2, .5, 1.2, M.dark, -8.6 + dx, 0, -2.2);
   for (const dx of [-1.4, 1]) add(new T.BoxGeometry(1.2, .2, 1.2), M.cush, -8.6 + dx, .1, -.8);
+  model(D, 'tea_set_01', -8.6, .64, -2.2, { s: 2.4, ry: .1 });   // a real tea set on the table (Poly Haven)
   add(new T.SphereGeometry(.4, 14, 10), new T.MeshStandardMaterial({ color: 0x2a3a8a, roughness: .2 }), -11.6, .45, -2.8); await prop('sakura', -11.6, -2.8, 1.8, { y: .7, blob: false, shadow: false });
   // ── the garden: grass and rocks, a koi pond with a red arched bridge, waterfall, maple, stone lanterns ──
   { const g = new T.Mesh(new T.PlaneGeometry(80, 30), M.grass); g.rotation.x = -Math.PI / 2; g.position.set(0, -.4, -20); g.receiveShadow = true; S.add(g); }
@@ -60,6 +61,8 @@ export async function build(D) {
   const R2 = rng(129);
   cityBlocks(K, D, R2, { x0: -50, x1: 50, z0: -30, z1: -46, n: 18, hMin: 6, hMax: 18 });
   scatter(D, R2, { area: [-12, 12, -24, -6], pebbles: 80, stone: 0x7a7a80, leaves: 90, leaf: 0xd02a2a, tufts: 40 });
+  decals(D, rng(670), { area: [-12, 12, -24, -6], list: [['moss', 5, [1.4, 3]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   // background life and mid-ground clutter
   await clutter(D, K, R2, 'wild', { area: [-12, 12, -9, -22], n: 18, clear: 0, y: -.4 });
+  await dress(D, rng(1186), { area: [-12, 12, -5.5, .5], items: [['chinese_stool', 2, [.6, .7]], ['chinese_screen_panels', 1, [1.9, 2.2]]] });   // real CC0 models placed where they fit (kit.dress)
 }

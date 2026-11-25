@@ -2,7 +2,7 @@
 // sea, the keeper's house and stair climb the cliff, a fish-drying rack, a wreck on the reef, red spider lilies,
 // stone lanterns, and waves smashing on the rocks under a blood moon.
 import { T } from './diorama.js';
-import { kit, rng, sky, moon, pbr, ship, sea, breakers, stoneLantern, pagoda, scatter, clutter, farPainting, drift } from './kit.js';
+import { kit, rng, sky, moon, pbr, ship, sea, breakers, stoneLantern, pagoda, scatter, clutter, farPainting, drift, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -1.8], [-4.4, -2], [1.6, -2.8]], sum: [-5.6, .8], exposure: 1.6 };
 
@@ -43,5 +43,7 @@ export async function build(D) {
     const f = add(new T.SphereGeometry(.14, 6, 4), M.lily, x, .52, z, { cast: false }); f.scale.y = .6; }
   farPainting(D, 'e_light', { v1: .45, z: -144 });
   scatter(D, rng(91), { area: [-14, 14, -3, 5.6], puddles: 9, pebbles: 40, stone: 0x6a6070, tufts: 40, tuft: 0x4a7a3a });
+  decals(D, rng(614), { area: [-14, 14, -3, 5.6], list: [['moss', 5, [1.4, 3]], ['stain', 3, [1, 2]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   drift(D, 60, 0, -10, 24, 12, 0xffffff, { y0: 0, y1: 5, size: 6 });
+  await dress(D, rng(955), { area: [-16, 16, -9, 4], items: [['img:rg_fishrack', 1, [2.2, 2.6]], ['namaqualand_boulder_02', 4, [.7, 1.4]], ['rock_moss_set_01', 1, { s: [.22, .38] }], ['rock_moss_set_02', 1, { s: [.22, .38] }]] });   // real CC0 models placed where they fit (kit.dress)
 }

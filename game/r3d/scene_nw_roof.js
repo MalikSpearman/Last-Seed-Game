@@ -2,7 +2,7 @@
 // potted plants and crates, giant billboards on steel scaffolds, a water tower, laundry on a line, a pipe-run parapet,
 // and the whole neon skyline with a shrine gate on a lower roof, in the rain under the moon.
 import { T } from './diorama.js';
-import { kit, rng, sky, moon, pbr, ctex, cvs, shojiMat, rain, skyline, billboard, neonTower, drift, farPainting, groundFill, scatter, cityBlocks, walkers, clutter } from './kit.js';
+import { kit, rng, sky, moon, pbr, ctex, cvs, shojiMat, rain, skyline, billboard, neonTower, drift, farPainting, groundFill, scatter, cityBlocks, walkers, clutter, model, decals, decal, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.2, -1.8], [-4.4, -2], [1.6, -2.6]], sum: [-5.6, .8], exposure: 1.6 };
 
@@ -27,9 +27,9 @@ export async function build(D) {
   { const sx = -13, sz = -1.4, w = shojiMat(2, [1, 1], { lit: 1 }); box(7, 4, 5, M.conc, sx, 0, sz); box(7.6, .3, 5.6, M.rust, sx, 4, sz);
     add(new T.PlaneGeometry(1.4, 2.4), M.wood, sx + 2, 1.2, sz + 2.51); add(new T.PlaneGeometry(2.2, 1.3), w, sx - 1.4, 2.2, sz + 2.51, { cast: false }); D.lantern(sx - 1.4, 2.2, sz + 3, { intensity: 12, distance: 8, glow: 0 });
     const l = add(new T.SphereGeometry(.4, 12, 10), M.lanR, sx + 3.4, 3, sz + 2.8, { cast: false }); l.scale.y = 1.3; D.lantern(sx + 3.4, 3, sz + 3, { color: 0xff6030, intensity: 14, distance: 8, glow: 1.2 });
-    for (const [x, y, z] of [[sx - 2, 4.3, sz], [sx + 1, 4.3, sz - 1], [7.5, 0, -2.4], [9.3, 0, -2.4]]) { const b = box(1.6, 1.2, .9, M.acB, x, y, z); add(new T.PlaneGeometry(1, 1), M.ac, x, y + .6, z + .46, { cast: false }); }
+    for (const [x, y, z] of [[sx - 2, 4.3, sz], [sx + 1, 4.3, sz - 1], [7.5, 0, -2.4], [9.3, 0, -2.4]]) model(D, 'exterior_aircon_unit', x, y, z, { h: 1.3 });   // real AC units (Poly Haven)
     for (const [x, z] of [[sx + 4, sz + 3], [sx + 4.8, sz + 2.6], [-8, -2.6]]) { add(new T.CylinderGeometry(.4, .3, .6, 12), M.pot, x, .3, z); await prop('ferns', x, z, 1.2, { y: .5, blob: false }); }
-    for (const [x, z, s] of [[-9.4, 2.4, .9], [-10, 3.2, .7]]) box(s, s, s, M.wood, x, 0, z); }
+    model(D, 'plastic_crate_01', -9.4, 0, 2.4, { s: 2.4, ry: .3 }); model(D, 'plastic_crate_01', -9.4, .62, 2.4, { s: 2.4, ry: .1 }); model(D, 'cardboard_box_01', -10.2, 0, 3.3, { s: 1.6, ry: -.4 }); model(D, 'utility_box_01', -9.2, 0, -3.9, { h: 1.4 }); }
   // ── billboards on steel scaffolds ──
   const scaffold = (x, z, w, h, y0) => { for (const dx of [-w / 2, 0, w / 2]) box(.25, y0 + h, .25, M.metal, x + dx, 0, z - .6); for (let y = 2; y < y0 + h; y += 2.4) box(w, .12, .12, M.metal, x, y, z - .6, { cast: false });
     for (let y = 0; y < y0; y += 2.4) for (const dx of [-w / 4, w / 4]) add(new T.BoxGeometry(.08, 3.3, .08), M.metal, x + dx, y + 1.2, z - .6, { rz: .7, cast: false }); };
@@ -56,6 +56,9 @@ export async function build(D) {
   cityBlocks(K, D, R2, { x0: -60, x1: 60, z0: -40, z1: -70, n: 22, hMin: 20, hMax: 50, y: -26 });
   for (let i = 0; i < 40; i++) D.glow(R2.r(-60, 60), -24, R2.r(-10, -90), R2.r(2, 5), [0xff40c0, 0x40e0ff, 0xffb060][i % 3]);
   scatter(D, R2, { area: [-15, 15, -3, 6], puddles: 12, pebbles: 50, stone: 0x4a4458, petals: 50, petal: 0xff7ad0 });
+  decals(D, rng(796), { area: [-15, 15, -3, 6], list: [['oil', 3, [1, 1.8]], ['stain', 3, [1.2, 2.4]], ['crack', 3, [1.4, 2.6]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
+  decal(D, 'leak', -15.2, 1.12, 2.6, 3, { wall: true, y: 2.3, op: .85 }); decal(D, 'leak_streak', -10.4, 1.12, .7, 2.4, { wall: true, y: 2.6, op: .8 });
   // background life and mid-ground clutter
   await clutter(D, K, R2, 'city', { area: [-9, 9, 5, 5.8], n: 5, clear: 6 });
+  await dress(D, rng(1109), { area: [-16, 16, -9, 4], items: [['img:rg_vending', 1, [2.2, 2.4]], ['img:rg_neonsign', 1, [3.5, 4]], ['plastic_crate_01', 2, { s: [2, 2.6] }], ['cardboard_box_01', 2, { s: [1.5, 2] }]] });   // real CC0 models placed where they fit (kit.dress)
 }

@@ -3,7 +3,7 @@
 // hood, hanging ladles and pans, fridges, windows with cherry trees. Phase two: the pots boil over with glowing green
 // sludge that drips and pools, toxic green steam rolls, the lights spark and swing, a pot lies tipped on the floor.
 import { T } from './diorama.js';
-import { kit, rng, pbr, ctex, cvs, farPainting, viewMat, scatter, drift } from './kit.js';
+import { kit, rng, pbr, ctex, cvs, farPainting, viewMat, scatter, drift, model, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4, -1.6], [-4, -1.8], [1.4, -2.4]], sum: [-5.2, .8], exposure: 1.45 };
 const tiles = () => { const R = rng(4); return cvs(512, 512, (g, W, H) => { g.fillStyle = '#7a7480'; g.fillRect(0, 0, W, H); for (let y = 0; y < H; y += 64) for (let x = 0; x < W; x += 64) { g.fillStyle = `hsl(30,${R.r(4, 12)}%,${R.r(48, 60)}%)`; g.fillRect(x + 2, y + 2, 60, 60); } }); };
@@ -34,10 +34,14 @@ export async function build(D, phase = 1) {
   // ── the serving line in front of the ranges: counter, sneeze-guard glass, trays of food, stacks of trays ──
   box(16, 1.1, 1.6, M.steel, 2, 0, -9.4); add(new T.PlaneGeometry(16, 1), new T.MeshStandardMaterial({ color: 0xd0e8ff, transparent: true, opacity: .25, metalness: .9, roughness: .05 }), 2, 1.9, -8.8, { rx: -.3, cast: false });
   for (let k = 0; k < 6; k++) { box(2, .2, 1, M.steel, -3 + k * 2.4, 1.1, -9.4); box(1.8, .14, .8, toxic && k % 2 ? M.sludge : M.food, -3 + k * 2.4, 1.24, -9.4, { cast: false }); }
+  for (const [x, z, s] of [[7.2, -9.3, 2.6], [8.6, -9.5, 2.2]]) model(D, 'pot_enamel_01', x, 1.2, z, { s, ry: x });
+  model(D, 'WetFloorSign_01', -6, 0, -4.6, { h: 1, ry: .6 });
   for (let k = 0; k < 8; k++) box(1.2, .06, .9, new T.MeshStandardMaterial({ color: 0x6a8ab0 }), -10, 1.1 + k * .07, -9.4, { cast: false });
   if (toxic) { // the tipped pot and the spreading green pools; a swinging light
     const tp = add(new T.CylinderGeometry(1, .9, 1.6, 18, 1, true), M.pot, 13, .9, -3, { rz: Math.PI / 2 - .2, ry: .5 }); for (const [x, z, r] of [[11, -2.4, 1.8], [-6, -10.6, 1.4], [3, -11, 2.2], [8, -4, 1]]) { const p = add(new T.CircleGeometry(r, 20), M.sludge, x, .02, z, { rx: -Math.PI / 2, cast: false }); D.glow(x, .1, z, r * 1.6, 0x80ff40); }
     drift(D, 80, 2, -10, 14, 6, 0xa0ff60, { y0: 0, y1: 8, size: 10 });
   } else { drift(D, 30, 2, -12, 10, 2, 0xffffff, { y0: 3, y1: 8, size: 8 }); }
   scatter(D, rng(127), { area: [-14, 14, -4, 6], puddles: toxic ? 6 : 3, pebbles: 20, stone: 0xd8a050 });
+  decals(D, rng(677), { area: [-14, 14, -4, 6], list: [['stain', 4, [1, 2]], ['oil', 2, [.8, 1.4]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
+  await dress(D, rng(1219), { area: [-16, 16, -9, 4], items: [['plastic_crate_01', 2, { s: [2, 2.4] }], ['cardboard_box_01', 2, { s: [1.5, 2] }], ['wooden_stool_01', 1, [.5, .6]]] });   // real CC0 models placed where they fit (kit.dress)
 }

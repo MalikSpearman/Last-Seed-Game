@@ -1,7 +1,7 @@
 // Rooftop Terrace: a wooden balcony high over the capital at night. A lantern-lit rail, a pavilion with a laurel banner
 // under cherry blossom, and below, a sea of lit pagoda roofs and pink trees rolling up to the tournament colosseum.
 import { T } from './diorama.js';
-import { kit, rng, sky, moon, pbr, shojiMat, pagoda, bannerTex, ctex, cvs, drift, farPainting, groundFill, scatter, cityBlocks } from './kit.js';
+import { kit, rng, sky, moon, pbr, shojiMat, pagoda, bannerTex, ctex, cvs, drift, farPainting, groundFill, scatter, cityBlocks, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -1.6], [-4.4, -1.8], [1.6, -2.4]], sum: [-5.6, .8], exposure: 1.7 };
 
@@ -68,4 +68,6 @@ export async function build(D) {
   const R2 = rng(143);
   farPainting(D, 'rooftops', { v1: .48, z: -144, yb: -14 });
   scatter(D, R2, { area: [-14, 14, -3, 6], puddles: 4, petals: 360 });
+  decals(D, rng(824), { area: [-14, 14, -3, 6], list: [['stain', 3, [1.2, 2.2]], ['moss', 2, [1.4, 2.4]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
+  await dress(D, rng(1263), { area: [-16, 16, -9, 4], items: [['wooden_stool_01', 2, [.5, .6]], ['wine_barrel_01', 1, [1, 1.2]], ['chinese_stool', 2, [.6, .7]]] });   // real CC0 models placed where they fit (kit.dress)
 }

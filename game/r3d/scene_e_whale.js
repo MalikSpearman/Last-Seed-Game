@@ -2,7 +2,7 @@
 // a fisher's hut with crest banners and lanterns, rowboats drawn up, a drying rack of fish, a long lit pier out to the
 // junks at anchor, waves running up the sand, under a blood moon.
 import { T } from './diorama.js';
-import { kit, rng, sky, moon, pbr, ship, sea, breakers, deck, rail, pagoda, bannerTex, ctex, scatter, clutter, farPainting, drift } from './kit.js';
+import { kit, rng, sky, moon, pbr, ship, sea, breakers, deck, rail, pagoda, bannerTex, ctex, scatter, clutter, farPainting, drift, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -1.6], [-4.4, -1.8], [1.6, -2.6]], sum: [-5.6, .8], exposure: 1.6 };
 
@@ -45,6 +45,8 @@ export async function build(D) {
   breakers(D, R, [[-18, -26, 1.2], [4, -28, .8], [30, -24, 1]]);
   farPainting(D, 'e_whale', { v1: .45, z: -144 });
   scatter(D, rng(77), { area: [-14, 14, -3, 5.4], puddles: 8, pebbles: 30, stone: 0x6a5a50, petals: 40, petal: 0xff4a50 });
+  decals(D, rng(761), { area: [-14, 14, -3, 5.4], list: [['stain', 3, [1.2, 2.2]], ['oil', 2, [.9, 1.6]], ['moss', 2, [1.4, 2.4]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   await clutter(D, K, rng(78), 'dock', { area: [-14, 14, -3.2, -2.6], n: 8, clear: 6 });
   drift(D, 40, 0, -10, 20, 10, 0xffb070, { y0: .5, y1: 6, size: 7 });
+  await dress(D, rng(966), { area: [-16, 16, -9, 4], items: [['img:rg_boat', 1, [2.2, 2.8]], ['img:rg_fishrack', 1, [2.2, 2.6]], ['wine_barrel_01', 2, [1, 1.2]], ['wooden_crate_02', 2, { s: [1.3, 1.6] }], ['wooden_bucket_01', 1, [.55, .7]], ['lifebuoy', 1, [.9, 1]]] });   // real CC0 models placed where they fit (kit.dress)
 }

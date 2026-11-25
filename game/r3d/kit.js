@@ -2,7 +2,127 @@
 // (rails, dead trees, stone lanterns, hills, still water) that several sets share. Every set stays HD-2D:
 // real geometry for what the fighters stand in, painted cut-outs (D.prop) for foliage and small props.
 import { T } from './diorama.js';
+import { GLTFLoader } from '../lib/GLTFLoader.js';
 export const IMG = n => new URL('./img/', import.meta.url).href + n + '.webp';
+
+// per-set finishing look for the renderer (bloom strength/threshold, ambient occlusion, image-based light): D.setFX(look(name))
+const LOOKS = {
+  neon:   { bloom: .42, thr: 1.1, env: .3 },           // signs, screens and lamps glow; wet floors pick them up
+  fire:   { bloom: .36, thr: 1.15 },                    // lava seams, embers, burning stands
+  golden: { bloom: .2, thr: 1.45, env: .3 },            // sunset sets: keep the bright sky from blooming over everything
+  wet:    { bloom: .3, env: .32 },                      // rain and sea sets: a little more reflection off the wet stone and decks
+  room:   { ao: .55, aoR: .7 },                          // small interiors: tighter contact shadows
+  gloss:  { bloom: .36, thr: 1.15, env: .35 },
+  bright: { bloom: .16, thr: 1.8, env: .12 },          // daylight-bright interiors (pale floors, white light): almost no glow, or it washes out          // glossy office/studio/station floors
+};
+const LOOK_OF = { nw_street: 'neon', nw_express: 'neon', nw_teahouse: 'neon', nw_roof: 'neon', nw_snack: 'neon', nw_pachinko: 'neon', nw_casino: 'neon', nw_web: 'neon', festival: 'neon', sakebar: 'neon',
+  blight: 'fire', sun: 'fire', sun2: 'fire', calamity: 'fire', reno: 'fire',
+  proctor: 'golden', proctor2: 'fire', oba: 'golden', oba2: 'neon', golfdad: 'golden', golfdad2: 'wet', mountain_pass: 'golden', road: 'golden',
+  e_whale: 'wet', e_light: 'wet', e_dojo: 'wet', w_village: 'wet', w_graves: 'wet', w_mill: 'wet', harbor: 'wet', marsh: 'wet', sunken: 'wet', seacave: 'wet', kuzuryu: 'wet', kuzuryu2: 'wet', rooftops: 'wet',
+  tama: 'room', zoomies: 'room', landlord: 'room',
+  holdline: 'bright', holdline2: 'gloss', weather: 'bright', weather2: 'gloss', rushhour: 'gloss', rushhour2: 'gloss' };
+export function look(name, P) { return Object.assign({}, LOOKS[LOOK_OF[name]] || {}, (P && P.fx) || {}); }
+
+// ── real 3D props: CC0 Poly Haven models (r3d/mdl/*.glb, textures shrunk to webp, geometry quantized; credits in mdl/CREDITS.md)
+// model(D, 'wooden_crate_02', x, y, z, { s, h, ry, to }) — feet on y; s scales, or h sets the height; resolves to the placed group
+// (its userData.h is the placed height, for stacking). A model that fails to load leaves an empty group, never breaks the set.
+const _gl = { L: null, c: {} };
+export const MDL = n => new URL('./mdl/', import.meta.url).href + n + (globalThis.LS_MDL_EXT || '.glb');   // the web preview serves them as embedded .json
+// the anime finish for real models: cel (toon) shading in three tones, softened surface detail, and a thin dark ink outline
+// (an inverted hull pushed out along the normals, constant in screen width) so scanned props sit with the painted sets
+let _ramp = null, _ink = null;
+function toonRamp() { if (_ramp) return _ramp; const d = new Uint8Array([125, 125, 125, 255, 195, 195, 195, 255, 255, 255, 255, 255]); _ramp = new T.DataTexture(d, 3, 1); _ramp.minFilter = _ramp.magFilter = T.NearestFilter; _ramp.needsUpdate = true; return _ramp; }
+function inkMat() { if (_ink) return _ink;
+  _ink = new T.ShaderMaterial({ side: T.BackSide, fog: true, uniforms: T.UniformsUtils.merge([T.UniformsLib.fog, { col: { value: new T.Color(0x1a1020) }, w: { value: .0012 } }]),
+    vertexShader: `uniform float w;
+#include <fog_pars_vertex>
+      void main(){ vec3 n=normalize(normalMatrix*normal); vec4 mvPosition=modelViewMatrix*vec4(position,1.); mvPosition.xyz+=n*w*max(1.,-mvPosition.z); gl_Position=projectionMatrix*mvPosition;
+#include <fog_vertex>
+}`,
+    fragmentShader: `uniform vec3 col;
+#include <fog_pars_fragment>
+      void main(){ gl_FragColor=vec4(col,1.);
+#include <fog_fragment>
+}` });
+  return _ink; }
+const _toonC = new Map();
+function inkUp(sc) {
+  if (sc.userData.inked) return; sc.userData.inked = true; const meshes = []; sc.traverse(c => { if (c.isMesh) meshes.push(c); });
+  for (const c of meshes) {
+    c.material = [].concat(c.material).map(m => { if (_toonC.has(m)) return _toonC.get(m);
+      const t = new T.MeshToonMaterial({ color: m.color ? m.color.clone() : 0xffffff, map: m.map || null, normalMap: m.normalMap || null, alphaMap: m.alphaMap || null, transparent: m.transparent, alphaTest: m.alphaTest, side: m.side, gradientMap: toonRamp() });
+      if (t.normalMap) t.normalScale.set(.45, .45); if (m.emissive) { t.emissive = m.emissive.clone(); t.emissiveMap = m.emissiveMap || null; t.emissiveIntensity = m.emissiveIntensity; }
+      _toonC.set(m, t); return t; });
+    if (c.material.length === 1) c.material = c.material[0];
+    if (c.geometry && c.geometry.attributes.normal) { const ol = new T.Mesh(c.geometry, inkMat()); ol.castShadow = false; ol.receiveShadow = false; ol.userData.ink = true; c.add(ol); }
+  }
+}
+export function model(D, name, x, y, z, o = {}) {
+  if (!_gl.L) _gl.L = new GLTFLoader();
+  const src = _gl.c[name] || (_gl.c[name] = new Promise(res => { try { _gl.L.load(MDL(name), g => res(g.scene), undefined, () => res(null)); } catch (_) { res(null); } }));
+  const grp = new T.Group(); grp.position.set(x, y, z); if (o.ry) grp.rotation.y = o.ry; if (o.rx) grp.rotation.x = o.rx; if (o.rz) grp.rotation.z = o.rz; (o.to || D.scene).add(grp);
+  return src.then(sc => { if (!sc) return grp; inkUp(sc); const m = sc.clone(true);
+    const b = new T.Box3().setFromObject(m), sz = b.getSize(new T.Vector3());
+    const k = o.h ? o.h / Math.max(1e-3, sz.y) : (o.s || 1); m.scale.setScalar(k); m.position.set(-(b.min.x + b.max.x) / 2 * k * (o.center === false ? 0 : 1), -b.min.y * k, -(b.min.z + b.max.z) / 2 * k * (o.center === false ? 0 : 1));
+    const sh = !!(D.renderer && D.renderer.shadowMap && D.renderer.shadowMap.enabled);
+    m.traverse(c => { if (!c.isMesh || c.userData.ink) return; c.castShadow = o.cast !== false && sh; c.receiveShadow = true;
+      if (o.tint || o.rough != null || o.emissive) { c.material = c.material.clone(); if (o.tint) c.material.color.multiply(new T.Color(o.tint)); if (o.rough != null) c.material.roughness = o.rough; if (o.emissive) { c.material.emissive = new T.Color(o.emissive); c.material.emissiveIntensity = o.emissiveI || 1; } } });
+    grp.add(m); grp.userData.h = sz.y * k; grp.userData.w = sz.x * k; grp.userData.d = sz.z * k; return grp; });
+}
+
+// ── walkable path through a set, for the connected roam regions: starting from the fight clearing, step outward along
+// the lane each way while there's ground under foot and nothing solid in the way (wiggling forward/back in depth around
+// obstacles); returns the path points {x, z, y, w} from the far left to the far right, plus each end for the exits
+const shown = o => { for (let v = o; v; v = v.parent) if (v.visible === false) return false; return true; };
+export function walkPath(D, { z0 = .6, max = 24, step = .5, half = .42, w = 1.3 } = {}) {
+  const S = D.scene; S.updateMatrixWorld(true);
+  const solid = []; S.traverse(o => { if (!o.isMesh || o.isInstancedMesh || !shown(o) || !o.geometry || o.userData.ink) return; const b = new T.Box3().setFromObject(o), z = b.getSize(new T.Vector3());
+    if (z.y < .25 || z.x > 40 || z.z > 40 || (o.material && o.material.transparent && !o.material.depthWrite)) return; solid.push(b); });
+  const ray = new T.Raycaster(), down = new T.Vector3(0, -1, 0), grounds = []; S.traverse(o => { if (o.isMesh && !o.isInstancedMesh && shown(o) && !o.userData.ink) grounds.push(o); });
+  const groundAt = (x, z, from = 0) => { ray.set(new T.Vector3(x, from + 1.4, z), down); ray.far = 4; const h = ray.intersectObjects(grounds, false).find(i => i.face && Math.abs(i.face.normal.clone().transformDirection(i.object.matrixWorld).y) > .7); return h ? h.point.y : null; };   // cast from just above the feet, so roofs and ceilings never count as floor
+  const clear = (x, z, y) => { const b = new T.Box3(new T.Vector3(x - half, y + .3, z - half), new T.Vector3(x + half, y + 1.7, z + half)); return !solid.some(s => s.intersectsBox(b)); };
+  const walk = dir => { const pts = []; let z = z0, y = groundAt(0, z0, 0) ?? 0;
+    for (let x = dir * step; Math.abs(x) <= max; x += dir * step) {
+      let ok = false;
+      for (const dz of [0, .5, -.5, 1, -1, 1.6, -1.6]) { const zz = z + dz; if (zz < -2.6 || zz > 3.2) continue; const gy = groundAt(x, zz, y);
+        if (gy == null || gy < -1 || Math.abs(gy - y) > .55 || !clear(x, zz, gy)) continue; z = zz; y = gy; ok = true; break; }
+      if (!ok) break; pts.push({ x, z, y });
+    }
+    return pts; };
+  const R = walk(1), L = walk(-1).reverse(), all = L.concat([{ x: 0, z: z0, y: groundAt(0, z0, 0) ?? 0 }], R);
+  const out = all.filter((p, i) => i === 0 || i === all.length - 1 || i % 3 === 0).map(p => ({ x: p.x, z: p.z, y: p.y, w }));
+  return out;
+}
+
+// dress a set with real models without hand-placing each one: every item is tried at random spots in the area, sat on
+// whatever ground is under it (raycast), and only kept where it clears the fighters' lane, the camera's foreground and
+// everything already standing in the set (bounding boxes). items = [[name, count, [minH, maxH] | { s: [a, b] }, opts], ...]
+export async function dress(D, R, { area = [-16, 16, -9, 4], items = [], lane = [-8.5, 8.5, -3.6, 2.6], front = 2.4, pad = .3 } = {}) {
+  const S = D.scene; S.updateMatrixWorld(true);
+  const solid = []; S.traverse(o => { if (!o.isMesh || o.isInstancedMesh || !o.visible || !o.geometry) return; const b = new T.Box3().setFromObject(o), z = b.getSize(new T.Vector3());
+    if (z.y < .18 || z.x > 30 || z.z > 30 || (o.material && o.material.transparent && !o.material.depthWrite)) return; solid.push(b); });
+  const ray = new T.Raycaster(), down = new T.Vector3(0, -1, 0), grounds = []; S.traverse(o => { if (o.isMesh && !o.isInstancedMesh && o.visible) grounds.push(o); });
+  const groundAt = (x, z) => { ray.set(new T.Vector3(x, 30, z), down); ray.far = 40; const h = ray.intersectObjects(grounds, false).find(i => i.face && i.face.normal && Math.abs(i.face.normal.clone().transformDirection(i.object.matrixWorld).y) > .7); return h ? h.point.y : null; };
+  const [x0, x1, z0, z1] = area, out = [];
+  const laneB = new T.Box3(new T.Vector3(lane[0], -5, lane[2]), new T.Vector3(lane[1], 30, lane[3])), frontB = new T.Box3(new T.Vector3(-16, -5, front), new T.Vector3(16, 30, 60));
+  for (const [name, n, size, o = {}] of items) for (let i = 0; i < n; i++) {
+    const want = Array.isArray(size) ? { h: R.r(size[0], size[1]) } : { s: R.r(size.s[0], size.s[1]) };
+    let g;
+    if (name.startsWith('img:')) {   // a painted 2D cut-out (r3d/img), standing upright like the other HD-2D props
+      g = await D.prop(IMG(name.slice(4)), 0, 0, want.h || 2, Object.assign({ blob: false, flip: R() < .5 }, o)); g.position.y = -500;
+    } else { g = await model(D, name, 0, -500, 0, Object.assign({}, o, want, { ry: R() * 6.28 })); if (!g.children.length) { g.removeFromParent(); continue; } }
+    let ok = false;
+    for (let k = 0; k < 40 && !ok; k++) {
+      const x = R.r(x0, x1), z = R.r(z0, z1);
+      const y = groundAt(x, z); if (y == null || y < -1.5) continue;
+      g.position.set(x, y, z); g.updateMatrixWorld(true); const b = new T.Box3().setFromObject(g).expandByScalar(pad); b.min.y = y + .08;   // it may sit on a deck or step: only what stands above the ground counts
+      if (b.intersectsBox(laneB) || b.intersectsBox(frontB) || solid.some(s => s.intersectsBox(b))) continue;   // the whole footprint clears the fighters' lane, the camera's foreground and the set
+      ok = true; solid.push(b); out.push(g); if (name.startsWith('img:') && D.blob) { const bw = new T.Box3().setFromObject(g).getSize(new T.Vector3()).x; D.blob(x, z, bw * .4, y); }
+    }
+    if (!ok) { g.removeFromParent(); const bi = D.billboards ? D.billboards.indexOf(g) : -1; if (bi >= 0) D.billboards.splice(bi, 1); }
+  }
+  return out;
+}
 
 export function rng(sd) { let q = sd; const R = () => (q = (q * 9301 + 49297) % 233280) / 233280; R.r = (a, b) => a + R() * (b - a); return R; }
 export function cvs(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return c; }
@@ -261,9 +381,13 @@ const inst = (D, geo, mat, list, shadow = false) => { const m = new T.InstancedM
   list.forEach((p, i) => { o.position.set(p[0], p[1], p[2]); o.rotation.set(p[3] || 0, p[4] || 0, p[5] || 0); o.scale.setScalar(p[6] || 1); o.updateMatrix(); m.setMatrixAt(i, o.matrix); });
   m.castShadow = shadow; m.receiveShadow = true; D.scene.add(m); return m; };
 // near scatter: puddles that mirror the lights, pebbles and debris, grass tufts, fallen petals/leaves lying on the floor
+// puddle edge: an irregular, soft-rimmed blob (alpha), so puddles read as wet patches instead of flat hard-edged discs
+let _pa = null;
+export function puddleAlpha() { if (_pa) return _pa; const R = rng(77); _pa = ctex(cvs(256, 256, (g, W) => { g.fillStyle = '#000'; g.fillRect(0, 0, W, W);
+  for (let i = 0; i < 16; i++) { const a = R() * 6.28, d = R() * W * .16, r = W * R.r(.14, .3), x = W / 2 + Math.cos(a) * d, y = W / 2 + Math.sin(a) * d; const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, 'rgba(255,255,255,.9)'); gr.addColorStop(.55, 'rgba(255,255,255,.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); } }), null, false); return _pa; }
 export function scatter(D, R, { area = [-14, 14, -3, 6], y = 0, puddles = 0, pebbles = 0, tufts = 0, petals = 0, leaves = 0, petal = 0xff9ad0, leaf = 0xc04020, tuft = 0x5a7a3a, stone = 0x6a6070, avoid = 3.6 } = {}) {
   const [x0, x1, z0, z1] = area, pick = (keep = true) => { for (let k = 0; k < 20; k++) { const x = R.r(x0, x1), z = R.r(z0, z1); if (!keep || Math.abs(z) > 1.4 || Math.abs(Math.abs(x) - 3.4) > avoid * .5) return [x, z]; } return [R.r(x0, x1), R.r(z0, z1)]; };
-  if (puddles) { const pm = new T.MeshStandardMaterial({ color: 0x0c0a18, roughness: .04, metalness: .9, transparent: true, opacity: .75, polygonOffset: true, polygonOffsetFactor: -2 });
+  if (puddles) { const pm = new T.MeshStandardMaterial({ color: 0x0c0a18, roughness: .06, metalness: .8, transparent: true, opacity: .8, depthWrite: false, alphaMap: puddleAlpha(), envMapIntensity: .25, polygonOffset: true, polygonOffsetFactor: -2 });
     for (let i = 0; i < puddles; i++) { const [x, z] = pick(false), p = new T.Mesh(new T.CircleGeometry(1, 20), pm); p.rotation.x = -Math.PI / 2; p.position.set(x, y + .012, z); p.scale.set(R.r(.6, 2.2), R.r(.4, 1.2), 1); p.rotation.z = R() * 3; p.receiveShadow = true; D.scene.add(p); } }
   if (pebbles) { const L = []; for (let i = 0; i < pebbles; i++) { const [x, z] = pick(false); L.push([x, y + .03, z, R() * 3, R() * 3, R() * 3, R.r(.04, .16)]); }
     inst(D, new T.DodecahedronGeometry(1, 0), new T.MeshStandardMaterial({ color: stone, roughness: .9, flatShading: true }), L, true); }
@@ -271,6 +395,41 @@ export function scatter(D, R, { area = [-14, 14, -3, 6], y = 0, puddles = 0, peb
     inst(D, new T.ConeGeometry(.03, .3, 3), new T.MeshStandardMaterial({ color: tuft, roughness: 1 }), L); }
   for (const [n, col, sz] of [[petals, petal, .07], [leaves, leaf, .1]]) if (n) { const L = []; for (let i = 0; i < n; i++) { const [x, z] = pick(false); L.push([x, y + .015, z, -Math.PI / 2, 0, R() * 6, R.r(.7, 1.3)]); }
     const g = new T.CircleGeometry(sz, 5); g.scale(1, .6, 1); inst(D, g, new T.MeshStandardMaterial({ color: col, roughness: .8, side: T.DoubleSide, polygonOffset: true, polygonOffsetFactor: -1 }), L); }
+}
+// ── decals: flat patches laid on floors (or walls) that break up tiling and tell a story — scorch, cracks, moss, oil, water
+// stains, litter, plus photo decals (CC0 ambientCG: asphalt damage, manhole covers, gum, leak streaks, road arrow) in r3d/tex/dcl_*
+const DCLP = { asphalt_dmg: 1, manhole_jp: 1, manhole: 1, gum: 1, leak: 1, leak_streak: 1, arrow: 1 };
+const blot = (g, R, x, y, r, col, n = 14) => { for (let i = 0; i < n; i++) { const a = R() * 6.28, d = R() * r * .7, rr = r * R.r(.25, .6); const gr = g.createRadialGradient(x + Math.cos(a) * d, y + Math.sin(a) * d, 0, x + Math.cos(a) * d, y + Math.sin(a) * d, rr); gr.addColorStop(0, col(1)); gr.addColorStop(1, col(0)); g.fillStyle = gr; g.beginPath(); g.arc(x + Math.cos(a) * d, y + Math.sin(a) * d, rr, 0, 7); g.fill(); } };
+const DCLC = {
+  scorch: (g, W, R) => { blot(g, R, W / 2, W / 2, W * .42, a => `rgba(8,4,2,${a * .55})`, 22); blot(g, R, W / 2, W / 2, W * .22, a => `rgba(0,0,0,${a * .5})`, 10); for (let i = 0; i < 60; i++) { g.fillStyle = `rgba(255,${R.r(80, 160) | 0},40,${R.r(.05, .25)})`; g.fillRect(W / 2 + R.r(-W * .3, W * .3), W / 2 + R.r(-W * .3, W * .3), 2, 2); } },
+  crack: (g, W, R) => { g.strokeStyle = 'rgba(10,8,8,.85)'; g.lineCap = 'round'; const br = (x, y, a, L, w) => { if (L < 6 || w < .4) return; const x2 = x + Math.cos(a) * L, y2 = y + Math.sin(a) * L; g.lineWidth = w; g.beginPath(); g.moveTo(x, y); g.lineTo(x2, y2); g.stroke(); br(x2, y2, a + R.r(-.5, .5), L * R.r(.7, .9), w * .85); if (R() < .35) br(x2, y2, a + R.r(-1.4, 1.4), L * .6, w * .6); }; for (let k = 0; k < 3; k++) br(W / 2, W / 2, R() * 6.28, W * .09, 3.2); },
+  moss: (g, W, R) => { blot(g, R, W / 2, W / 2, W * .45, a => `rgba(${R.r(50, 80) | 0},${R.r(90, 120) | 0},40,${a * .5})`, 30); for (let i = 0; i < 300; i++) { g.fillStyle = `rgba(${R.r(60, 110) | 0},${R.r(110, 160) | 0},50,${R.r(.2, .5)})`; const a = R() * 6.28, d = Math.sqrt(R()) * W * .4; g.fillRect(W / 2 + Math.cos(a) * d, W / 2 + Math.sin(a) * d, 2, 2); } },
+  oil: (g, W, R) => { blot(g, R, W / 2, W / 2, W * .36, a => `rgba(6,6,10,${a * .7})`, 16); blot(g, R, W / 2, W / 2, W * .2, a => `rgba(40,20,60,${a * .25})`, 6); },
+  stain: (g, W, R) => { blot(g, R, W / 2, W / 2, W * .4, a => `rgba(60,40,20,${a * .28})`, 18); g.strokeStyle = 'rgba(70,45,20,.35)'; g.lineWidth = 3; g.beginPath(); g.ellipse(W / 2, W / 2, W * .36, W * .3, R(), 0, 7); g.stroke(); },
+  paper: (g, W, R) => { for (let i = 0; i < 9; i++) { g.save(); g.translate(R.r(W * .15, W * .85), R.r(W * .15, W * .85)); g.rotate(R() * 6.28); const w = R.r(30, 70), h = w * R.r(.6, 1.4); g.fillStyle = `rgba(${R.r(220, 245) | 0},${R.r(215, 240) | 0},${R.r(200, 230) | 0},.95)`; g.fillRect(-w / 2, -h / 2, w, h); g.fillStyle = 'rgba(40,40,60,.35)'; for (let k = 0; k < 5; k++) g.fillRect(-w / 2 + 5, -h / 2 + 6 + k * h / 6, w * R.r(.4, .8), 2); g.restore(); } },
+};
+const DCLM = {};
+function dclMat(kind, o = {}) {
+  const key = kind + (o.tint || '') + (o.op || 1) + (o.rough ?? '');
+  if (DCLM[key]) return DCLM[key];
+  let m;
+  if (DCLP[kind]) m = new T.MeshStandardMaterial({ map: ltex('dcl_' + kind + '_c', [1, 1], true), normalMap: ltex('dcl_' + kind + '_n', [1, 1]), roughness: o.rough ?? .8 });
+  else { const R = rng(kind.length * 31 + 7); m = new T.MeshStandardMaterial({ map: ctex(cvs(256, 256, (g, W) => DCLC[kind](g, W, R))), roughness: o.rough ?? (kind === 'oil' ? .08 : .9), metalness: kind === 'oil' ? .4 : 0 }); }
+  Object.assign(m, { transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4, opacity: o.op || 1 });
+  if (o.tint) m.color = new T.Color(o.tint);
+  return (DCLM[key] = m);
+}
+export function decal(D, kind, x, z, w, d = w, { y = 0, ry = 0, wall = false, op = 1, tint, rough } = {}) {
+  const m = new T.Mesh(new T.PlaneGeometry(w, d), dclMat(kind, { op, tint, rough }));
+  if (wall) { m.position.set(x, y, z); m.rotation.y = ry; } else { m.rotation.set(-Math.PI / 2, 0, ry); m.position.set(x, y + .016, z); }
+  m.receiveShadow = true; m.renderOrder = 1; D.scene.add(m); return m;
+}
+// a batch of floor decals across an area, kept out of the fighters' marks: list = [[kind, count, [minSize, maxSize]], ...]
+export function decals(D, R, { area = [-14, 14, -6, 5], y = 0, list = [], keep = 3.6 } = {}) {
+  const [x0, x1, z0, z1] = area;
+  for (const [kind, n, [a, b] = [1, 2.5], o = {}] of list) for (let i = 0; i < n; i++) {
+    let x = 0, z = 0; for (let k = 0; k < 20; k++) { x = R.r(x0, x1); z = R.r(z0, z1); if (Math.abs(z) > 1.6 || Math.abs(Math.abs(x) - 3.4) > keep * .5) break; }
+    const s = R.r(a, b); decal(D, kind, x, z, s, s * R.r(.75, 1.25), Object.assign({ y, ry: R() * 6.28 }, o)); }
 }
 // vertical neon shop signs with glyph-like strokes
 const SIGN = {};

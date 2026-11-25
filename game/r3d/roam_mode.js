@@ -1,11 +1,13 @@
 // Free roam in 3D (HD-2D): the Moonlit Bamboo Road as the game's free-roam mode.
 // The game supplies the hero atlas and callbacks (fights, loot, exit); this module owns the 3D world and controls.
 import { Diorama, T } from './diorama.js';
-import { build, nearest } from './scene_bamboo.js';
+import * as BAM from './scene_bamboo.js';
+import { look, walkPath } from './kit.js';
 
 const BASE = new URL('./img/', import.meta.url).href, I = n => BASE + n + '.webp', GAMEIMG = new URL('../img/', import.meta.url).href;
 const CSS = `.roam3d{position:fixed;inset:0;z-index:95;background:#05060d;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;font-family:'Barlow Condensed',system-ui,sans-serif;color:#fff}
 .roam3d.away{visibility:hidden}
+.r3-fade{position:absolute;inset:0;background:#05060d;opacity:0;pointer-events:none;transition:opacity .45s;z-index:30}
 .roam3d canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .r3-hud{position:absolute;left:14px;top:12px;display:flex;align-items:center;gap:10px;pointer-events:none}
 .r3-ava{width:54px;height:54px;border-radius:50%;background:#111 center/cover;border:2px solid #ffd27a;box-shadow:0 2px 10px rgba(0,0,0,.6)}
@@ -37,7 +39,7 @@ const CSS = `.roam3d{position:fixed;inset:0;z-index:95;background:#05060d;overfl
 .r3-card button:first-of-type{border-color:rgba(255,210,120,.7);background:rgba(255,190,80,.16)}
 .r3-quality{opacity:.75}`;
 
-const ITEMS = [
+const B_ITEMS = [
   { img: 'rp_pot', x: -36, z: 3.6, h: .75, kind: 'pot', label: 'Break the pot' },
   { img: 'rp_barrel', x: -5, z: 5.6, h: .9, kind: 'pot', label: 'Smash the barrel' },
   { img: 'rp_chest', x: 2.5, z: -.6, h: .75, kind: 'chest', label: 'Open the chest' },
@@ -59,7 +61,7 @@ const ITEMS = [
   { img: 'rp_food', x: 70, z: 3.4, h: .5, kind: 'food', label: 'Eat the onigiri' },
   { img: 'rp_rchest', x: 79, z: 3.2, h: .85, kind: 'rchest', label: 'Open the bandit hoard', lock: 'gasha' },
 ];
-const FOES = [
+const B_FOES = [
   { id: 'tanuki', x: -2, z: 2.2, h: 1.7, stage: 'road' },
   { id: 'tengu', x: 14, z: 2.4, h: 2.1, stage: 'road' },
   { id: 'nue', x: 27, z: -14, h: 2.6, y: 3, stage: 'shrine', boss: 1 },
@@ -75,7 +77,17 @@ const FOES = [
   { id: 'gasha', src: 'battle', _r: 'roam_gasha', x: 73, z: 1.8, h: 3.4, stage: 'road', boss: 1 },
 ];
 const START = { x: -94, z: 1.8 };
-let FOES0 = null, graceT = 0;
+let graceT = 0;
+// the world, west to east: Willow ← Moonlit Bamboo Road → Festival → Neon Ward → Coast
+export const WORLD = ['w_graves', 'w_mill', 'w_village', 'bamboo', 'road', 'festival', 'sakebar', 'nw_street', 'nw_teahouse', 'nw_snack', 'nw_roof', 'nw_express', 'harbor', 'e_dojo', 'e_light', 'e_whale'];
+const ZONE = { w_graves: ['Willow Graves', 'Willow · the old graveyard at the edge of the world'], w_mill: ['Watermill Stream', 'Willow · the mill race'], w_village: ['Willow Village', 'Willow · the river village'],
+  bamboo: ['Moonlit Bamboo Road', 'Walk the long road · cross the stream · climb to the shrine'], road: ['Sunset Road', 'Festival · the lantern road'], festival: ['Festival Avenue', 'Festival · stalls and lanterns'], sakebar: ['Sake Bar Alley', 'Festival · the covered lane'],
+  nw_street: ['Neon Ward Street', 'Neon Ward · the crossing'], nw_teahouse: ['Neon Teahouse', 'Neon Ward · the garden room'], nw_snack: ['Snack Bar', 'Neon Ward · a rainy-night snack'], nw_roof: ['Neon Ward Rooftop', 'Neon Ward · above the rain'], nw_express: ['Neon Expressway', 'Neon Ward · the elevated highway'],
+  harbor: ['Pirate Harbor', 'Coast · the wharf'], e_dojo: ['Cliffside Dojo', 'Coast · the training deck'], e_light: ['Lighthouse Point', 'Coast · under the beam'], e_whale: ['Whalebone Shore', 'Coast · the end of the line'] };
+// the regions you can start a roam in (each begins at its west end and runs east into the next)
+export const REGIONS = [['w_graves', 'Willow', 'Graves · watermill · river village'], ['bamboo', 'Moonlit Bamboo Road', 'The long road, the stream, the shrine'], ['road', 'Festival', 'Sunset road · festival avenue · sake bar alley'],
+  ['nw_street', 'Neon Ward', 'Street · teahouse · snack bar · rooftop · expressway'], ['harbor', 'Coast', 'Harbor · cliff dojo · lighthouse · whalebone shore']];
+const BOSSZ = { w_graves: 1, sakebar: 1, nw_express: 1, e_whale: 1 }, FILE = {};
 
 export async function createRoam(host, cfg) {
   if (!document.getElementById('r3css')) { const st = document.createElement('style'); st.id = 'r3css'; st.textContent = CSS; document.head.appendChild(st); }
@@ -84,7 +96,7 @@ export async function createRoam(host, cfg) {
   host.classList.add('roam3d'); if (touch) host.classList.add('touch');
   host.innerHTML = `<canvas></canvas>
     <div class="r3-hud"><i class="r3-ava" style="background-image:url(${cfg.ava})"></i><div><b></b><div class="r3-hp"><i></i></div><small></small></div></div>
-    <div class="r3-zone"><b>MOONLIT BAMBOO ROAD</b><i>Walk the long road · cross the stream · climb to the shrine</i></div>
+    <div class="r3-zone"><b>MOONLIT BAMBOO ROAD</b><i>Walk the long road · cross the stream · climb to the shrine</i></div><div class="r3-fade"></div>
     <div class="r3-prompt"><kbd>E</kbd><span></span></div><div class="r3-banner"><b></b><span></span></div>
     <button class="r3-menu" aria-label="Pause menu"><i></i><i></i><i></i></button>
     <div class="r3-stick"><i></i></div><div class="r3-btns"><button class="act" type="button">ACT</button><button class="atk" type="button">STRIKE</button></div>
@@ -93,37 +105,93 @@ export async function createRoam(host, cfg) {
   const $ = q => host.querySelector(q);
   const D = new Diorama($('canvas'), { quality, fogNear: 20, fogFar: 70, fogColor: 0x0c1430 });
   const small = Math.min(innerWidth, innerHeight) < 520;
-  await build(D);
-  const A = (n, x, z, h, o) => D.prop(I(n), x, z, h, o);
-  const fill = new T.PointLight(0xffe2c0, 9, 7, 1.4); D.scene.add(fill);
-
-  // ── things in the world ──
-  for (const it of ITEMS) { it.done = false; it.mesh = await A(it.img, it.x, it.z, it.h, { y: it.y || 0 }); }
-  // a fresh road every visit: the regular foes are drawn at random from the pool (bosses stay put), some slots stay empty,
-  // and nobody waits near the entrance, so you can always walk in before the first fight
-  if (!FOES0) FOES0 = FOES.map(f => Object.assign({}, f));
-  FOES.length = 0; FOES0.forEach(f => FOES.push(Object.assign({}, f)));
-  { const pool = (cfg.foePool || []).slice().sort(() => Math.random() - .5), rnd = (a, b) => a + Math.random() * (b - a);
-    for (let i = FOES.length - 1; i >= 0; i--) { const f = FOES[i]; if (f.boss) continue;
-      if (Math.random() < .2) { FOES.splice(i, 1); continue; }
+  // ── the world: one long chain of areas, west to east, with the bamboo road in the middle; walking off either end of an
+  // area loads the next one (a short fade), and every area remembers its beaten foes and opened chests for the visit
+  let FOES = [], ITEMS = [], PATHS_Z = BAM.PATHS, zone = 'bamboo', hero = null, fill = null, EX = [], entry = { x: START.x, z: START.z };
+  const nearest = (x, z) => BAM.nearest(x, z, PATHS_Z);
+  const MEM = {}, A = (n, x, z, h, o) => D.prop(I(n), x, z, h, o);
+  const idleH = (cfg.frames.idle && cfg.frames.idle[0][3]) || 400;
+  const pos = new T.Vector3(START.x, 0, START.z), vel = new T.Vector2(); let face = 1, atkT = 0, busy = false, paused = false, gone = false;
+  function clearWorld() {
+    const old = D.scene; D.scene = new T.Scene(); D.scene.fog = new T.Fog(0x0c1430, 20, 70); D.scene.background = new T.Color(0x0c1430);
+    if (D.moon && D.moon.shadow && D.moon.shadow.map) D.moon.shadow.map.dispose();
+    Object.assign(D, { spots: undefined, pool: undefined, billboards: [], updaters: [], backdropMesh: null, moon: null });
+    old.traverse(o => { if (o.geometry) o.geometry.dispose(); for (const m of o.material ? [].concat(o.material) : []) m.dispose(); });
+    if (old.environment && old.environment.dispose) old.environment.dispose();
+  }
+  function bambooFoes() {
+    const F = B_FOES.map(f => Object.assign({}, f));
+    const pool = (cfg.foePool || []).slice().sort(() => Math.random() - .5), rnd = (a, b) => a + Math.random() * (b - a);
+    for (let i = F.length - 1; i >= 0; i--) { const f = F[i]; if (f.boss) continue;
+      if (Math.random() < .2) { F.splice(i, 1); continue; }
       if (pool.length) { f.id = pool.pop(); f.src = 'battle'; }
       f.x += rnd(-3, 3); f.z = Math.max(.8, Math.min(3.4, f.z + rnd(-.8, .8)));
       if (Math.hypot(f.x - START.x, f.z - START.z) < 22) { if (f.x < START.x + 22) f.x = START.x + 22 + rnd(0, 6); } }
     // at most two enemies per area, guardian included: one boss and one regular foe
-    { const bosses = FOES.filter(f => f.boss), regs = FOES.filter(f => !f.boss), keep = [];
-      if (bosses.length) keep.push(bosses[(Math.random() * bosses.length) | 0]);
-      if (regs.length) keep.push(regs[(Math.random() * regs.length) | 0]);
-      const max = cfg.maxFoes || 2; FOES.length = 0; keep.slice(0, max).forEach(f => FOES.push(f)); }
-    graceT = 3; }
-  for (const f of FOES) {
-    Object.assign(f, { st: 'idle', t: 0, beaten: false, x0: f.x, z0: f.z });
-    const url = f.src ? (cfg.foeArt ? await cfg.foeArt(f.id) : GAMEIMG + 'foe_' + f.id + '.webp') : I('foe_' + f.id);
-    f.mesh = await D.prop(url, f.x, f.z, f.h, { y: f.y || 0, flip: 1, blob: false }); f.base = f.mesh.scale.y; f.blob = D.blob(f.x, f.z, f.boss ? 1 : .7, f.y || 0);
+    const bosses = F.filter(f => f.boss), regs = F.filter(f => !f.boss), keep = [];
+    if (bosses.length) keep.push(bosses[(Math.random() * bosses.length) | 0]);
+    if (regs.length) keep.push(regs[(Math.random() * regs.length) | 0]);
+    return keep.slice(0, cfg.maxFoes || 2);
   }
-  // ── hero ──
-  const idleH = (cfg.frames.idle && cfg.frames.idle[0][3]) || 400;
-  const hero = D.actor(cfg.atlas, cfg.frames, idleH / 1.75, { fps: 10, glide: cfg.glide });
-  const pos = new T.Vector3(START.x, 0, START.z), vel = new T.Vector2(); let face = 1, atkT = 0, busy = false, paused = false, gone = false;
+  // an arena area: a regular foe or two along the path, a guardian on the clearing at the end of each region, loot by the way
+  const LOOTS = [['rp_pot', 'pot', 'Break the pot', .75], ['rp_barrel', 'pot', 'Smash the barrel', .9], ['rp_crates', 'pot', 'Break the crates', .9], ['rp_food', 'food', 'Eat the onigiri', .5], ['rp_elixir', 'elixir', 'Drink the elixir', .6], ['rp_chest', 'chest', 'Open the chest', .75]];
+  function zoneSpawn(name, P) {
+    const pool = (cfg.foePool || []).slice().sort(() => Math.random() - .5), pick = a => a.splice((Math.random() * a.length) | 0, 1)[0];
+    const pts = P.filter(p => Math.abs(p.x) > 3.5 && p.x - P[0].x > 5 && P[P.length - 1].x - p.x > 5), F = [], IT = [];
+    const nf = pts.length ? 1 + (Math.random() < .45 ? 1 : 0) : 0;
+    for (let i = 0; i < nf && pts.length; i++) { const p = pick(pts); F.push({ id: pool.pop() || 'tanuki', src: 'battle', x: p.x, z: p.z, y: p.y, h: 2, stage: name }); }
+    if (BOSSZ[name]) { const c = P.reduce((a, b) => Math.abs(b.x) < Math.abs(a.x) ? b : a); F.push({ id: pool.pop() || 'tengu', src: 'battle', x: c.x + 1.5, z: c.z, y: c.y, h: 3, stage: name, boss: 1 });
+      IT.push({ img: 'rp_rchest', kind: 'rchest', label: 'Open the guardian\'s hoard', h: .85, x: c.x + 4, z: c.z + .9, y: c.y, lock: F[F.length - 1].id }); }
+    const lp = P.filter(p => p.x - P[0].x > 2.5 && P[P.length - 1].x - p.x > 2.5);
+    for (let i = 0; i < 3 && lp.length; i++) { const p = pick(lp), [img, kind, label, h] = LOOTS[(Math.random() * LOOTS.length) | 0]; IT.push({ img, kind, label, h, x: p.x + (Math.random() - .5), z: p.z + (Math.random() < .5 ? -.7 : .7), y: p.y }); }
+    return { FOES: F, ITEMS: IT };
+  }
+  function signpost(x, z, y, text, dir) {
+    A('rg_signpost', x, z, 2, { y, blob: false });
+    const c = document.createElement('canvas'); c.width = 512; c.height = 96; const g = c.getContext('2d'); g.font = '700 46px "Barlow Condensed",system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = 'rgba(8,6,18,.72)'; const tw = Math.min(500, g.measureText(text).width + 90); g.fillRect(256 - tw / 2, 10, tw, 76); g.fillStyle = '#ffd27a'; g.fillText((dir < 0 ? '◀  ' : '') + text + (dir > 0 ? '  ▶' : ''), 256, 50);
+    const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; const s = new T.Sprite(new T.SpriteMaterial({ map: t, transparent: true, depthWrite: false, fog: false }));
+    s.position.set(x, y + 2.7, z); s.scale.set(3.2, .6, 1); D.scene.add(s);
+  }
+  async function loadZone(name, from) {
+    clearWorld(); zone = name; const meta = ZONE[name] || [name, ''];
+    if (name === 'bamboo') {
+      await BAM.build(D); D.renderer.toneMappingExposure = 1.15; D.setFX({}); try { D.envLight(); } catch (_) {}
+      PATHS_Z = BAM.PATHS;
+      if (!MEM.bamboo) MEM.bamboo = { FOES: bambooFoes(), ITEMS: B_ITEMS.map(i => Object.assign({}, i, { done: false })) };
+      EX = [{ x: -96, dir: -1, to: 'w_village', z: 1.6, y: 0 }, { x: 78, dir: 1, to: 'road', z: 2.2, y: 0 }];
+      entry = from === 'east' ? { x: 76, z: 2.2 } : { x: START.x, z: START.z };
+    } else {
+      const mod = await import('./scene_' + (FILE[name] || name) + '.js'); await mod.build(D, 1, name);
+      for (let i = 0; i < 60; i++) for (const u of D.updaters) u(i / 60, 1 / 60);
+      D.renderer.toneMappingExposure = (mod.PRESET && mod.PRESET.exposure) || 1.75; const lk = look(name, mod.PRESET); D.setFX(lk); try { D.envLight({ env: lk.env }); } catch (_) {}
+      const P = walkPath(D); PATHS_Z = [P]; const i = WORLD.indexOf(name), a = P[0], b = P[P.length - 1];
+      EX = []; if (WORLD[i - 1]) EX.push({ x: a.x, dir: -1, to: WORLD[i - 1], z: a.z, y: a.y }); if (WORLD[i + 1]) EX.push({ x: b.x, dir: 1, to: WORLD[i + 1], z: b.z, y: b.y });
+      entry = from === 'east' ? { x: b.x - 1.4, z: b.z } : { x: a.x + 1.4, z: a.z };
+      if (!MEM[name]) MEM[name] = zoneSpawn(name, P);
+    }
+    FOES = MEM[name].FOES; ITEMS = MEM[name].ITEMS;
+    for (const ex of EX) signpost(ex.x - ex.dir * .2, ex.z - 1.1, ex.y, (ZONE[ex.to] || [ex.to])[0], ex.dir);
+    fill = new T.PointLight(0xffe2c0, 9, 7, 1.4); D.scene.add(fill);
+    for (const it of ITEMS) { it.mesh = await A(it.img, it.x, it.z, it.h, { y: it.y || 0 }); if (it.done) { if (it.kind === 'chest' || it.kind === 'rchest') { it.mesh.material = it.mesh.material.clone(); it.mesh.material.color.set(0x8a8a8a); } else it.mesh.visible = false; } }
+    for (const f of FOES) {
+      if (f.beaten) continue;
+      Object.assign(f, { st: 'idle', t: 0, x0: f.x0 ?? f.x, z0: f.z0 ?? f.z }); f.x = f.x0; f.z = f.z0;
+      const url = f.src ? (cfg.foeArt ? await cfg.foeArt(f.id) : GAMEIMG + 'foe_' + f.id + '.webp') : I('foe_' + f.id);
+      f.mesh = await D.prop(url, f.x, f.z, f.h, { y: f.y || 0, flip: 1, blob: false }); f.base = f.mesh.scale.y; f.blob = D.blob(f.x, f.z, f.boss ? 1 : .7, f.y || 0);
+    }
+    hero = D.actor(cfg.atlas, cfg.frames, idleH / 1.75, { fps: 10, glide: cfg.glide });
+    pos.set(entry.x, 0, entry.z); { const n = nearest(pos.x, pos.z); pos.y = n.y; } vel.set(0, 0); graceT = 2.5; first = true;
+    $('.r3-zone b').textContent = meta[0].toUpperCase(); $('.r3-zone i').textContent = meta[1]; $('.r3-zone').style.opacity = 1; clearTimeout(zT); zT = setTimeout(() => { $('.r3-zone').style.opacity = 0; }, 3200);
+  }
+  let zT = 0, first = true;
+  async function travel(to, from) {
+    if (busy) return; busy = true; for (const k in keys) keys[k] = 0; jv = { x: 0, y: 0 };
+    const fd = $('.r3-fade'); fd.style.opacity = 1; await new Promise(r => setTimeout(r, 480));
+    D.paused = true; try { await loadZone(to, from); } catch (e) { console.warn('roam zone', to, e); }
+    if (gone) return; D.paused = paused; hud(); fd.style.opacity = 0; busy = false;
+  }
+  await loadZone(WORLD.includes(cfg.start) ? cfg.start : 'bamboo', 'west');   // cfg.start: which area the roam begins in
 
   // ── HUD ──
   $('.r3-hud b').textContent = cfg.name.toUpperCase();
@@ -166,7 +234,7 @@ export async function createRoam(host, cfg) {
   }
   function act() { if (busy || paused || !near) return; if (near.foe) { engage(near, 'ambush'); return; } use(near); }
   function use(it) {
-    if (it.kind === 'rchest' && FOES.some(f => f.id === it.lock && !f.beaten)) { banner('Sealed', it.lock === 'nue' ? 'Beat the shrine guardian first' : 'Beat the Gashadokuro first'); return; }
+    if (it.kind === 'rchest' && FOES.some(f => f.id === it.lock && !f.beaten)) { banner('Sealed', it.lock === 'nue' ? 'Beat the shrine guardian first' : it.lock === 'gasha' ? 'Beat the Gashadokuro first' : 'Beat this area\'s guardian first'); return; }
     it.done = true; const at = it.mesh.position.clone().add(new T.Vector3(0, it.h + .3, 0));
     const r = cfg.loot(it.kind) || {}; if (r.text) pop(r.text, at, r.col);
     if (it.kind === 'chest' || it.kind === 'rchest') { it.mesh.material = it.mesh.material.clone(); it.mesh.material.color.set(0x8a8a8a); } else it.mesh.visible = false;
@@ -182,12 +250,12 @@ export async function createRoam(host, cfg) {
     if (gone) return;
     host.classList.remove('away'); D.paused = false; hud();
     if (win) { f.beaten = true; f.st = 'down'; f.t = 0; const r = cfg.loot('win') || {}; if (r.text) pop(r.text, pos.clone().add(new T.Vector3(0, 2.3, 0)), r.col); if (f.boss) banner('Clear!', f.id === 'nue' ? 'The sealed offering opens' : 'The hoard is yours to open', 1800); }
-    else { f.st = 'idle'; f.x = f.x0; f.z = f.z0; f.mesh.position.set(f.x, f.y || 0, f.z); pos.set(START.x, 0, START.z); banner('K.O.', 'You wake up at the start of the road', 2200); }
+    else { f.st = 'idle'; f.x = f.x0; f.z = f.z0; f.mesh.position.set(f.x, f.y || 0, f.z); pos.set(entry.x, 0, entry.z); banner('K.O.', zone === 'bamboo' ? 'You wake up at the start of the road' : 'You come to where you walked in', 2200); }
     busy = false;
   }
 
   // ── loop ──
-  const camOff = small ? new T.Vector3(0, 6.2, 11) : new T.Vector3(0, 7.6, 13.5), camPos = new T.Vector3(), look = new T.Vector3(); let first = true;
+  const camOff = small ? new T.Vector3(0, 6.2, 11) : new T.Vector3(0, 7.6, 13.5), camPos = new T.Vector3(), lookAt = new T.Vector3();
   D.frame((dt, t) => {
     if (gone) return;
     let ix = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + jv.x;
@@ -198,14 +266,16 @@ export async function createRoam(host, cfg) {
     let nx = pos.x + vel.x * dt, nz = pos.z + vel.y * dt; let n = nearest(nx, nz);
     if (n.over > 0) { const k = n.w / n.d; nx = n.px + (nx - n.px) * k; nz = n.pz + (nz - n.pz) * k; n = nearest(nx, nz); }
     pos.x = nx; pos.z = nz; pos.y += (n.y - pos.y) * Math.min(1, dt * 14);
+    // walking off the end of the area: on to the next one
+    if (!busy && !paused) for (const ex of EX) if ((ex.dir < 0 && ix < -.3 && pos.x <= ex.x + .3) || (ex.dir > 0 && ix > .3 && pos.x >= ex.x - .3)) { travel(ex.to, ex.dir > 0 ? 'west' : 'east'); break; }
     hero.root.position.copy(pos); fill.position.set(pos.x - .6, pos.y + 2.2, pos.z + 2.4);
     atkT = Math.max(0, atkT - dt);
     const moving = Math.hypot(vel.x, vel.y) > .6; if (atkT <= 0) hero.set(moving ? 'run' : 'idle');
     if (Math.abs(vel.x) > .3) face = vel.x > 0 ? 1 : -1; hero.face = face; hero.fps = atkT > 0 ? 8 : moving ? 6 + Math.hypot(vel.x, vel.y) * 1.2 : 2;
     const tgt = new T.Vector3(pos.x + vel.x * .35, pos.y, pos.z + vel.y * .2), want = tgt.clone().add(camOff);
-    if (first) { camPos.copy(want); look.copy(tgt); first = false; }
-    camPos.lerp(want, Math.min(1, dt * 3.2)); look.lerp(tgt.clone().add(new T.Vector3(0, 1.1, -1.4)), Math.min(1, dt * 4));
-    D.camera.position.copy(camPos); D.camera.lookAt(look); D.focus = pos; D.followShadow(pos); D.fadeFor(pos);
+    if (first) { camPos.copy(want); lookAt.copy(tgt); first = false; }
+    camPos.lerp(want, Math.min(1, dt * 3.2)); lookAt.lerp(tgt.clone().add(new T.Vector3(0, 1.1, -1.4)), Math.min(1, dt * 4));
+    D.camera.position.copy(camPos); D.camera.lookAt(lookAt); D.focus = pos; D.followShadow(pos); D.fadeFor(pos);
     D.post.uniforms.flash.value = Math.max(0, D.post.uniforms.flash.value - dt * 1.8);
     // foes: idle breath → notice (!) → close in; touching you = Ambushed
     if (graceT > 0 && !paused) graceT -= dt;
@@ -232,6 +302,6 @@ export async function createRoam(host, cfg) {
   });
   function destroy() { gone = true; D.paused = true; D.dead = true; removeEventListener('keydown', kd, true); removeEventListener('keyup', ku, true); try { D.renderer.dispose(); D.renderer.forceContextLoss(); } catch (_) {} host.innerHTML = ''; }
   banner('', '', 1);
-  window.__R3 = { pos, FOES, ITEMS };
+  window.__R3 = { pos, get FOES() { return FOES; }, get ITEMS() { return ITEMS; }, get zone() { return zone; }, travel };
   return { destroy, pause: setPause };
 }

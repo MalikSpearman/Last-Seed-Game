@@ -2,7 +2,7 @@
 // millrace, the stream runs on under an arched footbridge to a little lit house, wisteria hangs from the thatch,
 // bamboo and irises crowd the banks, stone lanterns glow, blue wisps drift, under a blood moon.
 import { T } from './diorama.js';
-import { kit, rng, sky, moon, pbr, water, deck, rail, pagoda, scatter, clutter, farPainting, drift } from './kit.js';
+import { kit, rng, sky, moon, pbr, water, deck, rail, pagoda, scatter, clutter, farPainting, drift, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -1.6], [-4.4, -1.8], [1.6, -2.6]], sum: [-5.6, .8], exposure: 1.6 };
 
@@ -48,4 +48,6 @@ export async function build(D) {
   drift(D, 30, 0, -14, 14, 8, 0x80d0ff, { y0: -.2, y1: 3, size: 16 });
   farPainting(D, 'w_mill', { v1: .5, z: -144 });
   scatter(D, rng(95), { area: [-14, 14, -3, 5.4], puddles: 7, petals: 90, petal: 0xb080ff, leaves: 30, leaf: 0x6a9a4a, tufts: 20 });
+  decals(D, rng(719), { area: [-14, 14, -3, 5.4], list: [['moss', 6, [1.4, 3]], ['stain', 3, [1.2, 2.2]], ['crack', 2, [1.4, 2.4]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
+  await dress(D, rng(933), { area: [-16, 16, -9, 4], items: [['img:rg_willow', 2, [6, 8]], ['img:rg_well', 1, [2.4, 2.8]], ['namaqualand_boulder_02', 2, [.6, 1.2]], ['tree_stump_01', 1, [.45, .6]], ['dead_tree_trunk', 1, { s: [.8, 1] }], ['wooden_bucket_01', 2, [.55, .7]], ['wine_barrel_01', 1, [1, 1.2]]] });   // real CC0 models placed where they fit (kit.dress)
 }

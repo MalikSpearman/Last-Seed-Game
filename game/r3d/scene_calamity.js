@@ -2,7 +2,7 @@
 // ringing it with lantern-lit tiers and crest banners, purple braziers burning around the rim, the demon gate at the far
 // end, and a vortex of violet cloud tearing open the sky overhead with a black crystal heart hanging in it.
 import { T } from './diorama.js';
-import { kit, rng, sky, pbr, ctex, cvs, bannerTex, farPainting, scatter, drift, vortex, flames, lightning } from './kit.js';
+import { kit, rng, sky, pbr, ctex, cvs, bannerTex, farPainting, scatter, drift, vortex, flames, lightning, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -2], [-4.4, -2.2], [1.6, -3.4]], sum: [-5.6, .8], exposure: 1.55 };
 
@@ -37,5 +37,7 @@ export async function build(D) {
   // rubble and cracked stones on the floor, petals
   for (let i = 0; i < 24; i++) { const r = add(new T.DodecahedronGeometry(R.r(.4, 1.4), 0), M.dark, R.r(-20, 20), .2, R.r(-6, -30), { ry: R() * 6 }); r.scale.y = .5; }
   scatter(D, rng(115), { area: [-16, 16, -4, 6], pebbles: 120, stone: 0x5a4a68, petals: 200, petal: 0xd070c0 });
+  decals(D, rng(747), { area: [-16, 16, -4, 6], list: [['scorch', 6, [2, 4.5]], ['crack', 4, [1.6, 3]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   drift(D, 120, 0, -20, 40, 30, 0xc070ff, { y0: .5, y1: 20, size: 8 });
+  await dress(D, rng(1076), { area: [-16, 16, -9, 4], items: [['namaqualand_boulder_02', 2, [.5, .9], { tint: 0x8a7090 }]] });   // real CC0 models placed where they fit (kit.dress)
 }

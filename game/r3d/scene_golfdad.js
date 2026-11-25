@@ -3,7 +3,7 @@
 // waterfall, the clubhouse lit up on the hill among cypresses, golf carts parked, blossom trees, mountains at sunset.
 // Phase two: night thunderstorm, rain lashing, lightning striking the flag, the cart flipped on its side, puddles.
 import { T } from './diorama.js';
-import { kit, rng, sky, pbr, ctex, cvs, water, stoneLantern, pagoda, farPainting, scatter, drift, lightning, rain, hills, groundFill } from './kit.js';
+import { kit, rng, sky, pbr, ctex, cvs, water, stoneLantern, pagoda, farPainting, scatter, drift, lightning, rain, hills, groundFill, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -1.8], [-4.4, -2], [1.6, -2.8]], sum: [-5.6, .8], exposure: 1.35 };
 const grass = (night) => { const R = rng(3); return cvs(256, 256, (g, W, H) => { g.fillStyle = night ? '#1a3a20' : '#4a8a3a'; g.fillRect(0, 0, W, H); for (let i = 0; i < 4000; i++) { g.fillStyle = `rgba(${R() < .5 ? '255,255,200' : '0,40,0'},${R.r(.03, .1)})`; g.fillRect(R() * W, R() * H, 1, 3); }
@@ -40,4 +40,5 @@ export async function build(D, phase = 1) {
   if (storm) { lightning(D, R, { color: 0xc0b0ff, area: [-30, 30, -30, -70], every: [1.6, 4] }); rain(D, 1400, [-24, 24], [0, 20], [-30, 8], { speed: 18 }); farPainting(D, 'golfdad2', { v1: .45, z: -144 }); }
   else { const sun = new T.Mesh(new T.CircleGeometry(10, 32), new T.MeshBasicMaterial({ color: 0xfff0c0, fog: false })); sun.position.set(-20, 6, -139); S.add(sun); D.glow(-20, 8, -137, 80, 0xffa060); farPainting(D, 'golfdad', { v1: .5, z: -144 }); drift(D, 30, 0, -10, 20, 10, 0xffe0a0, { y0: .5, y1: 5, size: 5 }); }
   scatter(D, rng(133), { area: [-14, 14, -3, 6], puddles: storm ? 12 : 0, petals: storm ? 60 : 90, petal: 0xffb0d0, tufts: 20 });
+  await dress(D, rng(1087), { area: [-16, 16, -9, 4], items: [['painted_wooden_bench', 1, [.9, 1]], ['tree_stump_01', 1, [.45, .6]], ['namaqualand_boulder_02', 1, [.6, 1.2]]] });   // real CC0 models placed where they fit (kit.dress)
 }

@@ -2,7 +2,7 @@
 // banners stand over the water, boardwalk bridges link them, a lantern boat drifts, willows and wisteria hang low,
 // stone lanterns guard the landing, irises and blue wisps by the water, under a red moon.
 import { T } from './diorama.js';
-import { kit, rng, sky, moon, pbr, stoneLantern, water, drift, rail, pagoda, rain, bannerTex, ctex, farPainting, groundFill, scatter, cityBlocks, walkers, clutter } from './kit.js';
+import { kit, rng, sky, moon, pbr, stoneLantern, water, drift, rail, pagoda, rain, bannerTex, ctex, farPainting, groundFill, scatter, cityBlocks, walkers, clutter, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -1.4], [-4.4, -1.6], [1.6, -2.2]], sum: [-5.6, .8], exposure: 1.6 };
 
@@ -54,6 +54,8 @@ export async function build(D) {
   const R2 = rng(595);
   farPainting(D, 'w_village', { v1: .5, z: -145 });
   scatter(D, R2, { area: [-12, 12, -3, 5], puddles: 8, petals: 120, petal: 0xb080ff, leaves: 40, leaf: 0x7aa040, avoid: 4 });
+  decals(D, rng(726), { area: [-12, 12, -3, 5], list: [['moss', 6, [1.4, 3]], ['stain', 3, [1.2, 2.2]], ['crack', 2, [1.4, 2.4]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   // background life and mid-ground clutter
   await clutter(D, K, R2, 'wild', { area: [-14, 14, 5.4, 6.4], n: 8, clear: 7 });
+  await dress(D, rng(944), { area: [-16, 16, -9, 4], items: [['img:rg_willow', 2, [6, 8]], ['img:rg_well', 1, [2.4, 2.8]], ['wooden_bucket_01', 2, [.55, .7]], ['wine_barrel_01', 2, [1, 1.2]], ['painted_wooden_bench', 1, [.9, 1]], ['wooden_stool_01', 2, [.5, .6]]] });   // real CC0 models placed where they fit (kit.dress)
 }

@@ -1,5 +1,20 @@
 [
  {
+  "version": "0.3.27",
+  "date": "Nov 25, 2026",
+  "title": "Kaiko, a connected world, and polished arenas",
+  "items": [
+   "New fighter: Kaiko (KAIJU_KO), the Bedroom Kaiju — a fire and lightning zoner who builds Camp, with the AFK Barrage super",
+   "Free roam is now one connected world: 16 areas from Willow through the Moonlit Bamboo Road, Festival and Neon Ward to the Coast. Walk off an area's end to reach the next; signposts show where you're headed",
+   "Pick which region to start roaming in; every area has its own foes and loot, and each region ends with a guardian guarding a hoard",
+   "Arenas look sharper: soft glow on lanterns and neon, contact shadows, reflections on wet and glossy floors",
+   "Real 3D props with an anime finish across the arenas, plus painted extras: a commuter train, highway traffic, vending machines, food stalls, boats, willows and more",
+   "Floors get detail: cracks, moss, stains, scorch marks, manholes and litter",
+   "Holdline's floor is office tile now, and its bright office no longer washes out to white",
+   "Exam Hall and Canteen windows look out on a sunset town; Snack Bar shows the Neon Ward skyline; storm horizon at Calamity"
+  ]
+ },
+ {
   "version": "0.3.26",
   "date": "Nov 25, 2026",
   "title": "Perfect counters get their rainbow back",

@@ -2,7 +2,7 @@
 // of bottles, stools and a steaming pot under seigaiha noren; a low table with cushions and a sake set on the right;
 // paper lanterns strung all the way down the lane to the stairs at the far end.
 import { T } from './diorama.js';
-import { kit, rng, pbr, ctex, cvs, shojiMat, drift, farPainting, groundFill, scatter, cityBlocks, walkers, clutter } from './kit.js';
+import { kit, rng, pbr, ctex, cvs, shojiMat, drift, farPainting, groundFill, scatter, cityBlocks, walkers, clutter, model, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4, -1.6], [-4, -1.8], [1.4, -3.4]], sum: [-5.2, .8], exposure: 1.5 };
 
@@ -34,7 +34,8 @@ export async function build(D) {
   // ── the bar (left): counter, top, stools, back shelves of bottles, noren, the steaming pot ──
   box(2, 1.15, 9, M.dark, -8.4, 0, -3); box(2.4, .12, 9.4, M.top, -8.3, 1.15, -3);
   add(new T.PlaneGeometry(9, 4.2), M.shelf, -10.95, 3.2, -3, { ry: Math.PI / 2, cast: false });
-  for (let z = -6.4; z <= .6; z += 1.7) { add(new T.CylinderGeometry(.32, .3, .12, 12), M.top, -6.9, .78, z); for (const [dx, dz] of [[-.18, -.18], [.18, -.18], [-.18, .18], [.18, .18]]) box(.06, .72, .06, M.wood, -6.9 + dx, 0, z + dz); }
+  for (let z = -6.4; z <= .6; z += 1.7) model(D, 'bar_chair_round_01', -6.9, 0, z, { h: .86, ry: z, tint: 0xb08060 });   // real bar stools (Poly Haven)
+  model(D, 'wine_barrel_01', -11.2, 0, -.2, { h: 1.3, ry: .6 }); model(D, 'wooden_barrels_01', -12.6, 0, -8.6, { s: .9, ry: .3 }); model(D, 'wooden_bucket_01', -9.8, 0, 3.4, { h: .6 });
   for (let i = 0; i < 3; i++) { const n = add(new T.PlaneGeometry(3, 1.6), M.nR, -7.4, 5.4, -6.2 + i * 3.1, { ry: Math.PI / 2, cast: false }); D.updaters.push(t => { n.rotation.z = Math.sin(t * .7 + i) * .02; }); }
   add(new T.CylinderGeometry(.6, .5, .6, 16), M.pot, -8.6, 1.5, -5.6); D.glow(-8.6, 1.9, -5.4, 1.4, 0xffa060);
   { const sm = []; const mat = new T.SpriteMaterial({ color: 0xf0e8e0, transparent: true, opacity: .22, depthWrite: false }); for (let i = 0; i < 10; i++) { const s = new T.Sprite(mat); S.add(s); sm.push(s); }
@@ -45,6 +46,7 @@ export async function build(D) {
   // ── the right side: low table, cushions, sake set, a box lantern, blue noren ──
   { const tx = 8, tz = 1; box(3.4, .12, 2, M.top, tx, .9, tz); for (const [dx, dz] of [[-1.5, -.8], [1.5, -.8], [-1.5, .8], [1.5, .8]]) box(.14, .9, .14, M.dark, tx + dx, 0, tz + dz);
     for (const [dx, dz] of [[-1, 1.8], [1.2, 1.9], [-2.6, 0], [0, -1.8]]) { const c = add(new T.BoxGeometry(1.3, .3, 1.3), M.cush, tx + dx, .15, tz + dz, { ry: R.r(-.2, .2) }); }
+    model(D, 'tea_set_01', tx + .3, .96, tz - .2, { s: 1.5, ry: .2 });
     add(new T.CylinderGeometry(.14, .2, .6, 12), M.jar, tx - .6, 1.32, tz); for (const dx of [.2, .6]) add(new T.CylinderGeometry(.1, .07, .12, 10), new T.MeshStandardMaterial({ color: 0xf0e8e0 }), tx + dx, 1.02, tz + .2);
     box(.6, .7, .6, M.paper, tx + 1.2, .96, tz - .3, { cast: false }); D.lantern(tx + 1.2, 1.4, tz, { intensity: 14, distance: 8, glow: 1 });
     for (let i = 0; i < 2; i++) add(new T.PlaneGeometry(2.6, 2.4), M.nB, 9.6, 4.6, -4 - i * 2.7, { ry: -Math.PI / 2, cast: false }); }
@@ -58,6 +60,8 @@ export async function build(D) {
   // ── detail wave 2: painted far backdrop, ground to the horizon, near scatter ──
   const R2 = rng(14);
   scatter(D, R2, { area: [-8, 8, -10, 5], puddles: 6, pebbles: 30, stone: 0x5a4a40, petals: 40, petal: 0xff5050 });
+  decals(D, rng(831), { area: [-8, 8, -10, 5], list: [['stain', 4, [1, 2]], ['oil', 2, [.9, 1.5]], ['paper', 1, [.9, 1.2]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   // background life and mid-ground clutter
   await walkers(D, R2, { rim: '#ffa050', z: -14, x0: -7, x1: 7, group: 2, every: [4, 8], zJit: 1 }); await walkers(D, R2, { rim: '#ffa050', z: -30, x0: -7, x1: 7, group: 2, every: [3, 7], zJit: 2 });
+  await dress(D, rng(1175), { area: [-16, 16, -9, 4], items: [['img:rg_neonsign', 1, [3.2, 3.8]], ['img:rg_bicycle', 1, [1.1, 1.2]], ['wooden_stool_01', 2, [.5, .6]], ['wine_barrel_01', 1, [1, 1.2]], ['cardboard_box_01', 1, { s: [1.5, 2] }], ['plastic_crate_01', 1, { s: [2, 2.4] }]] });   // real CC0 models placed where they fit (kit.dress)
 }

@@ -2,7 +2,7 @@
 // marker lights holds the edge, hazard barriers and a chain fence on the left, and the expressway curves away into a
 // skyline of screens and neon under a red moon. Cars stream past as light trails.
 import { T } from './diorama.js';
-import { kit, rng, sky, moon, pbr, ctex, cvs, rain, skyline, billboard, neonTower, drift, farPainting, groundFill, scatter, cityBlocks } from './kit.js';
+import { IMG, kit, rng, sky, moon, pbr, ctex, cvs, rain, skyline, billboard, neonTower, drift, farPainting, groundFill, scatter, cityBlocks, decals, decal, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -1.8], [-4.4, -2], [1.6, -2.4]], sum: [-5.6, .8], exposure: 1.6 };
 
@@ -11,19 +11,17 @@ const hazard = () => cvs(256, 64, (g, W, H) => { g.fillStyle = '#e8a020'; g.fill
 
 // low-poly cars built from boxes: body, cabin with dark glass, wheels, head/tail lights, neon underglow
 const PAINT = [0xc81e3a, 0x1e5ac8, 0xf0f0f4, 0x1a1a22, 0xe0b020, 0x7a2ad0];
+// traffic: painted side-view cut-outs (sedan, kei truck, scooter) on a thin card, with the neon underglow and headlight beam
+const CARIMG = { car: ['rg_sedan', 4.6], sport: ['rg_sedan', 4.4], van: ['rg_kei', 3.6], truck: ['rg_kei', 3.9], scooter: ['rg_scooter', 2] }, CARTEX = {};
+function carTex(n) { if (CARTEX[n]) return CARTEX[n]; const t = new T.TextureLoader().load(IMG(n), t => { t.userData.ar = t.image.naturalWidth / t.image.naturalHeight; }); t.colorSpace = T.SRGBColorSpace; t.anisotropy = 8; return (CARTEX[n] = t); }
+const CAR_AR = { rg_sedan: 640 / 260, rg_kei: 479 / 343, rg_scooter: 441 / 344 };
 function makeCar(K, kind, R) {
-  const g = new T.Group(), paint = new T.MeshStandardMaterial({ color: PAINT[(R() * PAINT.length) | 0], metalness: .7, roughness: .25 }), glass = new T.MeshStandardMaterial({ color: 0x0a0a14, metalness: .9, roughness: .1 });
-  const tyre = new T.MeshStandardMaterial({ color: 0x111114, roughness: .8 }), head = new T.MeshBasicMaterial({ color: 0xfff4d8 }), tail = new T.MeshBasicMaterial({ color: 0xff2030 });
-  const b = (w, h, d, m, x, y, z) => { const o = new T.Mesh(new T.BoxGeometry(w, h, d), m); o.position.set(x, y, z); o.castShadow = true; g.add(o); return o; };
-  const L = kind === 'truck' ? 9 : kind === 'van' ? 5 : 4.4, W = kind === 'truck' ? 2.5 : 1.9, H = kind === 'sport' ? .55 : kind === 'van' ? 1.6 : kind === 'truck' ? 1.2 : .7;
-  if (kind === 'truck') { b(6.2, 2.8, W, new T.MeshStandardMaterial({ color: 0xd8d8e0, roughness: .6 }), -1.3, 1.9, 0); b(2.4, 2.2, W, paint, 3.2, 1.6, 0); b(.1, .9, W * .9, glass, 4.42, 2.2, 0); }
-  else { b(L, H, W, paint, 0, .35 + H / 2, 0); const cl = kind === 'van' ? L * .75 : L * .48, ch = kind === 'sport' ? .45 : kind === 'van' ? .6 : .55;
-    b(cl, ch, W * .86, glass, kind === 'van' ? -.2 : -.3, .35 + H + ch / 2, 0); b(cl * .9, .06, W * .82, paint, kind === 'van' ? -.2 : -.3, .35 + H + ch, 0);
-    if (kind === 'sport') b(.5, .06, W * .9, paint, -L / 2 + .2, .35 + H + .3, 0); }
-  const fx = (kind === 'truck' ? 4.4 : L / 2) + .01, rx = kind === 'truck' ? -4.4 : -L / 2 - .01, ly = kind === 'truck' ? .9 : .35 + H * .6;
-  for (const s of [-1, 1]) { b(.06, .16, .34, head, fx, ly, s * (W / 2 - .3)); b(.06, .14, .4, tail, rx, ly, s * (W / 2 - .3)); }
-  const wx = kind === 'truck' ? [-3.6, -2.4, 3.2] : [-L / 2 + .8, L / 2 - .8];
-  for (const x of wx) for (const s of [-1, 1]) { const w = new T.Mesh(new T.CylinderGeometry(.36, .36, .26, 14), tyre); w.rotation.x = Math.PI / 2; w.position.set(x, .36, s * (W / 2 - .05)); g.add(w); }
+  const g = new T.Group(); if (kind === 'car' && R() < .25) kind = 'scooter';
+  const [n, L] = CARIMG[kind], H = L / CAR_AR[n], map = carTex(n);
+  const card = new T.Mesh(new T.PlaneGeometry(L, H), new T.MeshStandardMaterial({ map, alphaTest: .4, side: T.DoubleSide, roughness: .35, metalness: .2, color: kind === 'sport' ? 0xc0d0ff : 0xffffff }));
+  card.position.set(0, H / 2 + .02, 0); card.castShadow = true; if (n !== 'rg_sedan') card.scale.x = -1;   // the kei truck and scooter were painted facing left
+  g.add(card);
+  const W = 1.8, fx = L / 2;
   const glow = new T.Mesh(new T.PlaneGeometry(L * .9, W * 1.1), new T.MeshBasicMaterial({ color: [0xff40c0, 0x40e0ff, 0xb060ff][(R() * 3) | 0], transparent: true, opacity: .5, blending: T.AdditiveBlending, depthWrite: false }));
   glow.rotation.x = -Math.PI / 2; glow.position.y = .03; g.add(glow);
   // a long soft headlight beam on the wet road
@@ -101,4 +99,7 @@ export async function build(D) {
   cityBlocks(K, D, R2, { x0: -60, x1: 60, z0: -28, z1: -36, n: 22, hMin: 4, hMax: 8 });   // low shop row under the expressway
   cityBlocks(K, D, R2, { x0: -70, x1: 70, z0: -40, z1: -60, n: 22, hMin: 12, hMax: 34 });
   scatter(D, R2, { area: [-14, 14, -2, 8], puddles: 12, pebbles: 40, stone: 0x3a3440, petals: 40, petal: 0xff7ad0 });
+  decals(D, rng(789), { area: [-14, 14, -2, 8], list: [['oil', 4, [1, 2]], ['asphalt_dmg', 3, [2, 3.4]], ['crack', 3, [1.4, 2.6]], ['manhole', 1, [1.1, 1.2]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
+  for (const [x, z] of [[-9, 3.4], [9.5, 3.4]]) decal(D, 'arrow', x, z, 1.4, 3.4, { ry: Math.PI / 2, op: .85 });
+  await dress(D, rng(1131), { area: [-16, 16, -9, 4], items: [['concrete_road_barrier', 3, [.85, .95]]] });   // real CC0 models placed where they fit (kit.dress)
 }

@@ -2,7 +2,7 @@
 // billboard, pink silk webs strung between the scaffolds and the railing, cocoons swaying in the strands, AC units and
 // a dish, red beacon lights blinking, and the skyline in the rain under a pale moon.
 import { T } from './diorama.js';
-import { kit, rng, sky, moon, pbr, ctex, cvs, rain, skyline, neonTower, cityBlocks, groundFill, farPainting, scatter, clutter, drift } from './kit.js';
+import { kit, rng, sky, moon, pbr, ctex, cvs, rain, skyline, neonTower, cityBlocks, groundFill, farPainting, scatter, clutter, drift, model, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -1.8], [-4.4, -2], [1.6, -2.6]], sum: [-5.6, .8], exposure: 1.55 };
 
@@ -34,7 +34,7 @@ export async function build(D) {
   scaffold(-13, -7, 6, 14); scaffold(14, -6, 4, 11);
   { const bb = add(new T.PlaneGeometry(12, 6.6), new T.MeshBasicMaterial({ map: ctex(spider()) }), -10, 10.4, -7.8, { ry: .2, cast: false }); D.glow(-10, 10, -6.4, 12, 0xff40c0); D.lantern(-10, 8, -5, { color: 0xff60d0, intensity: 20, distance: 16, glow: 0 }); }
   // AC units, a satellite dish, crates
-  for (const [x, z] of [[-15, -3.6], [-13.4, -3.6], [12.6, -3.4]]) { box(1.4, 1.1, .9, M.ac, x, 0, z); add(new T.CylinderGeometry(.4, .4, .06, 18), M.steel, x, .55, z + .46, { rx: Math.PI / 2, cast: false }); }
+  for (const [x, z] of [[-15, -3.6], [-13.2, -3.6], [12.6, -3.4]]) model(D, 'exterior_aircon_unit', x, 0, z, { h: 1.2 });
   { const d = add(new T.SphereGeometry(1.2, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2.6), M.steel, 15.4, 3.6, -7, { rx: -1.1 }); box(.16, 3.2, .16, M.steel, 15.4, 0, -6.6); }
   // ── silk webs: radial strands and spiral rings strung between scaffolds and rail, cocoons hanging ──
   const web = (cx, cy, cz, r, ry) => { const g = new T.Group(); g.position.set(cx, cy, cz); g.rotation.y = ry; S.add(g);
@@ -49,4 +49,6 @@ export async function build(D) {
   farPainting(D, 'nw_web', { v1: .55, z: -144, yb: -30, h: 150 });
   rain(D, 1000, [-24, 24], [0, 18], [-30, 8], { speed: 14 }); drift(D, 40, 0, -10, 20, 10, 0xff8ae0, { y0: 1, y1: 12, size: 6 });
   scatter(D, rng(103), { area: [-15, 15, -5, 5.5], puddles: 12, pebbles: 30, stone: 0x4a4458 });
+  decals(D, rng(810), { area: [-15, 15, -5, 5.5], list: [['oil', 2, [1, 1.8]], ['stain', 3, [1.2, 2.2]], ['crack', 2, [1.4, 2.4]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
+  await dress(D, rng(1120), { area: [-16, 16, -9, 4], items: [['img:rg_neonsign', 1, [3.5, 4]], ['cardboard_box_01', 1, { s: [1.5, 2] }], ['plastic_crate_01', 2, { s: [2, 2.6] }], ['utility_box_01', 1, [1.3, 1.5]]] });   // real CC0 models placed where they fit (kit.dress)
 }

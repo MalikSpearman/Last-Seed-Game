@@ -43,7 +43,7 @@ export class Diorama {
     // browser of graphics memory, which shows up as the rest of the page flickering or layers vanishing
     const pr = Math.max(.5, Math.min(devicePixelRatio || 1, this._prMax, Math.sqrt(2.4e6 / Math.max(1, w * h)))); this.renderer.setPixelRatio(pr);
     this.renderer.setSize(w, h, false); this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
-    this.rt.setSize(w * pr, h * pr); this.post.uniforms.res.value.set(w * pr, h * pr);
+    this._sizePost(Math.round(w * pr), Math.round(h * pr));
   }
   // ── lighting ──
   moonlight({ color = 0x9fb6ff, intensity = 1.6, dir = [-0.6, 1, 0.45], ambient = 0x2a3466, ambientI = 1.1, sky = 0x5a6cc0, ground = 0x1a2418 } = {}) {
@@ -214,24 +214,111 @@ export class Diorama {
       fragmentShader: `uniform vec3 col; varying float r; void main(){ vec2 c=gl_PointCoord-.5; c=mat2(cos(r),-sin(r),sin(r),cos(r))*c; float d=length(c*vec2(1.,2.2)); if(d>.5) discard; gl_FragColor=vec4(col,smoothstep(.5,.2,d)); }` });
     const pts = new THREE.Points(g, mat); this.scene.add(pts); this.updaters.push(t => { mat.uniforms.t.value = t; }); return pts;
   }
-  // ── post: tilt-shift + vignette + gentle grade ──
+  // ── post: HDR render → ambient occlusion (from depth) → bloom (mip chain) → tilt-shift + vignette + grade ──
+  // the scene renders into a half-float target with a depth texture, so lanterns, neon and fire keep their real
+  // brightness and bloom off it; AO reads only the depth buffer, so the painted cut-outs (alpha-tested) shade correctly
   _post() {
-    this.rt = new THREE.WebGLRenderTarget(4, 4, { samples: this.opt.quality === 'high' ? 2 : 0 });
+    const hi = this.opt.quality === 'high', HF = THREE.HalfFloatType;
+    this.fx = Object.assign({ bloom: .28, thr: 1.25, knee: .6, ao: hi ? .45 : 0, aoR: .9, env: .25 }, this.opt.fx || {});
+    try { if (/[?&#]fx=0/.test(location.href) || localStorage.getItem('ls_fx') === '0') this.fxOff = true; } catch (_) {}
+    const dt = new THREE.DepthTexture(4, 4); dt.type = THREE.UnsignedIntType;
+    this.rt = new THREE.WebGLRenderTarget(4, 4, { samples: hi ? 2 : 0, type: HF, depthTexture: dt });
+    const mk = (o = {}) => new THREE.WebGLRenderTarget(4, 4, Object.assign({ type: HF, depthBuffer: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter }, o));
+    this.aoRT = mk(); this.bl = []; for (let i = 0; i < (hi ? 6 : 4); i++) this.bl.push(mk());
+    const V = `varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.,1.); }`;
+    const SM = (u, f) => new THREE.ShaderMaterial({ depthTest: false, depthWrite: false, uniforms: u, vertexShader: V, fragmentShader: f });
+    // ambient occlusion: scalable AO from the depth buffer (normals rebuilt from neighbouring depths), 12 spiral taps, fades out with distance
+    this.aoMat = SM({ tDepth: { value: dt }, projInv: { value: new THREE.Matrix4() }, proj: { value: new THREE.Matrix4() }, res: { value: new THREE.Vector2(4, 4) }, R: { value: 1.1 }, far: { value: 40 } },
+      `uniform sampler2D tDepth; uniform mat4 projInv, proj; uniform vec2 res; uniform float R, far; varying vec2 vUv;
+      vec3 vp(vec2 uv){ float d=texture2D(tDepth,uv).x; vec4 p=projInv*vec4(uv*2.-1.,d*2.-1.,1.); return p.xyz/p.w; }
+      void main(){ float d0=texture2D(tDepth,vUv).x; if(d0>.99999){ gl_FragColor=vec4(1.,1e4,0.,1.); return; }
+        vec3 P=vp(vUv); vec2 px=1./res;
+        vec3 r=vp(vUv+vec2(px.x,0.))-P, l=P-vp(vUv-vec2(px.x,0.)), u=vp(vUv+vec2(0.,px.y))-P, dn=P-vp(vUv-vec2(0.,px.y));
+        vec3 N=normalize(cross(abs(r.z)<abs(l.z)?r:l, abs(u.z)<abs(dn.z)?u:dn));
+        float rad=R*proj[1][1]*.5/max(.1,-P.z); float ang=fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715))))*6.2832;
+        float occ=0.; const int K=12;
+        for(int i=0;i<K;i++){ float f=(float(i)+.5)/float(K); float a=ang+float(i)*2.4; vec2 o=vec2(cos(a),sin(a)*res.x/res.y)*rad*f;
+          vec3 v=vp(vUv+o)-P; float vv=dot(v,v); occ+=max(0.,dot(N,v)-.02*-P.z)/(vv+.01)*max(0.,1.-vv/(R*R*4.)); }
+        float ao=clamp(1.-occ*1.1/float(K),0.,1.); ao=mix(.55,1.,ao); ao=mix(ao,1.,smoothstep(far*.5,far,-P.z));
+        gl_FragColor=vec4(ao,-P.z,0.,1.); }`);
+    // bloom: soft-threshold bright pass, then down (4 taps) and back up (tent) through the mip chain
+    this.brMat = SM({ tD: { value: this.rt.texture }, px: { value: new THREE.Vector2() }, thr: { value: 1 }, knee: { value: .5 }, ex: { value: 1 } },
+      `uniform sampler2D tD; uniform vec2 px; uniform float thr,knee,ex; varying vec2 vUv;
+      void main(){ vec3 c=(texture2D(tD,vUv+px*vec2(-1,-1)).rgb+texture2D(tD,vUv+px*vec2(1,-1)).rgb+texture2D(tD,vUv+px*vec2(-1,1)).rgb+texture2D(tD,vUv+px*vec2(1,1)).rgb)*.25*ex;
+        c=min(c,vec3(24.)); float b=max(c.r,max(c.g,c.b)); float s=clamp(b-thr+knee,0.,2.*knee); s=s*s/(4.*knee+1e-4); float w=max(s,b-thr)/max(b,1e-4);
+        gl_FragColor=vec4(c*w,1.); }`);
+    this.dnMat = SM({ tD: { value: null }, px: { value: new THREE.Vector2() } },
+      `uniform sampler2D tD; uniform vec2 px; varying vec2 vUv;
+      void main(){ vec3 c=texture2D(tD,vUv).rgb*4.+texture2D(tD,vUv+px*vec2(-1,-1)).rgb+texture2D(tD,vUv+px*vec2(1,-1)).rgb+texture2D(tD,vUv+px*vec2(-1,1)).rgb+texture2D(tD,vUv+px*vec2(1,1)).rgb; gl_FragColor=vec4(c/8.,1.); }`);
+    this.upMat = SM({ tD: { value: null }, px: { value: new THREE.Vector2() } },
+      `uniform sampler2D tD; uniform vec2 px; varying vec2 vUv;
+      void main(){ vec3 c=texture2D(tD,vUv).rgb*4.; c+=(texture2D(tD,vUv+px*vec2(-1,0)).rgb+texture2D(tD,vUv+px*vec2(1,0)).rgb+texture2D(tD,vUv+px*vec2(0,-1)).rgb+texture2D(tD,vUv+px*vec2(0,1)).rgb)*2.;
+        c+=texture2D(tD,vUv+px*vec2(-1,-1)).rgb+texture2D(tD,vUv+px*vec2(1,-1)).rgb+texture2D(tD,vUv+px*vec2(-1,1)).rgb+texture2D(tD,vUv+px*vec2(1,1)).rgb; gl_FragColor=vec4(c/16.,1.); }`);
+    this.upMat.blending = THREE.AdditiveBlending; this.upMat.transparent = true;
     this.post = new THREE.ShaderMaterial({ depthTest: false, depthWrite: false,
-      uniforms: { tD: { value: this.rt.texture }, res: { value: new THREE.Vector2(4, 4) }, focus: { value: 0.52 }, band: { value: 0.2 }, amt: { value: 1 }, vig: { value: .42 }, flash: { value: 0 } },
-      vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.,1.); }`,
-      fragmentShader: `uniform sampler2D tD; uniform vec2 res; uniform float focus,band,amt,vig,flash; varying vec2 vUv;
+      uniforms: { tD: { value: this.rt.texture }, tAO: { value: this.aoRT.texture }, tB: { value: this.bl[0].texture }, tDepth: { value: dt }, nf: { value: new THREE.Vector2(.5, 260) },
+        aoAmt: { value: 0 }, bAmt: { value: 0 }, bex: { value: 1 }, aoPx: { value: new THREE.Vector2() }, res: { value: new THREE.Vector2(4, 4) }, focus: { value: 0.52 }, band: { value: 0.2 }, amt: { value: 1 }, vig: { value: .42 }, flash: { value: 0 } },
+      vertexShader: V,
+      fragmentShader: `uniform sampler2D tD,tAO,tB,tDepth; uniform vec2 res,nf,aoPx; uniform float focus,band,amt,vig,flash,aoAmt,bAmt,bex; varying vec2 vUv;
+        float lin(float d){ float z=d*2.-1.; return 2.*nf.x*nf.y/(nf.y+nf.x-z*(nf.y-nf.x)); }
         void main(){ float d=abs(vUv.y-focus); float b=smoothstep(band,band+.32,d)*amt; vec2 px=1./res; vec4 c=texture2D(tD,vUv);
           if(b>.01){ vec4 s=c; float w=1.; const int N=12; for(int i=0;i<N;i++){ float a=float(i)*2.39996; float r=sqrt(float(i)+.5)/sqrt(float(N)); vec2 o=vec2(cos(a),sin(a))*r*b*7.*px*res.y/720.; s+=texture2D(tD,vUv+o*vec2(1.,1.)*1.6); w+=1.; } c=mix(c,s/w,clamp(b*1.4,0.,1.)); }
+          if(aoAmt>0.){ float z0=lin(texture2D(tDepth,vUv).x), a=0., wt=0.;
+            for(int y=-1;y<=1;y++) for(int x=-1;x<=1;x++){ vec4 q=texture2D(tAO,vUv+vec2(x,y)*aoPx); float k=1./(1.+abs(q.g-z0)*8./max(z0,.5)); a+=q.r*k; wt+=k; }
+            c.rgb*=mix(1.,a/max(wt,1e-4),aoAmt); }
+          if(bAmt>0.) c.rgb+=texture2D(tB,vUv).rgb*bAmt/max(bex,.01);
           vec2 q=vUv-.5; c.rgb*=1.-vig*dot(q,q)*1.6; c.rgb=mix(c.rgb,c.rgb*vec3(1.04,1.,1.08),.5); c.rgb+=flash; gl_FragColor=vec4(c.rgb,1.);
 #include <tonemapping_fragment>
 #include <colorspace_fragment>
 }` });
     this.postScene = new THREE.Scene(); this.postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-    this.postScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.post));
+    this._quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.post); this.postScene.add(this._quad);
+  }
+  _sizePost(W, H) {
+    this.rt.setSize(W, H); this.post.uniforms.res.value.set(W, H);
+    const aw = Math.max(1, W >> 1), ah = Math.max(1, H >> 1); this.aoRT.setSize(aw, ah); this.aoMat.uniforms.res.value.set(aw, ah); this.post.uniforms.aoPx.value.set(1 / aw, 1 / ah);
+    let w = aw, h = ah; for (const t of this.bl) { t.setSize(Math.max(1, w), Math.max(1, h)); w >>= 1; h >>= 1; }
+  }
+  // per-set look: { bloom, thr, knee, ao, aoR, env } (a set's PRESET.fx); anything left out keeps the default
+  setFX(o = {}) { const hi = this.opt.quality === 'high'; this.fx = Object.assign({ bloom: .28, thr: 1.25, knee: .6, ao: hi ? .45 : 0, aoR: .9, env: .25 }, o); if (!hi) this.fx.ao = 0; if (this.scene.environment) this.scene.environmentIntensity = this.fxOff ? 0 : this.fx.env; }
+  // image-based light: a small sky dome painted from the set's own colours (hemisphere sky/ground, fog at the horizon, a hot
+  // spot where the moon or sun is) so metal, lacquer, wet stone and glass reflect the set instead of a black void
+  envLight(o = {}) {
+    const S = this.scene; let sky = null, gnd = null, dir = null, dcol = null;
+    S.traverse(x => { if (x.isHemisphereLight && !sky) { sky = x.color.clone().multiplyScalar(Math.min(2, x.intensity)); gnd = x.groundColor.clone().multiplyScalar(Math.min(2, x.intensity)); }
+      if (x.isDirectionalLight && !dir) { dir = x.position.clone().sub(x.target.position).normalize(); dcol = x.color.clone().multiplyScalar(Math.min(4, x.intensity)); } });
+    const fog = S.fog ? S.fog.color.clone() : new THREE.Color(0x101828);
+    sky = o.sky ? new THREE.Color(o.sky) : sky || fog.clone().multiplyScalar(1.6); gnd = o.ground ? new THREE.Color(o.ground) : gnd || fog.clone().multiplyScalar(.5);
+    dir = dir || new THREE.Vector3(-.5, .8, .3); dcol = dcol || sky.clone();
+    const es = new THREE.Scene();
+    es.add(new THREE.Mesh(new THREE.SphereGeometry(10, 32, 16), new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false,
+      uniforms: { sky: { value: sky }, gnd: { value: gnd }, hz: { value: fog.clone().lerp(sky, .4) }, sd: { value: dir }, sc: { value: dcol } },
+      vertexShader: `varying vec3 vD; void main(){ vD=normalize(position); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+      fragmentShader: `uniform vec3 sky,gnd,hz,sd,sc; varying vec3 vD; void main(){ float y=vD.y; vec3 c=y>0.?mix(hz,sky,pow(y,.6)):mix(hz,gnd,pow(-y,.5));
+        c+=sc*pow(max(0.,dot(vD,sd)),24.)*2.5; c+=sc*pow(max(0.,dot(vD,sd)),3.)*.25; gl_FragColor=vec4(c,1.); }` })));
+    // a few soft light cards in the lanterns' colours so glossy floors catch warm streaks
+    (this.spots || []).slice(0, 6).forEach((s, i) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.2), new THREE.MeshBasicMaterial({ color: s.color.clone().multiplyScalar(.9), side: THREE.DoubleSide }));
+      const a = i * 1.05 + .4; m.position.set(Math.cos(a) * 8, 1.5 + (i % 3), Math.sin(a) * 8); m.lookAt(0, 0, 0); es.add(m); });
+    const pm = new THREE.PMREMGenerator(this.renderer), rt = pm.fromScene(es, .03); pm.dispose();
+    es.traverse(x => { if (x.geometry) x.geometry.dispose(); if (x.material) x.material.dispose(); });
+    if (S.environment && S.environment.dispose) S.environment.dispose();
+    S.environment = rt.texture; S.environmentIntensity = this.fxOff ? 0 : (o.env != null ? o.env : this.fx.env); return rt.texture;
+  }
+  _render() {
+    const r = this.renderer, fx = this.fx, off = this.fxOff, q = this._quad, U = this.post.uniforms;
+    r.setRenderTarget(this.rt); r.render(this.scene, this.camera);
+    const blit = (mat, tgt) => { q.material = mat; r.setRenderTarget(tgt); r.render(this.postScene, this.postCam); };
+    const ao = !off && fx.ao > 0, bl = !off && fx.bloom > 0;
+    if (ao) { const A = this.aoMat.uniforms, cam = this.camera; A.proj.value.copy(cam.projectionMatrix); A.projInv.value.copy(cam.projectionMatrixInverse); A.R.value = fx.aoR;
+      A.far.value = this.scene.fog ? this.scene.fog.far : 60; blit(this.aoMat, this.aoRT); }
+    if (bl) { const B = this.brMat.uniforms; B.thr.value = fx.thr; B.knee.value = fx.knee; B.ex.value = r.toneMapping === THREE.NoToneMapping ? 1 : r.toneMappingExposure; B.px.value.set(.5 / this.rt.width, .5 / this.rt.height); blit(this.brMat, this.bl[0]);
+      for (let i = 1; i < this.bl.length; i++) { this.dnMat.uniforms.tD.value = this.bl[i - 1].texture; this.dnMat.uniforms.px.value.set(1 / this.bl[i - 1].width, 1 / this.bl[i - 1].height); blit(this.dnMat, this.bl[i]); }
+      r.autoClear = false; for (let i = this.bl.length - 1; i > 0; i--) { this.upMat.uniforms.tD.value = this.bl[i].texture; this.upMat.uniforms.px.value.set(1 / this.bl[i].width, 1 / this.bl[i].height); blit(this.upMat, this.bl[i - 1]); } r.autoClear = true; }
+    U.aoAmt.value = ao ? fx.ao : 0; U.bAmt.value = bl ? fx.bloom : 0; U.bex.value = r.toneMapping === THREE.NoToneMapping ? 1 : r.toneMappingExposure; U.nf.value.set(this.camera.near, this.camera.far);
+    q.material = this.post; r.setRenderTarget(null); r.render(this.postScene, this.postCam);
   }
   // give the graphics memory back while the set isn't on screen (between fights), and take it again when it is
-  release() { if (this.released) return; this.released = true; this.paused = true; this.rt.setSize(1, 1); this.renderer.setSize(1, 1, false); if (this.moon) { this.moon.shadow.map && this.moon.shadow.map.dispose(); this.moon.shadow.map = null; } this.renderer.renderLists.dispose(); }
+  release() { if (this.released) return; this.released = true; this.paused = true; this._sizePost(1, 1); this.renderer.setSize(1, 1, false); if (this.moon) { this.moon.shadow.map && this.moon.shadow.map.dispose(); this.moon.shadow.map = null; } this.renderer.renderLists.dispose(); }
   restore() { if (!this.released) return; this.released = false; this.resize(); }
   // fade foreground props that stand between the camera and a point (HD-2D "see-through")
   fadeFor(p) {
@@ -253,8 +340,7 @@ export class Diorama {
       this._lights(this.focus || this.camera.position);
       if (this.faceCam) { const c = this.camera.position; for (const m of this.billboards) m.rotation.y = Math.atan2(c.x - m.position.x, c.z - m.position.z) * this.faceCam; }
       if (this.backdropMesh) { const b = this.backdropMesh; b.position.x = b.userData.x0 + this.camera.position.x * b.userData.parallax; }
-      this.renderer.setRenderTarget(this.rt); this.renderer.render(this.scene, this.camera);
-      this.renderer.setRenderTarget(null); this.renderer.render(this.postScene, this.postCam);
+      this._render();
     };
     loop();
   }

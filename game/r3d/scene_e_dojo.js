@@ -2,7 +2,7 @@
 // banner and red lanterns, steps up to a bell pavilion with a great bronze bell, bonsai pines leaning over the drop,
 // surf crashing on the rocks below, and red-sailed junks crossing under a blood moon.
 import { T } from './diorama.js';
-import { kit, rng, sky, moon, pbr, ship, sea, breakers, deck, rail, pagoda, bannerTex, ctex, scatter, farPainting, drift, deadTree } from './kit.js';
+import { kit, rng, sky, moon, pbr, ship, sea, breakers, deck, rail, pagoda, bannerTex, ctex, scatter, farPainting, drift, deadTree, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -1.6], [-4.4, -1.8], [1.6, -2.6]], sum: [-5.6, .8], exposure: 1.6 };
 
@@ -43,5 +43,7 @@ export async function build(D) {
   ship(K, D, 20, -50, 16, { y: -9, ry: -.15 }); ship(K, D, 4, -70, 12, { y: -9, ry: .1 }); ship(K, D, 36, -80, 12, { y: -9 });
   farPainting(D, 'e_dojo', { v1: .45, z: -144, yb: -14 });
   scatter(D, rng(93), { area: [-14, 14, -3, 5.4], puddles: 6, petals: 60, petal: 0xff6a8a, leaves: 30, leaf: 0x3a5a3a });
+  decals(D, rng(754), { area: [-14, 14, -3, 5.4], list: [['stain', 3, [1.2, 2.2]], ['moss', 2, [1.4, 2.4]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   drift(D, 40, 0, -10, 20, 10, 0xffb070, { y0: .5, y1: 6, size: 7 });
+  await dress(D, rng(977), { area: [-16, 16, -9, 4], items: [['img:rg_well', 1, [2.4, 2.8]], ['wooden_stool_01', 2, [.5, .6]], ['wooden_bucket_01', 2, [.55, .7]], ['wine_barrel_01', 1, [1, 1.2]]] });   // real CC0 models placed where they fit (kit.dress)
 }

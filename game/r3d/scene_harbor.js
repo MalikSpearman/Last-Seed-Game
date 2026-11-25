@@ -2,7 +2,7 @@
 // a stilt-town of lit warehouses running out along the pier, a cliff temple above, and a red-sailed junk at anchor
 // under a blood moon.
 import { T } from './diorama.js';
-import { kit, rng, ctex, cvs, sky, moon, planks, rough, bannerTex, rail, ship, water, drift, pbr, farPainting, groundFill, scatter, cityBlocks, walkers, clutter } from './kit.js';
+import { kit, rng, ctex, cvs, sky, moon, planks, rough, bannerTex, rail, ship, water, drift, pbr, farPainting, groundFill, scatter, cityBlocks, walkers, clutter, model, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.2, -1.8], [-4.6, -2], [1.4, -2.8]], sum: [-5.6, .8] };
 
@@ -48,11 +48,13 @@ export async function build(D) {
   for (let i = 0; i < 4; i++) add(new T.TorusGeometry(.9 - i * .14, .1, 6, 20), M.rope, -8.6, .1 + i * .08, 3.4, { rx: Math.PI / 2 });
 
   // ── cargo: crates and barrels stacked on the left, a cargo net strung from the flag gallows ──
-  const crate = (x, y, z, s, ry = 0) => box(s, s, s, new T.MeshStandardMaterial({ map: ctex(crateT(x * 10 + z | 0)), roughness: .85 }), x, y, z, { ry });
-  crate(-12.6, 0, -1.4, 1.6, .1); crate(-11, 0, -2.4, 1.3, -.2); crate(-12.4, 1.6, -1.6, 1.2, .3); crate(-10.6, 0, -.2, 1.1, .5); crate(6.2, 0, -2.6, .9, .3);
+  // real cargo (Poly Haven models): long crates stacked two high, a flat crate on top, a sea chest, barrels
+  { const c1 = await model(D, 'wooden_crate_02', -12.6, 0, -1.4, { s: 2.3, ry: 1.67 }); model(D, 'wooden_crate_01', -12.4, c1.userData.h || 1, -1.5, { s: 1.9, ry: .3 });
+    model(D, 'wooden_crate_02', -11, 0, -2.6, { s: 1.9, ry: -.2 }); model(D, 'wooden_crate_01', -10.4, 0, -.3, { s: 1.6, ry: .5 }); model(D, 'wooden_crate_01', 6.2, 0, -2.6, { s: 1.4, ry: .3 });
+    model(D, 'treasure_chest', -9.6, 0, .9, { s: 1.4, ry: .4 }); }
   const barrel = (x, z, h = 1.7) => { add(new T.CylinderGeometry(.6, .6, h, 16), M.wood, x, h / 2, z); add(new T.SphereGeometry(.68, 16, 8), M.wood, x, h / 2, z).scale.set(1, h * .5, 1);
     for (const y of [.25, h - .25]) add(new T.TorusGeometry(.66, .04, 6, 20), M.iron, x, y, z, { rx: Math.PI / 2 }); };
-  barrel(-14.2, .6); barrel(-13.2, 2.2, 1.4);
+  model(D, 'wine_barrel_01', -14.2, 0, .6, { h: 1.7 }); model(D, 'wine_barrel_01', -13.2, 0, 2.2, { h: 1.4, ry: 1 }); model(D, 'wooden_bucket_01', -12.4, 0, 2.9, { h: .7 }); model(D, 'lifebuoy', -10.75, 3.2, -3.42, { h: 1.2 });
   { box(.3, 7, .3, M.old, -10.8, 0, -3.6); box(3.2, .3, .3, M.old, -9.4, 6.4, -3.6); add(new T.TorusGeometry(.2, .05, 6, 10), M.rope, -10.8, 6.1, -3.6, {});
     const f = new T.Mesh(new T.PlaneGeometry(1.6, 3.6, 1, 6), M.flag); f.geometry.translate(0, -1.8, 0); f.position.set(-9.2, 6.2, -3.5); f.castShadow = true; S.add(f);
     D.updaters.push(t => { f.rotation.y = Math.sin(t * .9) * .16 * (D.wind || 1); });
@@ -90,6 +92,8 @@ export async function build(D) {
   const R2 = rng(881);
   farPainting(D, 'harbor', { v1: .5, z: -145 });
   scatter(D, R2, { area: [-15, 15, -3, 6], puddles: 9, petals: 60, petal: 0xff6aa8, pebbles: 20, stone: 0x5a4a3a });
+  decals(D, rng(628), { area: [-15, 15, -3, 6], list: [['oil', 3, [1, 2]], ['stain', 4, [1.2, 2.6]], ['moss', 3, [1.2, 2.4]], ['crack', 3, [1.4, 2.6]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   // background life and mid-ground clutter
   await clutter(D, K, R2, 'dock', { area: [-14, 14, 4.5, 5.6], n: 6, clear: 6 }); await walkers(D, R2, { rim: '#c86a5a', z: -14, x0: -14, x1: -2, group: 2, every: [5, 10], types: ['coat', 'big', 'elder', 'suit'] });
+  await dress(D, rng(1043), { area: [-16, 16, -9, 4], items: [['img:rg_boat', 1, [2.6, 3.2]], ['img:rg_fishrack', 1, [2.2, 2.6]], ['wooden_crate_01', 2, { s: [1.3, 1.7] }], ['wooden_bucket_01', 1, [.55, .7]], ['wine_barrel_01', 1, [1.2, 1.5]]] });   // real CC0 models placed where they fit (kit.dress)
 }

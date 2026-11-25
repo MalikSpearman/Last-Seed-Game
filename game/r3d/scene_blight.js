@@ -1,7 +1,7 @@
 // The Blight: a cracked flagstone crossroads with lava in the seams, gallows-banners of the horned skull,
 // a red bridge over a poisoned violet river, burning fields, and the demon citadel under a storm eye.
 import { T } from './diorama.js';
-import { kit, rng, ctex, sky, flags, rough, bannerTex, rail, deadTree, hills, water, drift, pbr, farPainting, groundFill, scatter, cityBlocks, walkers, clutter } from './kit.js';
+import { kit, rng, ctex, sky, flags, rough, bannerTex, rail, deadTree, hills, water, drift, pbr, farPainting, groundFill, scatter, cityBlocks, walkers, clutter, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4, -2.8], [-4.4, -3.4], [1.2, -5.2]], sum: [-5.4, .8] };
 
@@ -97,9 +97,11 @@ export async function build(D) {
   const R2 = rng(652);
   farPainting(D, 'blight', { v1: .52, z: -145 });
   scatter(D, R2, { area: [-16, 12, -6, 8], puddles: 3, pebbles: 160, stone: 0x4a3a44, tufts: 50, tuft: 0x4a3024, leaves: 160, leaf: 0x2a1a1e });
+  decals(D, rng(600), { area: [-16, 12, -6, 8], list: [['crack', 6, [1.5, 3]], ['scorch', 4, [2, 4]], ['moss', 3, [1.5, 3], { tint: 0x8a7a6a }]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   { const steel = new T.MeshStandardMaterial({ color: 0x8a8a96, metalness: .9, roughness: .3 }), hilt = new T.MeshStandardMaterial({ color: 0x2a1a14 });
     for (const [x, z, rz, rx] of [[-5.2, -4.4, .25, -.2], [6.4, -4.8, -.3, .15], [-10.4, 3.6, .15, .3], [9.6, 4.2, -.2, -.25]]) { const g = new T.Group(); g.position.set(x, 0, z); g.rotation.set(rx, R2() * 3, rz); D.scene.add(g);
       const b = new T.Mesh(new T.BoxGeometry(.12, 1.6, .03), steel); b.position.y = .5; b.castShadow = true; g.add(b); const c = new T.Mesh(new T.BoxGeometry(.5, .07, .1), hilt); c.position.y = 1.32; g.add(c); const h = new T.Mesh(new T.CylinderGeometry(.04, .04, .45, 6), hilt); h.position.y = 1.58; g.add(h); } }
   // background life and mid-ground clutter
   await clutter(D, K, R2, 'wild', { area: [-24, 6, -6, -30], n: 30, clear: 4 });
+  await dress(D, rng(1054), { area: [-16, 16, -9, 4], items: [['namaqualand_boulder_02', 3, [.7, 1.4], { tint: 0x806070 }], ['dead_tree_trunk', 1, { s: [.8, 1.1], tint: 0x705860 }], ['tree_stump_01', 1, [.45, .6], { tint: 0x705860 }]] });   // real CC0 models placed where they fit (kit.dress)
 }

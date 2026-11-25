@@ -2,7 +2,7 @@
 // and spinning wheels, red seats, stacked ball boxes, a sakura-and-swirl carpet, a ring chandelier overhead, rising-sun
 // and wave panels, and the aisle running back to a glowing counter. Coins of light everywhere.
 import { T } from './diorama.js';
-import { kit, rng, pbr, ctex, cvs, scatter, drift } from './kit.js';
+import { kit, rng, pbr, ctex, cvs, scatter, drift, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4, -1.6], [-4, -1.8], [1.4, -3.4]], sum: [-5.2, .8], exposure: 1.4 };
 
@@ -44,4 +44,6 @@ export async function build(D) {
   box(10, 1.4, 1.6, M.gold, 0, 0, -58); box(12, 3, .3, new T.MeshBasicMaterial({ color: 0xff60c0 }), 0, 3, -60, { cast: false }); D.glow(0, 3, -59, 12, 0xff60c0);
   drift(D, 60, 0, -20, 6, 30, 0xffe0a0, { y0: 1, y1: 7, size: 6 });
   scatter(D, rng(99), { area: [-6, 6, -3, 5], pebbles: 30, stone: 0xe0e0f0 });
+  decals(D, rng(656), { area: [-6, 6, -3, 5], list: [['gum', 3, [.8, 1.4]], ['paper', 2, [.9, 1.4]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
+  await dress(D, rng(1197), { area: [-7, 7, -8, 3], items: [['wooden_stool_01', 2, [.5, .6]]] });   // real CC0 models placed where they fit (kit.dress)
 }

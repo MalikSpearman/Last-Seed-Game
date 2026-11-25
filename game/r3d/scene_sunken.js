@@ -2,7 +2,7 @@
 // drowned pillars stand in glowing water, the old hall waits at the top of its submerged steps under a blood moon,
 // wisteria hangs over the left and blue spirit-flames drift on the water.
 import { T } from './diorama.js';
-import { kit, rng, sky, moon, pbr, stoneLantern, water, drift, pagoda, bannerTex, ctex, farPainting, groundFill, scatter, cityBlocks, walkers, clutter } from './kit.js';
+import { kit, rng, sky, moon, pbr, stoneLantern, water, drift, pagoda, bannerTex, ctex, farPainting, groundFill, scatter, cityBlocks, walkers, clutter, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -1.8], [-4.4, -2.2], [1.6, -2.8]], sum: [-5.6, .8], exposure: 1.6 };
 
@@ -64,6 +64,8 @@ export async function build(D) {
   const R2 = rng(287);
   farPainting(D, 'sunken', { v1: .5, z: -145 });
   scatter(D, R2, { area: [-14, 14, -3, 6], puddles: 7, petals: 160, petal: 0xd090ff, tufts: 50, tuft: 0x5a8a3a, pebbles: 60, stone: 0x6a6080 });
+  decals(D, rng(712), { area: [-14, 14, -3, 6], list: [['moss', 8, [1.5, 3.2]], ['crack', 3, [1.4, 2.6]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   // background life and mid-ground clutter
   await clutter(D, K, R2, 'shrine', { area: [-16, 16, -5, -16], n: 16, clear: 4, y: -.5 });
+  await dress(D, rng(911), { area: [-16, 16, -9, 4], items: [['namaqualand_boulder_02', 3, [.6, 1.2]], ['rock_moss_set_01', 1, { s: [.22, .38] }], ['rock_moss_set_02', 1, { s: [.22, .38] }], ['dead_tree_trunk', 1, { s: [.7, 1] }]] });   // real CC0 models placed where they fit (kit.dress)
 }

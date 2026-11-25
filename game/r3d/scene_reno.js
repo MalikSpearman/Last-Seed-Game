@@ -2,7 +2,7 @@
 // the outer wall smashed open onto the city and moon, steel columns, scaffolding wrapped in torn plastic sheeting that
 // billows, hazard tape, work lamps on tripods throwing hard light, rubble heaps, cable reels and a toolbox.
 import { T } from './diorama.js';
-import { kit, rng, pbr, ctex, cvs, farPainting, scatter, drift, skyline, flurry } from './kit.js';
+import { kit, rng, pbr, ctex, cvs, farPainting, scatter, drift, skyline, flurry, model, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4, -1.6], [-4, -1.8], [1.4, -2.4]], sum: [-5.2, .8], exposure: 1.5 };
 const tape = () => cvs(256, 32, (g, W, H) => { g.fillStyle = '#f0c020'; g.fillRect(0, 0, W, H); g.fillStyle = '#111'; for (let x = -32; x < W; x += 32) { g.beginPath(); g.moveTo(x, H); g.lineTo(x + 16, H); g.lineTo(x + 32, 0); g.lineTo(x + 16, 0); g.fill(); } });
@@ -33,8 +33,13 @@ export async function build(D) {
   for (const [cx, cz, n] of [[-8, -5, 10], [9, -5.2, 8], [-2, -5.6, 6]]) for (let i = 0; i < n; i++) { const r = add(new T.DodecahedronGeometry(R.r(.2, .8), 0), M.rub, cx + R.r(-1.6, 1.6), R.r(0, .6), cz + R.r(-.8, .8), { ry: R() * 6 }); }
   { const g = new T.Group(); g.position.set(-11, .7, -2.4); g.rotation.y = .4; S.add(g); for (const dz of [-.4, .4]) K.add(new T.CylinderGeometry(.7, .7, .08, 18), new T.MeshStandardMaterial({ color: 0x8a5a2a }), 0, 0, dz, { to: g, rx: Math.PI / 2 }); K.add(new T.CylinderGeometry(.45, .45, .8, 14), new T.MeshStandardMaterial({ color: 0xe04a2a }), 0, 0, 0, { to: g, rx: Math.PI / 2 }); }
   box(1, .45, .5, new T.MeshStandardMaterial({ color: 0xc02a2a, metalness: .4, roughness: .4 }), 11, 0, -2.6, { ry: -.3 });
+  // real site gear (Poly Haven): cement bags, a generator, a ladder against the scaffold, crates
+  for (const [x, y, z, ry] of [[-13, 0, -1.4, .2], [-12.6, .26, -1.3, .5], [-13.3, 0, -.5, -.3]]) model(D, 'cement_bag', x, y, z, { s: 1.4, ry });
+  model(D, 'portable_generator', 12.8, 0, -1.2, { s: 1.6, ry: -.7 }); model(D, 'ladder_sectioned_01', -16.4, 0, -4.4, { h: 3.4, rx: -.18, ry: .3 }); model(D, 'plastic_crate_01', 9.6, 0, -3.4, { s: 2.2, ry: .4 });
   // ── the city through the hole ──
   skyline(K, D, R, { zNear: -24, zFar: -120, n: 40, spread: 80, spire: false }); farPainting(D, 'reno', { v0: .05, v1: .5, z: -144 });
   flurry(D, R, 14, { area: [-14, 14, -1, -6], y0: 0, y1: 6, color: 0xd8d0c0, speed: .5 }); drift(D, 60, 0, -3, 16, 4, 0xe0d8c0, { y0: .2, y1: 6, size: 5 });
   scatter(D, rng(123), { area: [-16, 16, -4, 6], pebbles: 160, stone: 0x8a8078, puddles: 4 });
+  decals(D, rng(817), { area: [-16, 16, -4, 6], list: [['crack', 6, [1.6, 3]], ['stain', 4, [1.2, 2.4]], ['paper', 2, [.9, 1.4]], ['oil', 2, [1, 1.6]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
+  await dress(D, rng(1142), { area: [-16, 16, -9, 4], items: [['img:rg_kei', 1, [2.3, 2.6]], ['concrete_road_barrier', 2, [.85, .95]], ['cement_bag', 3, { s: [1.3, 1.5] }], ['plastic_crate_01', 2, { s: [2, 2.6] }], ['cardboard_box_01', 2, { s: [1.5, 2] }]] });   // real CC0 models placed where they fit (kit.dress)
 }

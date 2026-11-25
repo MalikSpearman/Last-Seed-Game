@@ -3,7 +3,7 @@
 // of hot lamps overhead. Phase two: the roof is torn open to a hurricane eye, rain sheets in, lightning strikes, the
 // wall shows the typhoon, lamps spark and swing, papers whirl, cables and puddles everywhere.
 import { T } from './diorama.js';
-import { kit, rng, pbr, ctex, cvs, farPainting, scatter, drift, rain, lightning, vortex, flurry, restyle, sky } from './kit.js';
+import { kit, rng, pbr, ctex, cvs, farPainting, scatter, drift, rain, lightning, vortex, flurry, restyle, sky, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4, -1.6], [-4, -1.8], [1.4, -2.6]], sum: [-5.2, .8], exposure: 1.4 };
 
@@ -51,9 +51,12 @@ export async function build(D, phase = 1) {
     for (let i = 0; i < 6; i++) { const c = new T.CatmullRomCurve3(Array.from({ length: 5 }, (_, k) => new T.Vector3(R.r(-14, 14), .04, R.r(-10, 4)))); add(new T.TubeGeometry(c, 40, .06, 5), M.cable, 0, 0, 0, { cast: false }); }
     farPainting(D, 'weather2', { v1: .4, z: -144, tint: 0xb0b8d0 });
     scatter(D, rng(117), { area: [-16, 16, -6, 6], puddles: 16, petals: 60, petal: 0xf4f0e8 });
+    decals(D, rng(740), { area: [-16, 16, -6, 6], list: [['stain', 2, [.8, 1.4], { op: .5 }]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   } else {
     farPainting(D, 'weather', { v1: .35, z: -144, tint: 0x8090b0 });
     scatter(D, rng(117), { area: [-16, 16, -6, 6], pebbles: 0, petals: 8, petal: 0xf4f0e8 });
+    decals(D, rng(740), { area: [-16, 16, -6, 6], list: [['stain', 2, [.8, 1.4], { op: .5 }]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
     for (let i = 0; i < 4; i++) { const c = new T.CatmullRomCurve3(Array.from({ length: 4 }, (_, k) => new T.Vector3(-16 + k * 3, .04, -6 + R.r(-2, 2)))); add(new T.TubeGeometry(c, 30, .05, 5), M.cable, 0, 0, 0, { cast: false }); }
   }
+  await dress(D, rng(1252), { area: [-16, 16, -9, 4], items: [['cardboard_box_01', 1, { s: [1.6, 2] }], ['modern_arm_chair_01', 1, [1.1, 1.2]]] });   // real CC0 models placed where they fit (kit.dress)
 }

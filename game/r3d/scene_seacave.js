@@ -2,7 +2,7 @@
 // float on black water, a moss-eaten torii stands in the shallows, a wreck lists against the rocks, and a blood moon
 // pours red light through the far opening.
 import { T } from './diorama.js';
-import { kit, rng, ctex, sky, moon, flags, torii, ship, water, drift, pbr, farPainting, groundFill, scatter, cityBlocks, walkers, clutter } from './kit.js';
+import { kit, rng, ctex, sky, moon, flags, torii, ship, water, drift, pbr, farPainting, groundFill, scatter, cityBlocks, walkers, clutter, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -2.4], [-4.2, -2.8], [1.4, -4]], sum: [-5.4, .8] };
 
@@ -77,6 +77,8 @@ export async function build(D) {
   const R2 = rng(158);
   farPainting(D, 'seacave', { v1: .58, z: -145, tint: 0xc8b8d0 });
   scatter(D, R2, { area: [-14, 14, -4, 6], puddles: 7, pebbles: 140, stone: 0x4a4060, tufts: 40, tuft: 0x2a6a5a, petals: 70, petal: 0xf0e8e0 });
+  decals(D, rng(705), { area: [-14, 14, -4, 6], list: [['moss', 6, [1.4, 3]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   // background life and mid-ground clutter
   await clutter(D, K, R2, 'wild', { area: [-14, 14, -4.5, -6.5], n: 10, clear: 4, y: -.1 });
+  await dress(D, rng(1010), { area: [-16, 16, -9, 4], items: [['namaqualand_boulder_02', 4, [.7, 1.4], { tint: 0x8a90a8 }], ['rock_moss_set_01', 1, { s: [.22, .38] }], ['rock_moss_set_02', 1, { s: [.22, .38] }]] });   // real CC0 models placed where they fit (kit.dress)
 }

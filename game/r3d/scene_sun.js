@@ -3,7 +3,7 @@
 // coast, and the last of the sun on the horizon. Phase two: the sky is fire, a second sun swells overhead, flames run
 // over the rocks, lava pours through every crack, the torii burns, embers storm.
 import { T } from './diorama.js';
-import { kit, rng, sky, pbr, torii, sea, breakers, farPainting, scatter, drift, flames, restyle } from './kit.js';
+import { kit, rng, sky, pbr, torii, sea, breakers, farPainting, scatter, drift, flames, restyle, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -1.8], [-4.4, -2], [1.6, -2.8]], sum: [-5.6, .8], exposure: 1.5 };
 
@@ -40,4 +40,6 @@ export async function build(D, phase = 1) {
     farPainting(D, 'sun', { v1: .5, z: -144 });
   }
   scatter(D, rng(119), { area: [-14, 14, -3, 6], pebbles: 120, stone: burn ? 0x3a2018 : 0x2a2430, puddles: burn ? 0 : 5 });
+  decals(D, rng(838), { area: [-14, 14, -3, 6], list: [['scorch', 5, [2, 4]], ['crack', 4, [1.6, 3]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
+  await dress(D, rng(1065), { area: [-16, 16, -9, 4], items: [['namaqualand_boulder_02', 4, [.7, 1.4], { tint: 0x4a4048 }], ['rock_moss_set_02', 1, { s: [.25, .4] }, { tint: 0x4a4048 }]] });   // real CC0 models placed where they fit (kit.dress)
 }

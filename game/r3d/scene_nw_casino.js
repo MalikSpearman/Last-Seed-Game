@@ -2,7 +2,7 @@
 // great star chandelier dripping crystal, velvet ropes on brass posts, slot banks, a roulette wheel and card tables, red
 // drapes and star banners, cherry blossom in urns, and a wall of glass onto the rain-lit skyline.
 import { T } from './diorama.js';
-import { kit, rng, pbr, ctex, cvs, bannerTex, skyline, rain, drift, scatter, farPainting } from './kit.js';
+import { kit, rng, pbr, ctex, cvs, bannerTex, skyline, rain, drift, scatter, farPainting, decals } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4, -1.6], [-4, -1.8], [1.4, -3]], sum: [-5.2, .8], exposure: 1.4 };
 
@@ -50,4 +50,5 @@ export async function build(D) {
   skyline(K, D, R, { zNear: -30, zFar: -120, n: 40, spread: 70 }); farPainting(D, 'nw_casino', { v0: .1, v1: .55, z: -144 });
   rain(D, 400, [-20, 20], [0, 14], [-40, -22], { speed: 12 }); drift(D, 50, 0, -6, 14, 6, 0xffd080, { y0: 2, y1: 10, size: 6 });
   scatter(D, rng(101), { area: [-14, 14, -3, 5], petals: 60, petal: 0xffb0d0 });
+  decals(D, rng(649), { area: [-14, 14, -3, 5], list: [['stain', 2, [1, 1.6], { op: .6 }]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
 }

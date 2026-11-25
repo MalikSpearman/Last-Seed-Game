@@ -2,7 +2,7 @@
 // a shrine gate at the end of the street, a corner shop with vending machines and a ramen stall, wires strung between
 // poles, and towers wrapped in giant screens (koi, sakura) with neon bands.
 import { T } from './diorama.js';
-import { kit, rng, ctex, cvs, sky, torii, drift, pbr, farPainting, groundFill, scatter, cityBlocks, walkers, clutter } from './kit.js';
+import { kit, rng, ctex, cvs, sky, torii, drift, pbr, farPainting, groundFill, scatter, cityBlocks, walkers, clutter, model, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -2.2], [-4.6, -2.6], [1.6, -4.6]], sum: [-5.6, .8] };
 
@@ -72,6 +72,7 @@ export async function build(D) {
       const v = box(1, 2.2, 1.1, vm, -10.4, .18, z); v.material = [M.metal, M.metal, M.metal, M.metal, vm, M.metal]; v.rotation.y = Math.PI / 2; D.glow(-9.6, 1.4, z, 2, hue === 210 ? 0x60b0ff : 0xff60a0); }
     D.lantern(-9.4, 1.4, -4.2, { color: 0x80a0ff, intensity: 10, distance: 7, glow: 0 });
     for (const z of [-6.4, -7.4]) box(.9, .7, .9, M.wood, -10.6, .18, z);
+    model(D, 'metal_trash_can', -10.4, .18, -1.2, { h: 1.1, ry: Math.PI / 2 }); model(D, 'trashbag', -9.6, .18, -6.9, { h: .8 }); model(D, 'fire_hydrant', -8.4, .18, 2.6, { h: .9, ry: .5 });
     await K.prop('ferns', -10.6, -6.4, 1, { y: .9 }); await K.prop('ferns', -10.6, -7.4, .9, { y: .9, flip: 1 });
     // the cherry tree overhanging the corner
     await K.prop('sakura', -12, -.5, 9, { y: 2, flip: 1, sway: .008 }); }
@@ -119,8 +120,10 @@ export async function build(D) {
   farPainting(D, 'nw_street', { v1: .5, z: -145 });
   cityBlocks(K, D, R2, { x0: -40, x1: 40, z0: -38, z1: -60, n: 16, hMin: 8, hMax: 24, skipX: [0, 10] });
   scatter(D, R2, { area: [-12, 12, -3, 7], puddles: 12, petals: 160, petal: 0xff7ad0, pebbles: 40, stone: 0x3a3440 });
+  decals(D, rng(803), { area: [-12, 12, -3, 7], list: [['manhole_jp', 2, [1.2, 1.4]], ['asphalt_dmg', 3, [2, 3.4]], ['gum', 4, [.8, 1.4]], ['oil', 2, [1, 1.8]], ['paper', 2, [.9, 1.4]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   // background life and mid-ground clutter
   await walkers(D, R2, { rim: '#c060ff', z: -5.6, x0: -14, x1: 14, umbrellas: .55, group: 3, every: [3, 7], zJit: .7 });
   await walkers(D, R2, { rim: '#c060ff', z: -27, x0: -12, x1: 12, umbrellas: .5, group: 2, every: [5, 10] });
   await clutter(D, K, R2, 'city', { area: [-21, -12.5, 2, -40], n: 18, clear: 0, y: .18 }); await clutter(D, K, R2, 'city', { area: [12.5, 21, 2, -40], n: 18, clear: 0, y: .18 });
+  await dress(D, rng(1098), { area: [-16, 16, -9, 4], items: [['img:rg_vending', 1, [2.2, 2.4]], ['img:rg_ramen', 1, [3, 3.4]], ['img:rg_neonsign', 2, [3.5, 4.5]], ['img:rg_bicycle', 1, [1.1, 1.2]], ['img:rg_scooter', 1, [1.2, 1.3]], ['street_lamp_01', 2, [4, 4.6]], ['concrete_road_barrier', 1, [.85, .95]], ['plastic_crate_01', 2, { s: [2, 2.6] }], ['cardboard_box_01', 2, { s: [1.5, 2] }]] });   // real CC0 models placed where they fit (kit.dress)
 }

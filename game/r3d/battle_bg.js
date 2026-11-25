@@ -5,6 +5,7 @@ import { Diorama, T } from './diorama.js';
 import { build } from './scene_bamboo.js';
 import { buildPainted, setsMeta, nameOf } from './scene_painted.js';
 import { ArenaFX } from './arena_fx.js';
+import { look } from './kit.js';
 let FX = null;
 
 // c: the clearing's centre; gap: half the distance between the two fighters on it (kept clear of props)
@@ -27,7 +28,7 @@ const KEEP = ['scene', 'moon', 'spots', 'pool', 'billboards', 'updaters', 'backd
 let cur = null, bamboo = null, painted = null, lock = Promise.resolve();
 function use(cx) {
   if (cur === cx) return; if (cur) for (const k of KEEP) cur[k] = D[k];
-  for (const k of KEEP) D[k] = cx[k]; cur = cx; FX = cx.fx;
+  for (const k of KEEP) D[k] = cx[k]; cur = cx; FX = cx.fx; D.setFX(cx.look || {});
   for (const k in casters) cx.scene.add(casters[k].m);
   // a painted set already carries its painter's colour: show it as painted (no filmic curve) — the bamboo set keeps its grade
   const tm = cx.painted ? T.NoToneMapping : T.ACESFilmicToneMapping; if (D.renderer.toneMapping !== tm) { D.renderer.toneMapping = tm; D.post.needsUpdate = true; }
@@ -41,12 +42,12 @@ function disposeCtx(cx) {
   if (cx.moon && cx.moon.shadow && cx.moon.shadow.map) cx.moon.shadow.map.dispose();
 }
 async function bambooCtx() {
-  if (!bamboo) { bamboo = blank(D.scene0); bamboo.painted = false; use(bamboo); bamboo.ready = build(D).then(() => { bamboo.fx = FX = new ArenaFX(D); }); }
+  if (!bamboo) { bamboo = blank(D.scene0); bamboo.painted = false; use(bamboo); bamboo.ready = build(D).then(() => { bamboo.fx = FX = new ArenaFX(D); bamboo.look = {}; try { D.envLight(); } catch (_) {} }); }
   use(bamboo); await bamboo.ready; return bamboo;
 }
 async function paintedCtx(name, url) {
   if (painted && painted.name === name) { use(painted); await painted.ready; return painted; }
-  const old = painted, cx = painted = blank(new T.Scene()); cx.name = name; cx.painted = true;
+  const old = painted, cx = painted = blank(new T.Scene()); cx.name = name; cx.painted = true; cx.look = { bloom: .3, thr: 1.35, ao: 0, env: 0 };   /* the painting already has its light baked in: only its hottest spots bloom */
   use(cx); cx.ready = buildPainted(D, name, url, [0, 0, 0]).then(pp => { cx.P = pp; cx.fx = FX = new ArenaFX(D); cx.fx.flat = true; });
   if (old && old !== cx) { if (cur === old) use(cx); disposeCtx(old); }
   await cx.ready; return cx;
@@ -69,7 +70,7 @@ let modeled = null;
 async function modeledCtx(name) {
   if (modeled && modeled.name === name) { use(modeled); await modeled.ready; return modeled; }
   const old = modeled, cx = modeled = blank(new T.Scene()); cx.name = name; cx.painted = false; cx.modeled = true;
-  use(cx); cx.ready = MODELED[name]().then(async mod => { await mod.build(D, /2$/.test(name) ? 2 : 1, name); /* boss arenas: a name ending in 2 is the second-phase look */ cx.P = mod.PRESET; cx.fx = FX = new ArenaFX(D); D.renderer.toneMappingExposure = cx.P.exposure || 1.75; });
+  use(cx); cx.ready = MODELED[name]().then(async mod => { await mod.build(D, /2$/.test(name) ? 2 : 1, name); /* boss arenas: a name ending in 2 is the second-phase look */ cx.P = mod.PRESET; cx.fx = FX = new ArenaFX(D); D.renderer.toneMappingExposure = cx.P.exposure || 1.75; cx.look = look(name, cx.P); D.setFX(cx.look); try { D.envLight({ env: cx.look.env }); } catch (_) {} });
   if (old && old !== cx) disposeCtx(old);
   await cx.ready; return cx;
 }
@@ -354,7 +355,8 @@ export function start(host, k, bgUrl) {
   const go = async () => {
     if (g0 !== gen) return; ensure(); k = k || window.__ls3dKey; const n = nameOf(bgUrl);
     let cx;
-    if (!k && n && MODELED[n] && !window.__lsPainted) { cx = await modeledCtx(n); P = cx.P; key = n; }
+    if (k && MODELED[k]) { cx = await modeledCtx(k); P = cx.P; key = k; }   // a roam fight in one of the connected areas: fight right there
+    else if (!k && n && MODELED[n] && !window.__lsPainted) { cx = await modeledCtx(n); P = cx.P; key = n; }
     else if (!k && n && n !== 'w_bamboo' && (await setsMeta())[n]) { cx = await paintedCtx(n, bgUrl); P = cx.P; key = n; }
     else { cx = await bambooCtx(); key = PRESETS[k] ? k : Object.keys(PRESETS)[Math.random() * 3 | 0]; P = PRESETS[key]; cx.P = P; }
     if (g0 !== gen) return; fit = null;
@@ -376,7 +378,7 @@ export function impact(side, o = {}) {
 }
 export function weather(kind) { if (cur) setWeather(cur, kind); }
 // a still of the set as it looks right now (no fighters), for the Super Art cinematics to play in front of
-export function snapshot() { if (!D || D.paused || !cv) return null; try { D.renderer.setRenderTarget(D.rt); D.renderer.render(D.scene, D.camera); D.renderer.setRenderTarget(null); D.renderer.render(D.postScene, D.postCam); return cv.toDataURL('image/jpeg', .9); } catch (_) { return null; } }
+export function snapshot() { if (!D || D.paused || !cv) return null; try { D._render(); return cv.toDataURL('image/jpeg', .9); } catch (_) { return null; } }
 export function sweep() { supT = 0; }
 export function ots(on, def) { OTS.on = !!on; if (def) OTS.def = def; }
 export const _debug = () => ({ depth: fit && fit.depth, key, P, casters: Object.fromEntries(Object.entries(casters).map(([k, c]) => [k, { vis: c.m.visible, src: c.src.slice(-30), pos: c.m.position.toArray().map(v => +v.toFixed(2)), sc: c.m.scale.toArray().map(v => +v.toFixed(2)) }])), shadows: D && D.renderer.shadowMap.enabled });

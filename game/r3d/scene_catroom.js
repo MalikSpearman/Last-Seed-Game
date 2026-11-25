@@ -3,7 +3,7 @@
 // shoji; Zoomies is the same room at 3:00 at night, moonlit blue, a torn shoji, the quilt dragged off, a vase smashed,
 // a digital clock glaring, and things knocked everywhere.
 import { T } from './diorama.js';
-import { kit, rng, pbr, ctex, cvs, shojiMat, farPainting, scatter, drift, flurry, restyle } from './kit.js';
+import { kit, rng, pbr, ctex, cvs, shojiMat, farPainting, scatter, drift, flurry, restyle, model, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4, -1.4], [-4, -1.6], [1.4, -2.2]], sum: [-5.2, .8], exposure: 1.45 };
 
@@ -37,6 +37,7 @@ export async function build(D, phase = 1, name = 'tama') {
     for (const [y, r] of [[1.2, 1.2], [3.4, 1], [6, 1.1]]) add(new T.CylinderGeometry(r, r, .3, 16), M.plush, tx, y, tz); box(1.6, 1.4, 1.4, M.plush, tx + .9, 3.6, tz); add(new T.CircleGeometry(.4, 16), new T.MeshBasicMaterial({ color: 0x2a1a10 }), tx + .9, 4.2, tz + .71, { cast: false }); }
   // ── cushions, food bowl with paw print, yarn ──
   for (const [x, z, s] of [[-13, 1, 1], [-11.4, 2.4, .8], [12, 1.6, 1]]) { const c = add(new T.SphereGeometry(1, 12, 8), M.cush, x, .25, z); c.scale.set(1.1 * s, .3, 1.1 * s); }
+  model(D, 'television_02', 6.4, 0, -6.6, { h: 1.6, ry: -.2 }); model(D, 'throw_pillows_01', -12.6, .3, 1.1, { s: 2, ry: .3 }); model(D, 'potted_plant_02', 14.2, 0, -5.6, { h: 2.2 });
   add(new T.CylinderGeometry(.9, .7, .5, 18), M.bowl, 10.6, .25, -4.6); for (let i = 0; i < 12; i++) add(new T.SphereGeometry(.12, 6, 4), new T.MeshStandardMaterial({ color: 0x7a4a2a }), 10.6 + R.r(-.5, .5), .52, -4.6 + R.r(-.5, .5), { cast: false });
   add(new T.SphereGeometry(.5, 14, 10), M.yarn, 12.6, .5, -2.4); { const c = new T.CatmullRomCurve3([new T.Vector3(12.4, .1, -2), new T.Vector3(10, .03, -1), new T.Vector3(7, .03, -2.6), new T.Vector3(5, .03, -1.4)]); add(new T.TubeGeometry(c, 30, .03, 4), M.yarn, 0, 0, 0, { cast: false }); }
   if (night) { // the smashed vase, scattered things, the digital clock reading 3:00
@@ -46,4 +47,6 @@ export async function build(D, phase = 1, name = 'tama') {
   else { D.lantern(4, 3, -6, { color: 0xffa050, intensity: 18, distance: 16, glow: 0 }); D.lantern(-9, 2.6, -2, { intensity: 10, distance: 8, glow: 0 }); }
   await prop('sakura', 13.4, -6, 3, { y: 0, tint: night ? 0x8a80c0 : 0xff9090, blob: false });
   scatter(D, rng(111), { area: [-13, 13, -3, 5], petals: night ? 60 : 20, petal: night ? 0xd8d0f0 : 0xffb0a0 });
+  decals(D, rng(607), { area: [-13, 13, -3, 5], list: [['stain', 2, [1, 1.6], { op: .7 }]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
+  await dress(D, rng(1241), { area: [-14, 14, -7, 3], items: [['cardboard_box_01', 2, { s: [1.8, 2.4] }], ['chinese_stool', 1, [.6, .7]]] });   // real CC0 models placed where they fit (kit.dress)
 }

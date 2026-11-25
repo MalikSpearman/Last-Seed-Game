@@ -3,7 +3,7 @@
 // flowers, a big clock. Phase two: everything turns red, the clock bleeds and runs fast, ink drips down the board,
 // desks lift off the floor and drift, exam papers storm through the air, red light pools on the floor.
 import { T } from './diorama.js';
-import { kit, rng, pbr, ctex, cvs, farPainting, viewMat, scatter, drift, flurry, vortex } from './kit.js';
+import { kit, rng, pbr, ctex, cvs, farPainting, viewMat, scatter, puddleAlpha, drift, flurry, vortex, model, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4, -1.6], [-4, -1.8], [1.4, -2.4]], sum: [-5.2, .8], exposure: 1.45 };
 const board = red => cvs(512, 256, (g, W, H) => { g.fillStyle = '#1a3a2a'; g.fillRect(0, 0, W, H); g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 3; for (let i = 0; i < 8; i++) { g.beginPath(); g.moveTo(40, 40 + i * 26); g.lineTo(40 + (i * 53 % 300) + 100, 40 + i * 26); g.stroke(); }
@@ -35,11 +35,13 @@ export async function build(D, phase = 1) {
   // ── rows of desks and chairs (phase two: they lift and drift) ──
   const desks = [];
   for (const s of [-1, 1]) for (let r = 0; r < 5; r++) for (let c = 0; c < 3; c++) { const x = s * (7 + c * 3.4), z = -5 - r * 3.2, g = new T.Group(); g.position.set(x, 0, z); S.add(g);
-    K.add(new T.BoxGeometry(2, .1, 1.1), M.desk, 0, 1.2, 0, { to: g }); for (const [dx, dz] of [[-.9, -.45], [.9, -.45], [-.9, .45], [.9, .45]]) K.add(new T.BoxGeometry(.06, 1.2, .06), M.metal, dx, .6, dz, { to: g });
-    K.add(new T.BoxGeometry(.9, .08, .8), M.desk, 0, .8, .9, { to: g }); K.add(new T.BoxGeometry(.9, .8, .08), M.desk, 0, 1.2, 1.3, { to: g }); desks.push([g, x, z, R() * 6]); }
+    model(D, 'SchoolDesk_01', -.5, 0, 0, { s: 1.55, to: g }); model(D, 'SchoolDesk_01', .5, 0, 0, { s: 1.55, to: g });   // real school desks and chairs (Poly Haven), a pair per row slot
+    model(D, 'SchoolChair_01', -.5, 0, 1, { s: 1.5, ry: Math.PI, to: g }); model(D, 'SchoolChair_01', .5, 0, 1, { s: 1.5, ry: Math.PI + .08, to: g }); desks.push([g, x, z, R() * 6]); }
   if (red) { D.updaters.push(t => desks.forEach(([g, x, z, ph], i) => { if (i % 3) return; g.position.y = 1.5 + Math.sin(t * .5 + ph) * 1.2 + (i % 2) * 2; g.rotation.set(Math.sin(t * .3 + ph) * .5, ph, Math.cos(t * .4 + ph) * .4); }));
     flurry(D, R, 70, { area: [-16, 16, 0, -20], y0: 0, y1: 10, speed: 2 }); vortex(D, 0, 8, -23.5, 9, '#ff3040', { speed: .2, opacity: .45 });
-    for (let i = 0; i < 6; i++) { const p = add(new T.CircleGeometry(R.r(.8, 2), 20), new T.MeshStandardMaterial({ color: 0x8a0010, roughness: .05, metalness: .5 }), R.r(-12, 12), .015, R.r(-3, -16), { rx: -Math.PI / 2, cast: false }); }
+    for (let i = 0; i < 6; i++) { const p = add(new T.CircleGeometry(R.r(.8, 2), 20), new T.MeshStandardMaterial({ color: 0x8a0010, roughness: .05, metalness: .5, transparent: true, depthWrite: false, alphaMap: puddleAlpha(), envMapIntensity: .3 }), R.r(-12, 12), .015, R.r(-3, -16), { rx: -Math.PI / 2, cast: false }); }
   } else { flurry(D, R, 8, { area: [-14, 14, -2, -18], y0: 0, y1: 8, speed: .4 }); drift(D, 50, -10, -10, 10, 12, 0xffe0a0, { y0: 1, y1: 9, size: 6 }); }
   scatter(D, rng(125), { area: [-14, 14, -3, 6], petals: red ? 30 : 40, petal: red ? 0xf0e8e0 : 0xffc0d0, puddles: 0 });
+  decals(D, rng(684), { area: [-14, 14, -3, 6], list: [['paper', 4, [1, 1.8]], ['stain', 2, [1, 1.6], { op: .6 }]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
+  await dress(D, rng(1208), { area: [-16, 16, -6, 3], items: [['standing_chalkboard_01', 1, [1.9, 2.1]]] });   // real CC0 models placed where they fit (kit.dress)
 }

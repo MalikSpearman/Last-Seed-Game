@@ -2,7 +2,7 @@
 // A wet flagstone avenue between food stalls and parasols, lantern strings overhead, crimson laurel banners,
 // sakura over the rooftops, and the tournament colosseum at the top of the stairs under a full moon.
 import { T } from './diorama.js';
-import { pbr, farPainting, groundFill, scatter, cityBlocks, rng, walkers, clutter, crowd } from './kit.js';
+import { pbr, farPainting, groundFill, scatter, cityBlocks, rng, walkers, clutter, crowd, model, decals, dress } from './kit.js';
 const TX = n => new URL('./tex/' + n + '.webp', import.meta.url).href;
 const BASE = new URL('./img/', import.meta.url).href;
 const I = n => BASE + n + '.webp';
@@ -149,7 +149,7 @@ export async function build(D) {
     for (const dz of [-1.1, 1.1]) { const L = add(new T.CylinderGeometry(.2, .2, .42, 12), R() < .4 ? M.paperR : M.paperW, fx - s * .5, h - .85, z + dz, { cast: false }); D.glow(L.position.x, L.position.y, L.position.z, .9, 0xffb060); }
     D.lantern(fx - s * .6, h - .8, z, { distance: 6, intensity: 9, glow: 0 });
     await A(R() < .5 ? 'rp_food' : 'rp_pot', x - s * .1, z + rnd(-.8, .8), .6, { y: 1, blob: false, shadow: false });
-    if (R() < .5) await A(R() < .5 ? 'rp_barrel' : 'rp_crates', fx + s * .1, z + w / 2 + .5, .9);
+    if (R() < .5) { if (R() < .5) model(D, 'wine_barrel_01', fx + s * .1, 0, z + w / 2 + .5, { h: .95, ry: z * 1.7 }); else model(D, 'wooden_crate_02', fx + s * .1, 0, z + w / 2 + .5, { s: 1.2, ry: z * 1.3 }); }
   };
   for (const s of [-1, 1]) for (let z = -2, i = 0; z > -40; z -= rnd(4.4, 5.4), i++) await stall(s * (6.2 + i * .06), z, s);
 
@@ -190,12 +190,14 @@ export async function build(D) {
   for (const s of [-1, 1]) await A('sakura', s * 8.4, 3, 6.5, { flip: s > 0, sway: .01, blobW: .2 });
   D.petals(160, 0, -6, 12); D.petals(120, 0, -26, 12); D.fireflies(70, 0, -18, 9, 22, { y0: 2.5, y1: 6, color: 0xffc070, size: 10 });
   // a few barrels and crates at the near corners
-  await A('rp_barrel', -5.2, 1.2, 1); await A('rp_crates', 5.4, .8, 1.1, { flip: 1 });
+  model(D, 'wine_barrel_01', -5.2, 0, 1.2, { h: 1.1, ry: .4 }); model(D, 'wooden_bucket_01', -4.5, 0, 1.7, { h: .6 }); model(D, 'wooden_crate_02', 5.4, 0, .8, { s: 1.5, ry: 1.3 }); model(D, 'wooden_crate_01', 5.5, .7, .8, { s: 1.3, ry: 1.5 });
 
   // ── detail wave 2: painted far backdrop, ground to the horizon, near scatter ──
   const R2 = rng(246);
   farPainting(D, 'festival', { v1: .5, z: -145 });
   scatter(D, R2, { area: [-13, 13, -3, 9], puddles: 9, petals: 420, pebbles: 50 });
+  decals(D, rng(621), { area: [-13, 13, -3, 9], list: [['paper', 3, [1, 1.6]], ['stain', 3, [1.2, 2.4]], ['moss', 2, [1.4, 2.4]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   // background life and mid-ground clutter
   crowd(D, R2, { spots: SPOTS, n: 16, rim: '#ffb060', cross: .06 });
+  await dress(D, rng(1032), { area: [-16, 16, -9, 4], items: [['img:rg_yatai', 2, [3, 3.4]], ['img:rg_goldfish', 1, [3, 3.4]], ['img:rg_taiko', 1, [1.6, 1.9]], ['chinese_stool', 3, [.6, .7]], ['wooden_stool_01', 2, [.5, .6]], ['wine_barrel_01', 2, [1, 1.2]]] });   // real CC0 models placed where they fit (kit.dress)
 }

@@ -1,7 +1,7 @@
 // Lotus Marsh: a rain-slick boardwalk deck over a black pond, stilt houses with lit shoji, a boardwalk winding
 // off to the sacred tree on its island (rope, paper streamers, a waterfall), blue will-o-wisps, under a blood moon.
 import { T } from './diorama.js';
-import { kit, rng, ctex, cvs, sky, moon, planks, rough, rail, stoneLantern, water, drift, pbr, farPainting, groundFill, scatter, cityBlocks, walkers, clutter } from './kit.js';
+import { kit, rng, ctex, cvs, sky, moon, planks, rough, rail, stoneLantern, water, drift, pbr, farPainting, groundFill, scatter, cityBlocks, walkers, clutter, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.2, -1.6], [-4.4, -1.8], [7.2, -5.5]], sum: [-5.6, .8], exposure: 1.4 };
 
@@ -112,6 +112,8 @@ export async function build(D) {
   const R2 = rng(790);
   farPainting(D, 'marsh', { v1: .5, z: -145 });
   scatter(D, R2, { area: [-11, 11, -3, 5], puddles: 7, petals: 220, leaves: 50, leaf: 0x4a7a3a, avoid: 4 });
+  decals(D, rng(642), { area: [-11, 11, -3, 5], list: [['moss', 6, [1.2, 2.6]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   // background life and mid-ground clutter
   await clutter(D, K, R2, 'wild', { area: [-12, 12, 4.8, 5.6], n: 8, clear: 7 });
+  await dress(D, rng(999), { area: [-16, 16, -9, 4], items: [['img:rg_willow', 1, [6, 7.5]], ['img:rg_boat', 1, [2.2, 2.6]], ['namaqualand_boulder_02', 2, [.6, 1.2]], ['tree_stump_01', 1, [.4, .55]]] });   // real CC0 models placed where they fit (kit.dress)
 }

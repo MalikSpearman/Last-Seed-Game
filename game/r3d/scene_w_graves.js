@@ -2,7 +2,7 @@
 // red-bibbed jizo statues among red spider lilies, an ancient weeping willow, a torii up worn steps to a small shrine,
 // stone lanterns at the corners, blue soul-fires drifting over the stones, under a blood moon.
 import { T } from './diorama.js';
-import { kit, rng, sky, moon, pbr, stoneLantern, drift, rain, torii, pagoda, water, deadTree, farPainting, groundFill, scatter, cityBlocks, walkers, clutter } from './kit.js';
+import { kit, rng, sky, moon, pbr, stoneLantern, drift, rain, torii, pagoda, water, deadTree, farPainting, groundFill, scatter, cityBlocks, walkers, clutter, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -2], [-4.4, -2.4], [1.6, -3.2]], sum: [-5.6, .8], exposure: 1.6 };
 
@@ -48,6 +48,8 @@ export async function build(D) {
   const R2 = rng(627);
   farPainting(D, 'w_graves', { v1: .5, z: -145 });
   scatter(D, R2, { area: [-14, 14, -4, 6], puddles: 9, tufts: 90, tuft: 0x5a8a3a, leaves: 110, leaf: 0x8aa848, pebbles: 70, stone: 0x6a6070 });
+  decals(D, rng(733), { area: [-14, 14, -4, 6], list: [['moss', 7, [1.4, 3]], ['stain', 3, [1.2, 2.2]], ['crack', 3, [1.4, 2.6]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   // background life and mid-ground clutter
   await clutter(D, K, R2, 'shrine', { area: [-16, 6, -4, -16], n: 20, clear: 3 });
+  await dress(D, rng(922), { area: [-16, 16, -9, 4], items: [['img:rg_willow', 2, [7, 9]], ['tree_stump_01', 2, [.4, .6]], ['dead_tree_trunk', 1, { s: [.7, 1] }], ['namaqualand_boulder_02', 2, [.6, 1.2]], ['painted_wooden_bench', 1, [.9, 1]]] });   // real CC0 models placed where they fit (kit.dress)
 }

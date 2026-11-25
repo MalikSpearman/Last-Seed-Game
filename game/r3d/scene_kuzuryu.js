@@ -3,7 +3,7 @@
 // cliffs behind, blue stone lanterns, cherry blossom, the shrine glowing far beyond, under a full moon. Phase two: the
 // pool rises into a whirlpool of storm water, lightning cracks the sky, the torii stands in the maelstrom, spray flies.
 import { T } from './diorama.js';
-import { kit, rng, sky, moon, pbr, torii, water, stoneLantern, farPainting, scatter, drift, lightning, vortex, rain, breakers, pagoda } from './kit.js';
+import { kit, rng, sky, moon, pbr, torii, water, stoneLantern, farPainting, scatter, drift, lightning, vortex, rain, breakers, pagoda, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -1.8], [-4.4, -2], [1.6, -2.8]], sum: [-5.6, .8], exposure: 1.55 };
 
@@ -35,4 +35,6 @@ export async function build(D, phase = 1) {
     farPainting(D, 'kuzuryu2', { v1: .45, z: -144 }); D.petals(80, 0, -2, 14, { color: 0xe0e8ff });
   } else { farPainting(D, 'kuzuryu', { v1: .45, z: -144 }); D.petals(120, -6, -2, 14, { color: 0xffc0e0 }); drift(D, 30, 0, -14, 14, 8, 0x60c0ff, { y0: 0, y1: 4, size: 14 }); }
   scatter(D, rng(129), { area: [-14, 14, -3, 6], puddles: storm ? 12 : 7, petals: 80, petal: 0xffc0e0, tufts: 30, tuft: 0x4a7a5a });
+  decals(D, rng(635), { area: [-14, 14, -3, 6], list: [['moss', 7, [1.5, 3.2]], ['crack', 3, [1.4, 2.6]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
+  await dress(D, rng(900), { area: [-16, 16, -9, 4], items: [['img:rg_willow', 1, [7, 8.5]], ['rock_moss_set_01', 1, { s: [.22, .38] }], ['rock_moss_set_02', 1, { s: [.22, .38] }], ['namaqualand_boulder_02', 3, [.6, 1.2]], ['tree_stump_01', 1, [.45, .6]]] });   // real CC0 models placed where they fit (kit.dress)
 }

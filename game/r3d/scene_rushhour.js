@@ -4,7 +4,7 @@
 // lightning over the city, the express tearing into the station with blazing headlights and sparks, hazard-striped
 // columns, the lights flickering.
 import { T } from './diorama.js';
-import { kit, rng, sky, pbr, ctex, cvs, farPainting, scatter, drift, lightning, rain, walkers, skyline } from './kit.js';
+import { IMG, kit, rng, sky, pbr, ctex, cvs, farPainting, scatter, drift, lightning, rain, walkers, skyline, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4, -1.6], [-4, -1.8], [1.4, -2.4]], sum: [-5.2, .8], exposure: 1.4 };
 
@@ -12,6 +12,8 @@ const tiles = () => { const R = rng(2); return cvs(512, 512, (g, W, H) => { g.fi
 const strip = () => cvs(128, 128, (g, W) => { g.fillStyle = '#e8b020'; g.fillRect(0, 0, W, W); g.fillStyle = '#c89010'; for (let x = 0; x < W; x += 16) g.fillRect(x + 2, 0, 6, W); });
 const hazard = () => cvs(64, 256, (g, W, H) => { g.fillStyle = '#e8b020'; g.fillRect(0, 0, W, H); g.fillStyle = '#1a1a1a'; for (let y = -64; y < H; y += 48) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y + 32); g.lineTo(W, y + 56); g.lineTo(0, y + 24); g.fill(); } });
 const clockF = () => cvs(256, 256, (g, W) => { g.fillStyle = '#f8f6f0'; g.beginPath(); g.arc(128, 128, 120, 0, 7); g.fill(); g.strokeStyle = '#1a1a1a'; g.lineWidth = 10; g.stroke(); for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2; g.lineWidth = 6; g.beginPath(); g.moveTo(128 + Math.cos(a) * 96, 128 + Math.sin(a) * 96); g.lineTo(128 + Math.cos(a) * 110, 128 + Math.sin(a) * 110); g.stroke(); } });
+
+const ctex0 = url => { const t = new T.TextureLoader().load(url); t.colorSpace = T.SRGBColorSpace; t.anisotropy = 8; return t; };
 
 export async function build(D, phase = 1) {
   const night = phase === 2, K = kit(D), { S, add, box, prop } = K, R = rng(night ? 602 : 601);
@@ -35,10 +37,11 @@ export async function build(D, phase = 1) {
     D.updaters.push(t => { hh.rotation.z = -t * .02 - 1.2; mh.rotation.z = -t * .24; }); }
   // ── the train ──
   const train = new T.Group(); S.add(train);
-  for (let c = 0; c < 3; c++) { const g = new T.Group(); g.position.set(-6 + c * 21, -1.2, -7.8); train.add(g);
-    K.add(new T.BoxGeometry(20, 3.6, 3.2), M.train, 0, 2.3, 0, { to: g }); K.add(new T.BoxGeometry(20.05, .3, 3.25), M.green, 0, 2.6, 0, { to: g, cast: false });
-    for (let k = 0; k < 6; k++) { K.add(new T.BoxGeometry(1.8, 1, .05), M.glass, -8 + k * 3.2, 3.2, 1.62, { to: g, cast: false }); if (k % 2 && !night) K.add(new T.BoxGeometry(1.4, 2.6, .06), new T.MeshStandardMaterial({ color: 0x2a6a3a }), -8 + k * 3.2, 1.9, 1.64, { to: g, cast: false }); }
-    K.add(new T.BoxGeometry(20, .3, 3.3), M.dark, 0, .4, 0, { to: g }); }
+  // painted commuter cars (a 2D cut-out on each car's near side, with a dark box body behind for depth and shadow)
+  { const tm = new T.MeshStandardMaterial({ map: ctex0(IMG('rg_train')), alphaTest: .4, side: T.DoubleSide, roughness: .5, emissive: 0xffffff, emissiveMap: ctex0(IMG('rg_train')), emissiveIntensity: night ? .25 : .12 });
+    for (let c = 0; c < 4; c++) { const g = new T.Group(); g.position.set(-10 + c * 12.2, -1.2, -7.8); train.add(g);
+      K.add(new T.BoxGeometry(11.6, 3.4, 3), M.dark, 0, 2.2, 0, { to: g });
+      const pl = new T.Mesh(new T.PlaneGeometry(12, 4.8), tm); pl.position.set(0, 2.4, 1.56); pl.castShadow = false; g.add(pl); } }
   if (night) { // the express charging in: headlights, sparks off the rails, it crawls forward and back on a cycle
     const hl = new T.MeshBasicMaterial({ color: 0xfff8d0 }); for (const dz of [-.9, .9]) { const l = new T.Mesh(new T.CircleGeometry(.3, 16), hl); l.position.set(-16.02, 1.6, -7.8 + dz); l.rotation.y = -Math.PI / 2; train.add(l); }
     const beam = new T.PointLight(0xfff0c0, 80, 40, 1.4); beam.position.set(-18, 1.4, -7.8); train.add(beam); D.glow(-17, 1.6, -7.8, 10, 0xfff0c0);
@@ -50,4 +53,6 @@ export async function build(D, phase = 1) {
     walkers(D, R, { z: -2.7, x0: -20, x1: 20, every: [2, 5], group: 3, rim: '#e0e8ff', zJit: .3 }); farPainting(D, 'rushhour', { v1: .45, z: -144 });
   }
   scatter(D, rng(121), { area: [-16, 16, -3, 6], puddles: night ? 12 : 0, petals: night ? 10 : 60, pebbles: 10, stone: 0x6a6a78 });
+  decals(D, rng(698), { area: [-16, 16, -3, 6], list: [['gum', 6, [.8, 1.6]], ['paper', 2, [.9, 1.4]], ['stain', 3, [1, 2]], ['crack', 2, [1.4, 2.4]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
+  await dress(D, rng(1164), { area: [-16, 16, -3, 3], items: [['img:rg_vending', 1, [2.2, 2.4]], ['modular_street_seating', 1, [.95, 1.05]], ['metal_trash_can', 1, [1, 1.2]]] });   // real CC0 models placed where they fit (kit.dress)
 }

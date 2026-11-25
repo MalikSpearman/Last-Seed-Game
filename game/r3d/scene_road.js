@@ -3,7 +3,7 @@
 // over it to a lit townhouse, the road winding off past fields and lanterns toward the colosseum glowing on the
 // horizon, mountains under a pink and violet sunset, petals everywhere.
 import { T } from './diorama.js';
-import { kit, rng, sky, pbr, ctex, cvs, bannerTex, water, pagoda, farPainting, scatter, clutter, walkers, drift, hills, groundFill } from './kit.js';
+import { kit, rng, sky, pbr, ctex, cvs, bannerTex, water, pagoda, farPainting, scatter, clutter, walkers, drift, hills, groundFill, decals, dress } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -2], [-4.4, -2.4], [1.6, -3.4]], sum: [-5.6, .8], exposure: 1.4 };
 
@@ -49,5 +49,7 @@ export async function build(D) {
   walkers(D, R, { z: -16, x0: -14, x1: 6, every: [4, 9], group: 2, rim: '#ffb080', zJit: 2 });
   D.petals(260, -2, -6, 16); D.petals(120, -10, -30, 14); drift(D, 40, 0, -10, 20, 14, 0xffd0a0, { y0: .5, y1: 6, size: 6 });
   scatter(D, rng(143), { area: [-14, 14, -4, 7], puddles: 8, petals: 380, pebbles: 40, stone: 0x8a7a80, tufts: 30, tuft: 0x6a8a4a });
+  decals(D, rng(691), { area: [-14, 14, -4, 7], list: [['moss', 4, [1.4, 2.6]], ['crack', 3, [1.4, 2.6]], ['stain', 3, [1.2, 2.2]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   await clutter(D, K, rng(144), 'shrine', { area: [-16, -10, -2, -16], n: 6, clear: 0 });
+  await dress(D, rng(1021), { area: [-16, 16, -9, 4], items: [['img:rg_yatai', 1, [3, 3.4]], ['img:rg_taiko', 1, [1.6, 1.9]], ['img:rg_willow', 1, [6, 7.5]], ['painted_wooden_bench', 2, [.9, 1]], ['wine_barrel_01', 1, [1, 1.2]], ['wooden_bucket_01', 1, [.55, .7]]] });   // real CC0 models placed where they fit (kit.dress)
 }
