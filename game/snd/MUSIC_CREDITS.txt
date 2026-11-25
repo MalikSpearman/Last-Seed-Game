@@ -19,3 +19,26 @@ m_t_kaiko      Gigantic monster (大怪獣)               T.Waraya          open
 m_t_valka      リアルロボットW                          田中芳典           opentracks.com/en/bgm/detail/10572
 m_t_maximo     The person who blocks (阻む者)          Maniira           opentracks.com/en/bgm/detail/15362
 m_t_hana       Radical Storm                           shimtone          opentracks.com/en/bgm/detail/16164
+m_t_duelist    Dark Dance (暗黒舞踏)                    Keisuke Ito       opentracks.com/en/bgm/detail/22918
+m_t_azami      現代に潜む忍者的なBGM                     TAKAO             opentracks.com/en/bgm/detail/3137
+
+Ambience (snd/amb_*.mp3) — sound effects from OpenTracks, https://opentracks.com/en/se — levelled and looped for the game.
+amb_waves      岩場の波 (waves on rocks)                 opentracks.com/en/se/detail/1449
+amb_fest       出店（でみせ）屋台の通り (festival stalls)  opentracks.com/en/se/detail/1158
+amb_city       都会の繁華街のガヤ (busy night streets)    opentracks.com/en/se/detail/841
+amb_dusk       田舎の夕方 (countryside evening)           opentracks.com/en/se/detail/1452
+amb_insects    秋の虫の音 (autumn insects)                opentracks.com/en/se/detail/815
+amb_cicada     蝉の鳴き声 (cicadas)                       opentracks.com/en/se/detail/791
+
+More music (OpenTracks):
+m_t_rhea       Gothic Night (ゴシック・ナイト)          shimtone          opentracks.com/en/bgm/detail/10052
+m_t_rei        Flashes of lightning (雷鳴の閃き)        coochi            opentracks.com/en/bgm/detail/19651
+m_t_kaede      Flame Formation (炎陣)                   shimtone          opentracks.com/en/bgm/detail/18290
+m_t_uzume      神楽謡                                    まんぼう二等兵      opentracks.com/en/bgm/detail/4193
+m_t_nyx        Dark Kagura (闇神楽)                     shimtone          opentracks.com/en/bgm/detail/15406
+m_t_gozen      kaguraden (神楽殿)                       Keisuke Ito       opentracks.com/en/bgm/detail/23165
+m_t_tetsu      Land of Steel (鋼鉄の國)                 Heitaro           opentracks.com/en/bgm/detail/22699
+m_battle8      Thunder Beast Zelbell (雷獣ゼルビル)      MAKOOTO           opentracks.com/en/bgm/detail/20607
+More ambience (OpenTracks SFX):
+amb_wind       吹きすさぶ (howling wind)                 opentracks.com/en/se/detail/1424
+amb_murmur     雑踏にて, reverb take (crowd murmur)       opentracks.com/en/se/detail/202

@@ -1,5 +1,16 @@
 [
  {
+  "version": "0.3.36",
+  "date": "Nov 25, 2026",
+  "title": "More music and background sound",
+  "items": [
+   "Free roam now has background sound: waves on the Coast, stall chatter at the festival, busy night streets and howling rooftop wind in the Neon Ward, cicadas on the road and at the dojo, crows and a creek in the village, insects in the graves, crowd murmur in the teahouse and sake bar. It dips under roam fights",
+   "9 new character themes: Duelist, Azami, Kaede, Nyx, Rei, Rhea, Tetsu, Gozen and Uzume",
+   "An eighth track joins the random battle rotation",
+   "All music and ambience is credited in snd/MUSIC_CREDITS.txt"
+  ]
+ },
+ {
   "version": "0.3.35",
   "date": "Nov 25, 2026",
   "title": "Kneels sized right, a proper train",
