@@ -372,6 +372,14 @@ export function start(host, k, bgUrl) {
   };
   return (lock = lock.then(go, go));
 }
+// RUSHDOWN stage transition: the rival is blasted out of the arena and the chase ends in the neighbouring set
+// (the connected world's west-to-east order, plus a few natural neighbours). Boss and special arenas keep their set.
+const NEXT = { w_graves: 'w_mill', w_mill: 'w_village', w_village: 'road', road: 'festival', festival: 'sakebar', sakebar: 'nw_street', nw_street: 'nw_teahouse',
+  nw_teahouse: 'nw_snack', nw_snack: 'nw_roof', nw_roof: 'nw_express', nw_express: 'harbor', harbor: 'e_dojo', e_dojo: 'e_light', e_light: 'e_whale', e_whale: 'e_light',
+  nw_pachinko: 'nw_casino', nw_casino: 'nw_street', nw_web: 'nw_roof', marsh: 'sunken', sunken: 'seacave', seacave: 'harbor', blight: 'mountain_pass',
+  mountain_pass: 'rooftops', rooftops: 'nw_roof', ring: 'festival' };
+export function nextStage() { return (D && !D.paused && NEXT[key]) || null; }
+export function transition(host) { const n = nextStage(); if (!n || !host) return Promise.resolve(null); return start(host, n, null).then(() => n, () => null); }
 export function stop() { gen++; if (!D) return; cv.style.opacity = 0; document.getElementById('app').classList.remove('hd3d'); fz = 1; document.getElementById('app').style.removeProperty('--fz3d'); clearLights(); for (const k in lits) delete lits[k]; for (const s in casters) casters[s].m.visible = false; setTimeout(() => { if (cv.style.opacity === '0') { D.release(); cv.style.display = 'none'; } }, 900); }
 export function hit(side, big) { hitK = big ? 1.3 : .8; hitSide = side === 'e' ? 1 : -1; shake = big ? .08 : .04; }
 // a hit lands on 'p' or 'e': camera push + shake, then the arena reacts at their feet (light, dust, cracks, element marks)

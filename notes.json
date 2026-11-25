@@ -1,5 +1,18 @@
 [
  {
+  "version": "0.3.39",
+  "date": "Nov 25, 2026",
+  "title": "Rush and Rushdown",
+  "items": [
+   "New attack type: Rush. Every fighter starts with a Rush card, a hit that knocks the rival back (onto the ground when they have a knockdown pose)",
+   "RUSHDOWN: when a Rush is the hit that reaches Max Chain on a rival you're juggling, they're blasted off-screen and you chase them down. Time slows and you have 4.2 seconds to throw cards from your hand: each one is a hit, stronger the more it costs. Thrown cards go to your discard pile",
+   "On 3D arenas the chase carries the fight into the neighbouring stage",
+   "Rivals can Rushdown you too, and it works in Online 1v1",
+   "Nyx, Orin and Rei now have launchers: Viper Ascent, Frost Pillar and Static Spring",
+   "Rush and Rushdown use placeholder animation and card art for now"
+  ]
+ },
+ {
   "version": "0.3.38",
   "date": "Nov 25, 2026",
   "title": "Paper all the way through",
