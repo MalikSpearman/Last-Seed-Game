@@ -13,7 +13,7 @@ export async function build(D) {
   const K = kit(D), { S, add, box } = K, R = rng(541);
   S.fog = new T.Fog(0x4a1a5a, 30, 160); S.background = new T.Color(0x2a0e36);
   D.moonlight({ color: 0xe0a0ff, intensity: 2, dir: [.2, 1, .2], ambient: 0x6a2a7a, ambientI: 2.2, sky: 0xc070e0, ground: 0x5a2a4a });
-  sky(D, [[0, '#1a0628'], [.5, '#5a1a6a'], [1, '#a02a6a']], { stars: 0 });
+  sky(D, [[0, '#1a0628'], [.5, '#5a1a6a'], [1, '#a02a6a']], { stars: 0 }); farPainting(D, 'sky_cursed', { v0: .45, v1: 1, z: -144, yb: 4, h: 72, w: 460, tint: 0xc8b8d8 });
   const M = { sand: pbr('burned_ground_01', [12, 12], { color: 0xd0a0c0, rough: .9 }), stone: pbr('castle_wall_slates', [12, 1], { color: 0x8a7a98 }), dark: pbr('rock_face', [2, 2], { color: 0x4a3a58 }),
     crystal: new T.MeshStandardMaterial({ color: 0x2a0a3a, emissive: 0x8a20c0, emissiveIntensity: .8, metalness: .6, roughness: .2, flatShading: true }),
     ban: new T.MeshStandardMaterial({ map: ctex(bannerTex({ field: ['#7a1a4a', '#4a0a2a'], trim: '#e0b060', sd: 91, emblem: (g, cx, cy) => { g.strokeStyle = '#f0c766'; g.lineWidth = 8; g.beginPath(); g.arc(cx, cy, 60, 0, 7); g.stroke(); g.beginPath(); g.moveTo(cx, cy - 60); g.lineTo(cx, cy + 60); g.moveTo(cx - 60, cy); g.lineTo(cx + 60, cy); g.stroke(); } })), side: T.DoubleSide, alphaTest: .4 }) };

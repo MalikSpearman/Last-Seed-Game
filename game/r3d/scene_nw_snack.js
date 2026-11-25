@@ -2,7 +2,7 @@
 // wall of glowing bottles, pink paper lanterns, an old CRT showing a cherry-blossom moon, a red booth by the window,
 // a bead curtain, sakura in a vase, and the neon street smeared on the rain-streaked glass.
 import { T } from './diorama.js';
-import { kit, rng, pbr, ctex, cvs, scatter, neonTower, rain, drift } from './kit.js';
+import { kit, rng, pbr, ctex, cvs, viewMat, scatter, neonTower, rain, drift } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4, -1.4], [-4, -1.6], [1.4, -2.2]], sum: [-5.2, .8], exposure: 1.45 };
 
@@ -37,7 +37,8 @@ export async function build(D) {
   // pink lanterns along the bar
   for (let i = 0; i < 5; i++) { const x = -3 + i * 2.6, l = add(new T.SphereGeometry(.45, 14, 10), M.pink, x, 5.8, -4.6, { cast: false }); l.scale.y = 1.25; box(.03, .9, .03, M.wood, x, 6.3, -4.6, { cast: false }); D.lantern(x, 5.8, -4.3, { color: 0xff7ab0, intensity: 9, distance: 8, glow: 1.1 }); }
   // ── left: the window onto the rainy street, the red booth and a little table ──
-  { const g = add(new T.PlaneGeometry(9, 4.4), M.glass, -14.78, 3.4, -2, { ry: Math.PI / 2, cast: false });
+  { add(new T.PlaneGeometry(9, 4.4), viewMat('sky_neon', { u0: .04, u1: .96, v0: .28, v1: .92, tint: 0xe8d8f0 }), -14.8, 3.4, -2, { ry: Math.PI / 2, cast: false });
+    const g = add(new T.PlaneGeometry(9, 4.4), new T.MeshBasicMaterial({ map: M.glass.map, color: 0xd0c0e0, transparent: true, opacity: .4, blending: T.AdditiveBlending, depthWrite: false }), -14.76, 3.4, -2, { ry: Math.PI / 2, cast: false });
     for (let k = 0; k < 4; k++) box(.2, 4.6, .2, M.wood, -14.7, 1.2, -6.4 + k * 3); box(.2, .2, 9.4, M.wood, -14.7, 5.6, -2); box(.2, .2, 9.4, M.wood, -14.7, 1.2, -2);
     box(1.4, 1, 6, M.velvet, -13.8, 0, -2); box(.5, 1.8, 6, M.velvet, -14.4, 1, -2);
     add(new T.CylinderGeometry(.7, .7, .06, 18), M.top, -11.6, 1.1, -2); add(new T.CylinderGeometry(.06, .06, 1.1, 8), M.chrome, -11.6, .55, -2);

@@ -52,7 +52,7 @@ export async function build(D) {
   stoneLantern(D, K, -9, -12, 1.2, { mat: M.stone }); stoneLantern(D, K, 10, -16, 1.1, { mat: M.stone });
   // the garden wall, then the city in the rain
   box(80, 2.4, .8, M.wall, 0, -.4, -26); add(new T.BoxGeometry(80, .4, 1.6), pbr('roof_tiles_14', [20, 1], { color: 0x8a8aa0 }), 0, 2.2, -26, { cast: false });
-  skyline(K, D, R, { zNear: -40, zFar: -120, n: 36, spread: 70 });
+  skyline(K, D, R, { zNear: -40, zFar: -120, n: 36, spread: 70 }); farPainting(D, 'sky_neon', { v0: .3, v1: 1, z: -144, yb: -10, h: 92, tint: 0xd8d0e8 });
   { const ow = []; const g = new T.Mesh(new T.BoxGeometry(70, .8, 4), pbr('concrete_pavers', [10, 1], { color: 0x6a6080 })); g.position.set(10, 14, -60); S.add(g); box(70, .14, .14, new T.MeshBasicMaterial({ color: 0xff40c0, fog: false }), 10, 13.5, -58, { cast: false }); }
   rain(D, 600, [-16, 16], [-.4, 14], [-30, -5], { speed: 12 }); drift(D, 20, 0, 0, 10, 3, 0xffc080, { y0: 1, y1: 5, size: 6 });
 

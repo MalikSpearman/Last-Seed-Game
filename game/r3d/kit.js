@@ -237,6 +237,11 @@ export function skyline(K, D, R, { zNear = -40, zFar = -140, n = 40, spread = 90
 const IMGB = new URL('../img/', import.meta.url).href;
 // the location's own painting as the far backdrop: its upper band (sky + distance, v0..v1 from the top), mirrored
 // sideways so it never ends; sits behind every 3D layer so the horizon is always painted, never empty colour
+// a painted view through a window: a slice (u0..u1, v0..v1 from the top) of a bg_ panorama on an unlit pane
+export function viewMat(name, { u0 = 0, u1 = 1, v0 = 0, v1 = 1, tint = 0xffffff } = {}) {
+  const t = TL.load(IMGB + 'bg_' + name + '.webp'); t.colorSpace = T.SRGBColorSpace; t.repeat.set(u1 - u0, v1 - v0); t.offset.set(u0, 1 - v1);
+  return new T.MeshBasicMaterial({ map: t, color: tint, fog: false });
+}
 export function farPainting(D, name, { v0 = 0, v1 = .55, z = -120, yb = -6, h = 120, w = 420, tint = 0xd8d0e8, x = 0 } = {}) {
   z = Math.max(z, -146);   // always in front of the sky wall (z -150), which writes depth
   const t = TL.load(IMGB + 'bg_' + name + '.webp'); t.colorSpace = T.SRGBColorSpace; t.wrapS = T.MirroredRepeatWrapping;

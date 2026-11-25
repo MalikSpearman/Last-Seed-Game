@@ -3,7 +3,7 @@
 // hood, hanging ladles and pans, fridges, windows with cherry trees. Phase two: the pots boil over with glowing green
 // sludge that drips and pools, toxic green steam rolls, the lights spark and swing, a pot lies tipped on the floor.
 import { T } from './diorama.js';
-import { kit, rng, pbr, ctex, cvs, farPainting, scatter, drift } from './kit.js';
+import { kit, rng, pbr, ctex, cvs, farPainting, viewMat, scatter, drift } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4, -1.6], [-4, -1.8], [1.4, -2.4]], sum: [-5.2, .8], exposure: 1.45 };
 const tiles = () => { const R = rng(4); return cvs(512, 512, (g, W, H) => { g.fillStyle = '#7a7480'; g.fillRect(0, 0, W, H); for (let y = 0; y < H; y += 64) for (let x = 0; x < W; x += 64) { g.fillStyle = `hsl(30,${R.r(4, 12)}%,${R.r(48, 60)}%)`; g.fillRect(x + 2, y + 2, 60, 60); } }); };
@@ -20,7 +20,7 @@ export async function build(D, phase = 1) {
   box(40, 10, .4, M.wall, 0, 0, -16); box(.4, 10, 24, M.wall, -20, 0, -6); box(.4, 10, 24, M.wall, 20, 0, -6); box(40, .4, 24, M.wall, 0, 9.6, -6, { cast: false });
   for (let z = -12; z <= 0; z += 4) for (let x = -14; x <= 14; x += 7) { const tb = box(3, .12, .3, M.tube, x, 9.3, z, { cast: false }); D.glow(x, 9.1, z, 2.6, toxic ? 0xc0ffa0 : 0xfff0c0); if (x === 0) D.lantern(x, 8.8, z, { color: toxic ? 0xa0ff80 : 0xfff0d0, intensity: 14, distance: 14, glow: 0 }); }
   // ── windows down the left, cherry trees outside ──
-  for (let z = -13; z < 0; z += 4.4) { add(new T.PlaneGeometry(3.6, 3.6), M.win, -19.7, 5, z, { ry: Math.PI / 2, cast: false }); box(.3, .2, 3.8, M.steel, -19.6, 3.2, z); }
+  for (let z = -13, wi = 0; z < 0; z += 4.4, wi++) { add(new T.PlaneGeometry(3.6, 3.6), viewMat('sky_school', { u0: .1 + wi * .28, u1: .1 + wi * .28 + .42, v0: .3, v1: .93, tint: toxic ? 0x9ad080 : 0xfff2e0 }), -19.7, 5, z, { ry: Math.PI / 2, cast: false }); box(.3, .2, 3.8, M.steel, -19.6, 3.2, z); }
   for (let i = 0; i < 3; i++) await prop('sakura', -23, -12 + i * 5, 8, { tint: toxic ? 0x8aa070 : 0xffffff, blob: false });
   // ── the back line: ranges with giant stock pots, the extractor hood, utensils, fridges ──
   box(22, 1.2, 2.4, M.steel, 2, 0, -14); box(24, 2.4, 3.4, M.steel, 2, 6.6, -14.2); box(20, .2, 2.8, M.black, 2, 6.5, -14, { cast: false });

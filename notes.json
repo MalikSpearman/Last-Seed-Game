@@ -1,5 +1,14 @@
 [
  {
+  "version": "0.3.26",
+  "date": "Nov 25, 2026",
+  "title": "Perfect counters get their rainbow back",
+  "items": [
+   "Perfect counters bring back the rainbow trail: in slow motion your fighter dashes to the side on their dodge frame, leaving colour afterimages, then snaps back and strikes",
+   "The counter hit sound is back on Deflects and Perfects"
+  ]
+ },
+ {
   "version": "0.3.25",
   "date": "Nov 25, 2026",
   "title": "Gunfire, cleaner counters",

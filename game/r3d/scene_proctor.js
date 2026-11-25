@@ -3,7 +3,7 @@
 // flowers, a big clock. Phase two: everything turns red, the clock bleeds and runs fast, ink drips down the board,
 // desks lift off the floor and drift, exam papers storm through the air, red light pools on the floor.
 import { T } from './diorama.js';
-import { kit, rng, pbr, ctex, cvs, farPainting, scatter, drift, flurry, vortex } from './kit.js';
+import { kit, rng, pbr, ctex, cvs, farPainting, viewMat, scatter, drift, flurry, vortex } from './kit.js';
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4, -1.6], [-4, -1.8], [1.4, -2.4]], sum: [-5.2, .8], exposure: 1.45 };
 const board = red => cvs(512, 256, (g, W, H) => { g.fillStyle = '#1a3a2a'; g.fillRect(0, 0, W, H); g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 3; for (let i = 0; i < 8; i++) { g.beginPath(); g.moveTo(40, 40 + i * 26); g.lineTo(40 + (i * 53 % 300) + 100, 40 + i * 26); g.stroke(); }
@@ -21,7 +21,7 @@ export async function build(D, phase = 1) {
   box(40, 12, .4, M.wall, 0, 0, -24); box(.4, 12, 30, M.wall, -20, 0, -10); box(.4, 12, 30, M.wall, 20, 0, -10); box(40, .4, 30, M.wall, 0, 11.6, -10, { cast: false });
   for (let z = -22; z < 4; z += 5) box(40, .5, .5, M.wood, 0, 11, z, { cast: false });
   // ── tall windows down the left wall: light pours in, curtains stir, cherry trees outside ──
-  for (let z = -20; z < 2; z += 5) { add(new T.PlaneGeometry(3.4, 7), M.win, -19.7, 4.6, z, { ry: Math.PI / 2, cast: false }); box(.3, 7.4, .2, M.wood, -19.6, 1, z - 1.8); box(.3, 7.4, .2, M.wood, -19.6, 1, z + 1.8); box(.3, .2, 3.8, M.wood, -19.6, 4.6, z);
+  for (let z = -20, wi = 0; z < 2; z += 5, wi++) { add(new T.PlaneGeometry(3.4, 7), viewMat('sky_school', { u0: .06 + wi * .17, u1: .06 + wi * .17 + .3, v0: .02, v1: .98, tint: red ? 0xff7a60 : 0xfff2e0 }), -19.7, 4.6, z, { ry: Math.PI / 2, cast: false }); box(.3, 7.4, .2, M.wood, -19.6, 1, z - 1.8); box(.3, 7.4, .2, M.wood, -19.6, 1, z + 1.8); box(.3, .2, 3.8, M.wood, -19.6, 4.6, z);
     const c = add(new T.PlaneGeometry(1.4, 7.6, 2, 6), M.curtain, -19.3, 4.4, z + 2.4, { ry: Math.PI / 2, cast: false }); D.updaters.push(t => { c.rotation.z = Math.sin(t * .6 + z) * .04; });
     D.lantern(-17, 5, z, { color: red ? 0xff5040 : 0xffc080, intensity: 16, distance: 12, glow: 0 }); }
   for (let i = 0; i < 4; i++) await prop('sakura', -23, -18 + i * 6, 8, { y: 0, tint: red ? 0xff3030 : 0xffffff, blob: false });

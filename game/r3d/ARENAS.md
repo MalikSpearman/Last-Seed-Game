@@ -41,3 +41,8 @@ none: every fight location now has a modelled set (the painted relief remains as
 - Fidelity test: pick ONE modelled map and try raising its fidelity with AI image-to-3D hero props (Figma Weave
   models, once the Figma account is linked to Weave at app.weavy.ai settings). Compare against the hand-built set
   before deciding whether to roll it out.
+
+## Painted views (2026-11-25)
+- `viewMat(name, {u0,u1,v0,v1,tint})` in kit.js: a slice of a `bg_<name>` panorama on an unlit window pane.
+- New panoramas: `bg_sky_neon` (Neon Ward skyline in rain), `bg_sky_school` (sunset town with cherry trees), `bg_sky_cursed` (violet storm, ruined castle), `bg_sky_suburb` (dusk rooftops; not used yet).
+- Exam Hall and Canteen windows now look out on the sunset town (red / toxic tint in phase two); the Snack Bar window shows the neon skyline under the rain streaks; Neon Teahouse has the painted skyline behind its towers; Calamity has the storm horizon above the stands.
