@@ -1,5 +1,20 @@
 [
  {
+  "version": "0.3.16",
+  "date": "Nov 24, 2026",
+  "title": "Counters, reworked",
+  "items": [
+   "Counters now cut to an over-the-shoulder shot: you see your fighter from behind and the attacker up the line. On 3D stages the set's camera swings with it",
+   "Four distinct results: Brace, Clash, Deflect and Perfect Counter, each with its own animation, hit-pause and layered sound",
+   "Winning the type matchup adds a finish: Overpower, Unravel or Phase",
+   "The counter window drains the colour from everything but the incoming attack, with a burning fuse timer and a heartbeat",
+   "Counter cards show the result you'll get before you pick",
+   "Poise Break drops the fighter to one knee with glowing cracks",
+   "New counter pose art for Kaede and Jin (more fighters coming)",
+   "Quieter hit effects; the spinning wheel, explosion, vortex and electric crackle effects are gone"
+  ]
+ },
+ {
   "version": "0.3.15",
   "date": "Nov 24, 2026",
   "title": "Power-up auras",

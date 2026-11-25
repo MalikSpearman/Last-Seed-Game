@@ -19,6 +19,8 @@ const PRESETS = {
             slots: [[-11.4, 2.0], [-7.2, -.2, -1], [-5.6, 1.6, -1]], sum: [-20.4, 3.0] },   // the crew: one on the deck behind the boss, two waiting on the far bank
 };
 let D = null, cv = null, built = null, P = PRESETS.road, key = 'road';
+// counter over-the-shoulder: on the 3D sets the camera swings behind the defender and looks down the line at the attacker (painted sets keep their framing)
+const OTS = { on: false, def: 'p', k: 0 };
 // every location is its own little world (scene, lights, lanterns, living scenery, effects); the bamboo road plus the
 // last painted location stay in memory, the one before that is thrown away
 const KEEP = ['scene', 'moon', 'spots', 'pool', 'billboards', 'updaters', 'backdropMesh'];
@@ -102,6 +104,21 @@ function solveFit(F) {
   const M = new T.Vector3(cx, cy, cz);
   const C = M.clone().sub(r.clone().multiplyScalar(vx)).sub(u.clone().multiplyScalar(vy)).sub(f.clone().multiplyScalar(depth));
   return { C, f, M, depth };
+}
+
+// behind the defender's mark, a little toward the audience and above head height, aimed at the attacker's mark;
+// a view offset slides the attacker's mark under the attacker's (camera-moved) DOM sprite so they stay planted
+function otsCam(F, u) {
+  const [cx, cy, cz] = P.c, sg = OTS.def === 'p' ? -1 : 1, cam = D.camera, g = gapNow();
+  const Dm = new T.Vector3(cx + sg * g, cy, cz), Am = new T.Vector3(cx - sg * g, cy, cz);
+  const dirH = Am.clone().sub(Dm).setY(0).normalize();
+  const pos = Dm.clone().sub(dirH.clone().multiplyScalar(2.4)).add(new T.Vector3(0, 1.75, 1.5));
+  const look = Am.clone().add(new T.Vector3(0, .9, 0));
+  const p0 = cam.position.clone(), l0 = p0.clone().add(cam.getWorldDirection(new T.Vector3()).multiplyScalar(8));
+  cam.position.copy(p0.lerp(pos, u)); cam.lookAt(l0.lerp(look, u)); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
+  const fa = F[OTS.def === 'p' ? 'e' : 'p'], r = cv.getBoundingClientRect(); if (!fa || !r.width) return;
+  const tx = (fa.x - r.left) / r.width * 2 - 1, ty = -((fa.y - r.top) / r.height) * 2 + 1, sp = Am.clone().project(cam);
+  cam.setViewOffset(r.width, r.height, -(tx - sp.x) * r.width / 2 * u, (ty - sp.y) * r.height / 2 * u, r.width, r.height);
 }
 
 // ── silhouettes in 3D that only cast shadows ──
@@ -256,9 +273,13 @@ function ensure() {
     const dir = fit.f.clone().applyAxisAngle(new T.Vector3(0, 1, 0), ang);
     const sx = (Math.random() - .5) * shake, sy = (Math.random() - .5) * shake;
     D.camera.position.copy(fit.M).add(rel).add(new T.Vector3(sx + hitSide * .12 * k, sy + Math.sin(t * .17) * .03, 0));
-    D.camera.lookAt(D.camera.position.clone().add(dir)); D.camera.updateProjectionMatrix(); D.camera.updateMatrixWorld();
+    D.camera.lookAt(D.camera.position.clone().add(dir)); D.camera.clearViewOffset();
+    { const dk = dt / (window.__tScale || 1); OTS.k = Math.max(0, Math.min(1, OTS.k + (OTS.on && !P.painted ? dk / .34 : -dk / .4))); }
+    if (OTS.k > 0) otsCam(lastF, ease(OTS.k));
+    D.camera.updateProjectionMatrix(); D.camera.updateMatrixWorld();
     D.focus = { x: cx, z: cz }; D.followShadow(new T.Vector3(cx, cy, cz));
-    placeCasters(lastF); litTick(t);
+    if (OTS.k > 0) { for (const sd in casters) casters[sd].m.visible = false; } else placeCasters(lastF);
+    litTick(t);
     groupPlace(lastF); const X = extras(); zoomFor(lastF, X); placeExtraCasters(X); lightExtras(X, t);
   });
   return built;
@@ -333,6 +354,7 @@ export function weather(kind) { if (cur) setWeather(cur, kind); }
 // a still of the set as it looks right now (no fighters), for the Super Art cinematics to play in front of
 export function snapshot() { if (!D || D.paused || !cv) return null; try { D.renderer.setRenderTarget(D.rt); D.renderer.render(D.scene, D.camera); D.renderer.setRenderTarget(null); D.renderer.render(D.postScene, D.postCam); return cv.toDataURL('image/jpeg', .9); } catch (_) { return null; } }
 export function sweep() { supT = 0; }
+export function ots(on, def) { OTS.on = !!on; if (def) OTS.def = def; }
 export const _debug = () => ({ depth: fit && fit.depth, key, P, casters: Object.fromEntries(Object.entries(casters).map(([k, c]) => [k, { vis: c.m.visible, src: c.src.slice(-30), pos: c.m.position.toArray().map(v => +v.toFixed(2)), sc: c.m.scale.toArray().map(v => +v.toFixed(2)) }])), shadows: D && D.renderer.shadowMap.enabled });
 export const _dbg2 = () => ({ cur: cur && (cur.name || 'bamboo'), kids: D.scene.children.map(o => o.type + (o.geometry ? ':' + (o.geometry.index ? o.geometry.index.count : 0) : '')).slice(0, 12), cam: D.camera.position.toArray().map(v => +v.toFixed(2)), dir: D.camera.getWorldDirection(new T.Vector3()).toArray().map(v => +v.toFixed(2)), box: (() => { const m = D.scene.children.find(o => o.isMesh && o.geometry.index && o.geometry.index.count > 1000); if (!m) return null; m.geometry.computeBoundingBox(); const b = m.geometry.boundingBox; return [b.min.toArray().map(v => +v.toFixed(1)), b.max.toArray().map(v => +v.toFixed(1)), !!(m.material.map && m.material.map.image)]; })(), P: P && { c: P.c, gap: P.gap, pitch: P.pitch } });
 export const _surf = () => P && P.surf;

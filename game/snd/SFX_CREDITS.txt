@@ -67,3 +67,4 @@ turn           "taiko.wav" by Anuj_Shrestha1 — https://freesound.org/s/486140/
 vs             "Dramatic Hit" by qubodup — https://freesound.org/s/222517/
 win            "Fanfare 3 - Rpg" by colorsCrimsonTears — https://freesound.org/s/607407/
 woundHit       "Sword hits the body.wav" by vdovitsky — https://freesound.org/s/411122/
+ctr_hb         "Heartbeat (single sound)" by Independent.nu (CC0) — https://opengameart.org/content/heartbeat-single-sound
