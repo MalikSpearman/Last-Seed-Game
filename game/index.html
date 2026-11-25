@@ -2912,6 +2912,7 @@ body.portrait .rm-hp{width:2.25rem}
 .trainbar button{all:unset;cursor:pointer;font-size:.13rem;font-weight:700;letter-spacing:.06em;color:#fff;padding:.05rem .12rem;border-radius:.2rem;background:rgba(255,255,255,.1);border:.012rem solid rgba(255,255,255,.22)}
 .trainbar button:hover{background:rgba(255,90,74,.35)}
 .trainbar button[data-t=exit]{background:linear-gradient(90deg,#a40e22,#e0402a);border-color:#ff5a4a}
+.sacct{display:block;margin:.06rem 0 .1rem;font-size:.15rem;color:#ffd34d;min-height:.2rem}
 .hb.sm .hb-art{opacity:.25}.hb.sm .hb-tx b{font-size:.21rem}.hb.sm .hb-tx small{font-size:.1rem;letter-spacing:.18em}
 .hb-ic{position:absolute;right:.02rem;top:-.24rem;z-index:2;width:.7rem;height:.7rem;transform:skewX(8deg) rotate(6deg);filter:drop-shadow(0 .05rem .1rem rgba(0,0,0,.7));transition:transform .35s cubic-bezier(.2,1.5,.3,1);pointer-events:none}
 .hb.sm.on .hb-ic{transform:skewX(8deg) rotate(-4deg) scale(1.15) translateY(-.04rem)}
@@ -6381,6 +6382,11 @@ function olCss(){ if(document.getElementById('olcss')) return; const st=document
 .ol-f.wait{display:flex;align-items:center;justify-content:center;font:400 .6rem/1 'Anton';color:rgba(255,255,255,.2)}
 .ol-vs>u{font:400 .5rem/1 'Anton';text-decoration:none;color:#ff4d3d;transform:skewX(-9deg);margin-bottom:.8rem;text-shadow:.03rem .04rem 0 #12091c}
 .ol-acts{position:relative;z-index:2;display:flex;gap:.16rem}
+.ol-f>i{position:absolute;right:.06rem;top:.06rem;padding:.03rem .08rem;background:#2fd47a;color:#07050f;font:700 .12rem/1 'Barlow Condensed';letter-spacing:.2em;text-transform:uppercase;font-style:normal;transform:skewX(8deg)}
+.ol-f>i.ch{background:rgba(255,255,255,.18);color:#d9d1ea}
+.ol-f.rdy{border-color:#2fd47a;box-shadow:0 0 .2rem rgba(47,212,122,.45),.05rem .06rem 0 #12091c}
+.ol-f.wait.me{cursor:pointer}
+.ol-acts .btn[disabled]{opacity:.4;pointer-events:none}
 .battle.net .intent,.battle.net .ehand+.intent{display:none!important}
 .netwait{position:absolute;left:50%;top:.92rem;transform:translateX(-50%) skewX(-8deg);z-index:30;padding:.06rem .2rem;background:rgba(7,5,15,.78);border:.02rem solid rgba(255,255,255,.25);font:700 .14rem/1 'Barlow Condensed';letter-spacing:.22em;text-transform:uppercase;color:#d9d1ea;pointer-events:none}
 .netwait.ctr{color:#ffd34d;border-color:#ffd34d}`; document.head.appendChild(st); }
@@ -6395,18 +6401,44 @@ async function onlineMenu(){ if(!DESK){ toast('Online versus is in the desktop l
       s.addEventListener('click',e=>{ const a=e.target.closest('[data-a]'); if(!a) return; Snd.sfx('click'); off(); res(a.dataset.a); }); });
     if(k==='back'){ __toMenu(); return; }
     const r=k==='host'?await olHost():await olJoin(); if(r==='menu'){ __toMenu(); return; } } }
-function olRoom(code,me,them,status){ return olScreen(`<div class="ol-h"><small>Room code</small><b>Online versus</b></div>
-  <div class="ol-code">${code.split('').map(c=>`<i>${c}</i>`).join('')}</div>
-  <div class="ol-acts"><button class="btn alt" data-a="copy">Copy code</button></div>
-  <div class="ol-vs"><div class="ol-f" style="--c:${FIGHTERS[me].color}"><img src="img/${me}.webp" alt=""><b>${FIGHTERS[me].name}</b></div><u>VS</u>${them?`<div class="ol-f r"><img src="img/${them}.webp" alt=""><b>${FIGHTERS[them].name}</b></div>`:'<div class="ol-f wait">?</div>'}</div>
-  <div class="ol-st">${status}</div>`); }
-async function olHost(){ const me=await pickHero({ti:'Choose your fighter',sm:'Online versus',all:1}); if(!me) return; const lo=await vsLoadout(me,{sub:'Online versus · you set the rules',go:'Open room'}); if(!lo) return;
-  let code; const s0=olScreen('<div class="ol-st ol-dots">Opening a room</div>'); try{ const r=await fetch(NET_URL+'/new'); const j=await r.json(); code=j.code; if(!code) throw 0; await NET.open(code,'host'); }catch(e){ NET.close(); await modal('Could not open a room','Check your connection and try again.','<p style="font-size:.16rem;opacity:.8">The online relay did not answer.</p>',[['Back','alt']]); return; }
-  let s=olRoom(code,me,null,'<span class="ol-dots">Waiting for your rival</span>'); let cancel=false;
-  const wire=sc=>{ sc.addEventListener('click',e=>{ const a=e.target.closest('[data-a]'); if(!a) return; if(a.dataset.a==='copy'){ try{ navigator.clipboard.writeText(code); toast('Code copied: '+code); }catch(_){ toast(code); } Snd.sfx('click'); } if(a.dataset.a==='back'){ cancel=true; NET.close(); NET._in({t:'cancel'}); Snd.sfx('click'); } }); }; wire(s);
-  for(;;){ const m=await NET.take(x=>x.t==='pick'||x.t==='cancel'||x.t==='lost'); if(cancel||m.t==='cancel') return; if(m.t==='lost'){ await modal('Connection lost','The room closed.','',[['Back','alt']]); return; }
-    if(!FIGHTERS[m.hero]) continue; const them=m.hero; s=olRoom(code,me,them,'<em>'+FIGHTERS[them].name+'</em> is in. Starting'+'<span class="ol-dots"></span>'); wire(s);
-    const stg=pick(STAGE_ALL).k, gim=lo.gim?gimRoll():null; NET.send({t:'go',hh:me,gh:them,stg,gim}); await sleep(1300); return olMatch(me,them,stg,lo,gim); } }
+// ── the lobby: both players are in the room first, then each picks a fighter and build here and locks in ──
+function olSlot(id,cls,tag){ return id&&FIGHTERS[id]?`<div class="ol-f ${cls}"><img src="img/${id}.webp" alt=""><b>${FIGHTERS[id].name}</b>${tag||''}</div>`:`<div class="ol-f wait ${cls}">${tag==='x'?'?':'…'}</div>`; }
+async function olLobby(code,prev){ const host=NET.role==='host', LT=new Set(['pick','peer','leave','go','gook','nogo','lost','lobby','again']);
+  let me=prev&&prev.me||null, lo=prev&&prev.lo||null, ready=false, them=null, tReady=false, inL=false, starting=false, done=false, s=null, fin;
+  NET.q=NET.q.filter(x=>!['again','lobby','stg','go','gook','nogo'].includes(x.t));
+  const out=new Promise(r=>{ fin=v=>{ if(done) return; done=true; removeEventListener('keydown',kf); r(v); }; });
+  const tell=()=>NET.send({t:'pick',hero:me,ready});
+  const status=()=>{ if(starting) return 'Both ready. Starting<span class="ol-dots"></span>'; if(!me||!lo) return 'Choose your fighter and build.'; if(!ready) return 'Lock in when your build is set.';
+    if(!NET.peer) return `<span class="ol-dots">${host?'Waiting for your rival to join':'Waiting for the host'}</span>`; if(!them||!tReady) return '<span class="ol-dots">Your rival is still choosing</span>'; return 'Both ready. Starting<span class="ol-dots"></span>'; };
+  const upd=()=>{ if(!inL||!s) return; $('.ol-vs',s).innerHTML=olSlot(me,'me'+(ready?' rdy':''),ready?'<i>Ready</i>':'')+'<u>VS</u>'+(NET.peer?olSlot(them,'r'+(tReady?' rdy':''),them?(tReady?'<i>Ready</i>':'<i class="ch">Choosing</i>'):''):olSlot(null,'r','x'));
+    $('.ol-st',s).innerHTML=status(); const lk=!me||!lo||starting;
+    $('.ol-acts.pk',s).innerHTML=`<button class="btn alt" data-a="pick"${ready||starting?' disabled':''}>${me?'Change fighter':'Choose fighter'}</button><button class="btn alt" data-a="build"${!me||ready||starting?' disabled':''}>Edit build</button><button class="btn${ready?' alt':''}" data-a="ready"${lk?' disabled':''}>${ready?'Not ready':'Ready'}</button>`; };
+  const draw=()=>{ inL=true; s=olScreen(`<div class="ol-h"><small>Room code</small><b>Online lobby</b></div><div class="ol-code">${code.split('').map(c=>`<i>${c}</i>`).join('')}</div><div class="ol-acts"><button class="btn alt sm" data-a="copy">Copy code</button></div><div class="ol-vs"></div><div class="ol-st"></div><div class="ol-acts pk"></div>`);
+    s.addEventListener('click',e=>{ const a=e.target.closest('[data-a]'); if(!a||a.disabled) return; act(a.dataset.a); }); upd(); };
+  const check=()=>{ if(!host||starting||!ready||!tReady||!them||!NET.peer) return; starting=true; const stg=pick(STAGE_ALL).k, gim=lo.gim?gimRoll():null; olLobby._go={stg,gim}; NET.send({t:'go',hh:me,gh:them,stg,gim}); upd(); };
+  const act=async k=>{ if(done) return; Snd.sfx('click');
+    if(k==='copy'){ try{ navigator.clipboard.writeText(code); toast('Code copied: '+code); }catch(_){ toast(code); } return; }
+    if(k==='back'){ NET.send({t:'leave'}); NET.close(); fin('back'); return; }
+    if(k==='ready'){ if(!me||!lo) return; ready=!ready; tell(); upd(); check(); return; }
+    if(k==='pick'||k==='build'){ ready=false; tell(); inL=false; let id=me;
+      if(k==='pick'){ id=await pickHero({ti:'Choose your fighter',sm:'Online lobby · room '+code,all:1,start:me||undefined}); if(done) return; }
+      if(id){ const l=await vsLoadout(id,{sub:'Online lobby · room '+code+(host?' · you set the rules':''),go:'Use this build',gimHost:host?undefined:false}); if(done) return; if(l){ me=id; lo=l; } }
+      tell(); draw(); } };
+  const kf=e=>{ if(!inL||done) return; if(e.key==='Escape') act('back'); if(e.key==='Enter'&&me&&lo&&!starting) act('ready'); }; addEventListener('keydown',kf);
+  (async()=>{ while(!done){ const m=await NET.take(x=>!done&&LT.has(x.t)); if(done) return;
+      if(m.t==='pick'){ them=FIGHTERS[m.hero]?m.hero:null; tReady=!!(m.ready&&them); if(!tReady&&starting&&host) starting=false; upd(); check(); }
+      else if(m.t==='peer'){ if(m.on){ tell(); } else { them=null; tReady=false; starting=false; if(!host){ inL=false; await modal('The host left','The room is closed.','',[['Back','alt']]); NET.close(); fin('back'); return; } } upd(); }
+      else if(m.t==='leave'){ them=null; tReady=false; starting=false; upd(); }
+      else if(m.t==='lost'){ inL=false; await modal('Connection lost','The room closed.','',[['Back','alt']]); fin('back'); return; }
+      else if(m.t==='go'&&!host){ if(ready&&me&&lo&&FIGHTERS[m.hh]){ NET.send({t:'gook'}); starting=true; them=m.hh; upd(); await sleep(1100); fin({me,them:m.hh,stg:m.stg,lo,gim:m.gim||null}); return; } NET.send({t:'nogo'}); }
+      else if(m.t==='gook'&&host&&starting){ await sleep(1100); const g=olLobby._go; fin({me,them,stg:g.stg,lo,gim:g.gim}); return; }
+      else if(m.t==='nogo'&&host){ starting=false; tReady=false; upd(); } } })();
+  draw(); tell(); return out; }
+window.__olLobby=olLobby;
+async function olRoomLoop(code){ let prev=null;
+  for(;;){ const r=await olLobby(code,prev); if(r==='back'||!r) return; prev=r; const x=await olMatch(r.me,r.them,r.stg,r.lo,r.gim); if(x==='lobby') continue; return x; } }
+async function olHost(){ let code; olScreen('<div class="ol-st ol-dots">Opening a room</div>'); try{ const r=await fetch(NET_URL+'/new'); const j=await r.json(); code=j.code; if(!code) throw 0; await NET.open(code,'host'); }catch(e){ NET.close(); await modal('Could not open a room','Check your connection and try again.','<p style="font-size:.16rem;opacity:.8">The online relay did not answer.</p>',[['Back','alt']]); return; }
+  return olRoomLoop(code); }
 async function olJoin(){ const code=await new Promise(res=>{ const s=olScreen(`<div class="ol-h"><small>Join a room</small><b>Enter the code</b></div><div class="ol-code">${[0,1,2,3,4].map(i=>`<input maxlength="1" data-i="${i}" autocomplete="off" spellcheck="false">`).join('')}</div><div class="ol-st">Ask your rival for their five-letter room code.</div><div class="ol-acts"><button class="btn" data-a="go">Join room</button></div>`);
     const ins=[...s.querySelectorAll('.ol-code input')], box=$('.ol-code',s); setTimeout(()=>ins[0].focus(),60);
     const val=()=>ins.map(x=>x.value).join('').toUpperCase(); const go=()=>{ const v=val(); if(!NET_CODE.test(v)){ box.classList.remove('bad'); void box.offsetWidth; box.classList.add('bad'); Snd.sfx('deny'); return; } Snd.sfx('click'); res(v); };
@@ -6417,11 +6449,7 @@ async function olJoin(){ const code=await new Promise(res=>{ const s=olScreen(`<
   if(!code) return;
   olScreen('<div class="ol-st ol-dots">Joining room '+code+'</div>');
   try{ await NET.open(code,'guest'); }catch(e){ NET.close(); await modal('Room not found','Check the code and try again.',`<p style="font-size:.16rem;opacity:.8">No open room called <b>${code}</b>.</p>`,[['Back','alt']]); return; }
-  const me=await pickHero({ti:'Choose your fighter',sm:'Online versus · room '+code,all:1}); if(!me){ NET.close(); return; } const lo=await vsLoadout(me,{sub:'Online versus · room '+code,go:'Ready',gimHost:false}); if(!lo){ NET.close(); return; }
-  NET.send({t:'pick',hero:me}); let s=olRoom(code,me,null,'<span class="ol-dots">Waiting for the host</span>'); let cancel=false;
-  s.addEventListener('click',e=>{ const a=e.target.closest('[data-a]'); if(!a) return; if(a.dataset.a==='back'){ cancel=true; NET.close(); NET._in({t:'cancel'}); } if(a.dataset.a==='copy'){ try{ navigator.clipboard.writeText(code); }catch(_){} } });
-  const m=await NET.take(x=>x.t==='go'||x.t==='cancel'||x.t==='lost'); if(cancel||m.t==='cancel') return; if(m.t==='lost'){ await modal('Connection lost','The room closed.','',[['Back','alt']]); return; }
-  olRoom(code,me,m.hh,'<em>'+FIGHTERS[m.hh].name+'</em> is ready. Starting<span class="ol-dots"></span>'); await sleep(1300); return olMatch(me,m.hh,m.stg,lo,m.gim||null); }
+  return olRoomLoop(code); }
 async function olMatch(me,them,stg,lo,gim){
   for(;;){ HERO=me; const k=FIGHTERS[HERO], HH=HEROES[HERO];
     run={n:store.runs+1,hero:HERO,hp:vsHP(HERO),maxHp:vsHP(HERO),deck:lo.deck.slice(),mentor:lo.mentor,quick:1,inn:[HERO,lo.ins],stage:0,ghostDef:null,hype:0,fatigue:0,mon:10,conds:[],coach:null,bond:null,quests:[],perks:{guard:0,spirit:0,energy:0},intel:{},tut:false,stats:{t0:Date.now(),dmg:0,taken:0,big:0,combo:0,ctr:0,pctr:0,fights:0,won:0,turns:0},spirit:0,quick:true,online:true};
@@ -6429,12 +6457,13 @@ async function olMatch(me,them,stg,lo,gim){
     await vsSplash(opp,1); if(gim) await gimReveal(gim); const cu=stageCustom(stg,rivalRound(1))||{}; cu.net=true; cu.vs=true; cu.gim=gim; cu.name='Online versus';
     const win=await stageBattle(opp,1,cu); app.classList.add('dim');
     const why=NET._why; NET._why=null;
-    const v=await modal(win?'Victory':'Defeat',`${FIGHTERS[me].name} vs ${FIGHTERS[them].name}`,h('div','',`<p style="font-size:.18rem;opacity:.85">${why||'Online versus · room '+NET.code}</p>`),NET.live&&NET.peer?[['Rematch','',1],['Leave','alt',0]]:[['Leave','alt',0]]);
+    const v=await modal(win?'Victory':'Defeat',`${FIGHTERS[me].name} vs ${FIGHTERS[them].name}`,h('div','',`<p style="font-size:.18rem;opacity:.85">${why||'Online versus · room '+NET.code}</p>`),NET.live&&NET.peer?[['Rematch','',1],['Back to lobby','alt',2],['Leave','alt',0]]:[['Leave','alt',0]]);
     app.classList.remove('dim');
+    if(v===2){ NET.send({t:'lobby'}); return 'lobby'; }
     if(v!==1){ NET.send({t:'leave'}); NET.close(); __toMenu(); return 'menu'; }
     // rematch: both have to agree
     NET.send({t:'again'}); olScreen('<div class="ol-st ol-dots">Waiting for your rival to accept the rematch</div>');
-    const a=await NET.take(x=>x.t==='again'||x.t==='leave'||x.t==='lost',60000); if(!a||a.t!=='again'){ NET.close(); await modal('No rematch','Your rival left the room.','',[['Back','alt']]); __toMenu(); return 'menu'; }
+    const a=await NET.take(x=>x.t==='again'||x.t==='lobby'||x.t==='leave'||x.t==='lost',60000); if(a&&a.t==='lobby') return 'lobby'; if(!a||a.t!=='again'){ NET.close(); await modal('No rematch','Your rival left the room.','',[['Back','alt']]); __toMenu(); return 'menu'; }
     if(NET.role==='host'){ stg=pick(STAGE_ALL).k; gim=lo.gim?gimRoll():null; NET.send({t:'stg',stg,gim}); } else { const m=await NET.take(x=>x.t==='stg'||x.t==='lost',20000); if(!m||m.t!=='stg'){ NET.close(); __toMenu(); return 'menu'; } stg=m.stg; gim=m.gim||null; } } }
 async function quickBattle(){ let id=null, oppId=null, stage=1, stg=null, lo=null; const VS={sm:'Versus mode · test battle',all:1};
   for(;;){ if(!id){ id=await pickHero(Object.assign({ti:'Choose your fighter'},VS)); if(!id){ __toMenu(); return; } }
@@ -12515,9 +12544,45 @@ addEventListener('keydown',e=>{ if(e.key!=='Escape'||e.repeat) return; if(docume
 
 function gpuInfo(){ if(gpuInfo.v) return gpuInfo.v; let name='Unknown', hw=true; try{ const c=document.createElement('canvas'), gl=c.getContext('webgl2')||c.getContext('webgl'); if(!gl){ hw=false; name='No WebGL'; } else { const ex=gl.getExtension('WEBGL_debug_renderer_info'); name=String(ex?gl.getParameter(ex.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER)); hw=!/swiftshader|llvmpipe|software|basic render|microsoft basic/i.test(name); const lose=gl.getExtension('WEBGL_lose_context'); lose&&lose.loseContext(); } }catch(e){ hw=false; }
   name=name.replace(/^ANGLE \((.*)\)$/,'$1').replace(/,\s*(Unspecified Version|OpenGL.*|Direct3D.*|Metal.*)$/i,'').replace(/\s+/g,' ').slice(0,64); return gpuInfo.v={name,hw}; }
+// ── CLOUD SAVES: sign in with Google (in the system browser), then the three save slots (progress, autosaved run, manual save)
+//    follow the account across desktop, phone and web through the Last Seed relay. Settings like display and volume stay per device. ──
+const CLOUD=(()=>{ const K='ls_cloud', KEYS=()=>{ const o=[]; for(let n=1;n<=3;n++) for(const k of ['lastseed_v1','lastseed_run','lastseed_man']) o.push(skeyN(n,k)); return o; };
+  const get=()=>{ try{ return JSON.parse(localStorage.getItem(K)||'null'); }catch(e){ return null; } }, put=o=>{ try{ o?localStorage.setItem(K,JSON.stringify(o)):localStorage.removeItem(K); }catch(e){} };
+  let busy=false, upT=null, applying=false;
+  const api=async(path,o={})=>{ const A=get(); const r=await fetch(NET_URL+path,Object.assign({},o,{headers:Object.assign({'content-type':'application/json'},A&&A.tok?{authorization:'Bearer '+A.tok}:{})})); let j={}; try{ j=await r.json(); }catch(e){} if(r.status===401&&path==='/save'){ put(null); } return {ok:r.ok,status:r.status,j}; };
+  const local=()=>{ const d={}; for(const k of KEYS()){ const v=localStorage.getItem(k); if(v!=null) d[k]=v; } return d; };
+  const hasLocal=()=>Object.keys(local()).length>0;
+  const apply=d=>{ applying=true; try{ for(const k of KEYS()){ if(d&&k in d) localStorage.setItem(k,d[k]); else localStorage.removeItem(k); } } finally{ applying=false; } };
+  const upload=async force=>{ const A=get(); if(!A) return 'Signed out'; const r=await api('/save',{method:'PUT',body:JSON.stringify({data:local(),base:A.t||0,force:!!force})});
+    if(r.ok){ A.t=r.j.t; A.dirty=0; A.at=Date.now(); put(A); return 'Saved to the cloud'; } if(r.status===409) return conflict(); return 'Could not reach the cloud ('+(r.j.error||r.status)+')'; };
+  // both this device and the cloud changed since the last sync: the player picks which progress to keep
+  const conflict=async()=>{ const r=await api('/save'); if(!r.ok) return 'Could not reach the cloud'; const c=r.j;
+    const v=await modal('Two saves found','Your cloud progress and this device’s progress both changed.',h('div','',`<p style="font-size:.17rem;opacity:.85">Pick the one to keep. The other is replaced.</p>`),[['Use cloud progress','red','cloud'],['Keep this device','alt','here']]);
+    const A=get(); if(!A) return 'Signed out'; if(v==='cloud'){ apply(c.data||{}); A.t=c.t; A.dirty=0; A.at=Date.now(); put(A); location.reload(); return 'Loaded from the cloud'; } return upload(true); };
+  const sync=async manual=>{ const A=get(); if(!A||busy) return busy?'Already syncing':'Signed out'; busy=true; try{
+      const r=await api('/save'); if(!r.ok) return 'Could not reach the cloud ('+(r.j.error||r.status)+')'; const c=r.j;
+      if(!c.t){ return hasLocal()?await upload(true):'Nothing to sync yet'; }                       // a fresh account: this device seeds it
+      if(c.t===A.t){ return A.dirty?await upload():'Up to date'; }
+      if(!A.t&&hasLocal()) return await conflict();                                                  // first sign-in on a device that already has progress
+      if(A.dirty) return await conflict();
+      apply(c.data||{}); A.t=c.t; A.at=Date.now(); put(A); location.reload(); return 'Loaded from the cloud';   // the cloud is newer and this device has nothing unsaved
+    }catch(e){ return 'Could not reach the cloud'; } finally{ busy=false; } };
+  // any write to a synced key marks this device dirty and uploads a few seconds later
+  { const si=Storage.prototype.setItem, ri=Storage.prototype.removeItem; const touch=k=>{ if(applying||!KEYS().includes(k)) return; const A=get(); if(!A) return; A.dirty=1; put(A); clearTimeout(upT); upT=setTimeout(()=>{ if(!busy) upload(); },6000); };
+    Storage.prototype.setItem=function(k,v){ si.call(this,k,v); if(this===localStorage) touch(k); }; Storage.prototype.removeItem=function(k){ ri.call(this,k); if(this===localStorage) touch(k); }; }
+  addEventListener('visibilitychange',()=>{ const A=get(); if(document.hidden&&A&&A.dirty){ clearTimeout(upT); upload(); } });
+  const signIn=async say=>{ const k=[...crypto.getRandomValues(new Uint8Array(18))].map(b=>'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_'[b&63]).join(''), url=NET_URL+'/login?k='+k;
+    try{ if(window.Capacitor&&!window.lsDesktop) location.href=url; else window.open(url,'_blank'); }catch(e){ window.open(url,'_blank'); }
+    for(let i=0;i<150;i++){ await new Promise(r=>setTimeout(r,2000)); const r=await api('/auth/poll?k='+k).catch(()=>null); if(r&&r.status===503){ say&&say('Cloud saves are not switched on yet.'); return false; } if(r&&r.ok&&r.j.token){ put({tok:r.j.token,name:r.j.name||'you',t:0,dirty:0}); say&&say('Signed in. Syncing…'); const m=await sync(); say&&say(m); toast('Signed in as '+(r.j.name||'you')); return true; } }
+    say&&say('Sign-in timed out. Try again.'); return false; };
+  const when=()=>{ const A=get(); if(!A||!A.at) return 'Not yet'; const m=Math.round((Date.now()-A.at)/60000); return m<1?'Just now':m<60?m+' min ago':new Date(A.at).toLocaleString(); };
+  // on start: pull anything newer from the cloud
+  setTimeout(()=>{ if(get()) sync(); },1500);
+  return { acct:()=>{ const A=get(); return A&&A.tok?{name:A.name}:null; }, signIn, signOut:()=>put(null), sync, when };
+})(); window.__CLOUD=CLOUD;
 async function openSettings(btn,tab){ Snd.init(); Snd.sfx('click'); const opt=OPT();
   const wrap=h('div','stg'), tabs=h('div','stabs'), page=h('div','spage'); wrap.appendChild(tabs); wrap.appendChild(page);
-  const T=[['display','Display'],['graphics','Graphics'],['audio','Audio'],['game','Gameplay'],['keys','Controls']];
+  const T=[['display','Display'],['graphics','Graphics'],['audio','Audio'],['game','Gameplay'],['keys','Controls'],['acct','Account']];
   const row=(l,d,ctl)=>{ const r=h('div','srow',`<span><b>${l}</b>${d?`<small>${d}</small>`:''}</span>`); r.appendChild(ctl); return r; };
   const seg=(items,cur,fn,cls)=>{ const g=h('div','sseg'+(cls?' '+cls:'')); items.forEach(([v,l,dis,tip])=>{ const b=h('button','btn alt sm'+(String(v)===String(cur)?' sel':''),l); if(dis){ b.disabled=true; b.classList.add('dis'); } if(tip) b.title=tip; b.onclick=()=>{ if(dis) return; [...g.children].forEach(c=>c.classList.toggle('sel',c===b)); Snd.sfx('click'); fn(v,b); }; g.appendChild(b); }); return g; };
   // in a fight: flip the arena between the painted 2D backdrop and its 3D set, right now
@@ -12565,7 +12630,14 @@ async function openSettings(btn,tab){ Snd.init(); Snd.sfx('click'); const opt=OP
       page.appendChild(row('Tutorial','Show the coach tips again.',rt));
       if(DESK){ const q=h('button','btn red sm','Quit to desktop'); q.onclick=()=>{ try{ autoSaveIfIdle(); }catch(e){} setTimeout(()=>DESK.quit(),150); }; page.appendChild(row('Quit','Your run autosaves every turn.',q)); } },
     keys(){ const K=[['Play a card','1 – 9, or click'],['End turn','E or Space'],['Camera effects','C'],['Camera style','V'],['Settings','Esc'],['Fullscreen','F11'+(DESK&&DESK.platform==='darwin'?' or Ctrl+Cmd+F':'')],['Free roam: move','WASD or arrow keys'],['Debug tools','F12 (desktop)']];
-      const t=h('div','skeys'); K.forEach(([a,k])=>t.appendChild(h('div','skey',`<span>${a}</span><kbd>${k}</kbd>`))); page.appendChild(t); }
+      const t=h('div','skeys'); K.forEach(([a,k])=>t.appendChild(h('div','skey',`<span>${a}</span><kbd>${k}</kbd>`))); page.appendChild(t); },
+    async acct(){ const A=CLOUD.acct(); const st=h('span','sacct',''); const say=t=>{ st.textContent=t; };
+      if(!A){ const b=h('button','btn sm','Sign in with Google'); b.onclick=async()=>{ b.disabled=true; say('Finish signing in in your browser…'); const ok=await CLOUD.signIn(say); b.disabled=false; if(ok) rerender(); };
+        page.appendChild(row('Cloud save','Sign in with Google to keep your fighters, unlocks and runs in step across your computer, phone and the web.',b)); page.appendChild(st); page.appendChild(note('Sign-in opens in your browser. When it says you are signed in, come back here.')); return; }
+      const so=h('button','btn alt sm','Sign out'); so.onclick=()=>{ CLOUD.signOut(); toast('Signed out. Progress stays on this device.'); rerender(); };
+      page.appendChild(row('Signed in as '+A.name,'Your progress saves to the cloud a few seconds after it changes, and loads when the game starts.',so));
+      const sy=h('button','btn sm','Sync now'); sy.onclick=async()=>{ sy.disabled=true; say('Syncing…'); const r=await CLOUD.sync(true); sy.disabled=false; say(r); };
+      page.appendChild(row('Last synced',CLOUD.when(),sy)); page.appendChild(st); }
   };
   let curTab=tab||'display';
   const rerender=async()=>{ page.innerHTML=''; [...tabs.children].forEach(c=>c.classList.toggle('sel',c.dataset.t===curTab)); await P[curTab](); };

@@ -1,5 +1,15 @@
 [
  {
+  "version": "0.3.52",
+  "date": "Nov 25, 2026",
+  "title": "Online lobby picks, Google account sign-in",
+  "items": [
+   "Online versus: make or join a room first, then choose your fighter and build inside the lobby. See your rival's pick live and press Ready; the match starts when both players are ready.",
+   "After an online match, Back to lobby lets both players change fighter or build without leaving the room.",
+   "New Account tab in Settings: sign in with Google to keep your progress across devices (switching on soon)."
+  ]
+ },
+ {
   "version": "0.3.51",
   "date": "Nov 25, 2026",
   "title": "Bamboo Grove in 3D, scenery shadows on fighters",
