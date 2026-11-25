@@ -42,3 +42,7 @@ m_battle8      Thunder Beast Zelbell (雷獣ゼルビル)      MAKOOTO          
 More ambience (OpenTracks SFX):
 amb_wind       吹きすさぶ (howling wind)                 opentracks.com/en/se/detail/1424
 amb_murmur     雑踏にて, reverb take (crowd murmur)       opentracks.com/en/se/detail/202
+
+m_t_wukong  アクション・カンフー 修行編 — 田中芳 (OpenTracks) https://opentracks.com/en/bgm/detail/12546
+m_t_kuro    Scarlett's Temptation (OpenTracks) https://opentracks.com/en/bgm/detail/22251
+m_t_akane   業火の決戦 / The decisive battle of fire (OpenTracks) https://opentracks.com/en/bgm/detail/15689
