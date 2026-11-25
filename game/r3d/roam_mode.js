@@ -75,6 +75,7 @@ const FOES = [
   { id: 'gasha', src: 'battle', _r: 'roam_gasha', x: 73, z: 1.8, h: 3.4, stage: 'road', boss: 1 },
 ];
 const START = { x: -94, z: 1.8 };
+let FOES0 = null, graceT = 0;
 
 export async function createRoam(host, cfg) {
   if (!document.getElementById('r3css')) { const st = document.createElement('style'); st.id = 'r3css'; st.textContent = CSS; document.head.appendChild(st); }
@@ -98,6 +99,22 @@ export async function createRoam(host, cfg) {
 
   // ── things in the world ──
   for (const it of ITEMS) { it.done = false; it.mesh = await A(it.img, it.x, it.z, it.h, { y: it.y || 0 }); }
+  // a fresh road every visit: the regular foes are drawn at random from the pool (bosses stay put), some slots stay empty,
+  // and nobody waits near the entrance, so you can always walk in before the first fight
+  if (!FOES0) FOES0 = FOES.map(f => Object.assign({}, f));
+  FOES.length = 0; FOES0.forEach(f => FOES.push(Object.assign({}, f)));
+  { const pool = (cfg.foePool || []).slice().sort(() => Math.random() - .5), rnd = (a, b) => a + Math.random() * (b - a);
+    for (let i = FOES.length - 1; i >= 0; i--) { const f = FOES[i]; if (f.boss) continue;
+      if (Math.random() < .2) { FOES.splice(i, 1); continue; }
+      if (pool.length) { f.id = pool.pop(); f.src = 'battle'; }
+      f.x += rnd(-3, 3); f.z = Math.max(.8, Math.min(3.4, f.z + rnd(-.8, .8)));
+      if (Math.hypot(f.x - START.x, f.z - START.z) < 22) { if (f.x < START.x + 22) f.x = START.x + 22 + rnd(0, 6); } }
+    // at most two enemies per area, guardian included: one boss and one regular foe
+    { const bosses = FOES.filter(f => f.boss), regs = FOES.filter(f => !f.boss), keep = [];
+      if (bosses.length) keep.push(bosses[(Math.random() * bosses.length) | 0]);
+      if (regs.length) keep.push(regs[(Math.random() * regs.length) | 0]);
+      const max = cfg.maxFoes || 2; FOES.length = 0; keep.slice(0, max).forEach(f => FOES.push(f)); }
+    graceT = 3; }
   for (const f of FOES) {
     Object.assign(f, { st: 'idle', t: 0, beaten: false, x0: f.x, z0: f.z });
     const url = f.src ? (cfg.foeArt ? await cfg.foeArt(f.id) : GAMEIMG + 'foe_' + f.id + '.webp') : I('foe_' + f.id);
@@ -189,6 +206,7 @@ export async function createRoam(host, cfg) {
     D.camera.position.copy(camPos); D.camera.lookAt(look); D.focus = pos; D.followShadow(pos); D.fadeFor(pos);
     D.post.uniforms.flash.value = Math.max(0, D.post.uniforms.flash.value - dt * 1.8);
     // foes: idle breath → notice (!) → close in; touching you = Ambushed
+    if (graceT > 0 && !paused) graceT -= dt;
     for (const f of FOES) {
       f.t += dt; const fy = f.y || 0;
       if (f.st === 'down') { f.mesh.rotation.z = Math.min(1.3, f.t * 3); f.mesh.material.opacity = Math.max(0, 1 - f.t); f.mesh.material.transparent = true; if (f.t > 1.1) { f.mesh.visible = false; f.blob.visible = false; } continue; }
@@ -197,7 +215,7 @@ export async function createRoam(host, cfg) {
       if (f.kb) { f.kb = Math.max(0, f.kb - dt * 2); f.mesh.material.emissive.set(0xffffff); f.mesh.material.emissiveIntensity = f.kb * 2; }
       if (busy || paused || Math.abs(fy - pos.y) > 1.2) continue;
       const dx = pos.x - f.x, dz = pos.z - f.z, d = Math.hypot(dx, dz);
-      if (f.st === 'idle' && d < 6.5) { f.st = 'alert'; f.t = 0; cfg.sfx && cfg.sfx('alert'); }
+      if (f.st === 'idle' && d < 6.5 && graceT <= 0) { f.st = 'alert'; f.t = 0; cfg.sfx && cfg.sfx('alert'); }
       if (f.st === 'alert') { if (d > 9) f.st = 'idle'; else if (f.t > .7) { const v = f.boss ? 1.6 : 2.3; f.x += dx / d * v * dt; f.z += dz / d * v * dt; const m = nearest(f.x, f.z); if (m.over > 0) { f.x = m.px; f.z = m.pz; } f.mesh.position.set(f.x, fy, f.z); f.blob.position.set(f.x, fy + .02, f.z); f.mesh.scale.x = dx > 0 ? -Math.abs(f.mesh.scale.x) : Math.abs(f.mesh.scale.x); }
         if (d < 1.15 && atkT <= 0) engage(f, 'ambushed'); }
     }

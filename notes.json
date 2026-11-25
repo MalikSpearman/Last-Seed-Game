@@ -1,5 +1,16 @@
 [
  {
+  "version": "0.3.13",
+  "date": "Nov 24, 2026",
+  "title": "Free roam shake-up",
+  "items": [
+   "Free-roam areas pick different enemies every visit, with at most 2 per area (the guardian counts as one)",
+   "You can walk into a free-roam area without being jumped right away",
+   "Nue's fight poses are redrawn to match its original art",
+   "In the 3D arenas, awakening no longer flashes the 2D Soulscape backdrop"
+  ]
+ },
+ {
   "version": "0.3.12",
   "date": "Nov 24, 2026",
   "title": "Bigger launches",
