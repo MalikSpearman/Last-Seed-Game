@@ -1,5 +1,15 @@
 [
  {
+  "version": "0.3.6",
+  "date": "Nov 24, 2026",
+  "title": "Element finishers and new Kaede art",
+  "items": [
+   "New finisher bursts for every element: fire, ice, shadow, lightning, steel, poison, blood, water, life, sound, wind and psychic, plus a white-gold burst for plain technique moves",
+   "Physical finishers burst in the card's element; Spirit Finishers burst in the fighter's element; enemy finishers play mirrored from their side",
+   "Free roam: a new 'New art' option under Kaede sprite in the pause menu gives Kaede a fully animated breathing idle (running and attacks keep the current frames for now)"
+  ]
+ },
+ {
   "version": "0.3.5",
   "date": "Nov 24, 2026",
   "title": "Lit stages and win badges",
