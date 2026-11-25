@@ -23,7 +23,7 @@ export class Diorama {
     this.opt = Object.assign({ quality: 'high', tilt: 1, fogNear: 18, fogFar: 62, fogColor: 0x0d1530 }, opt);
     const hi = this.opt.quality === 'high';
     const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-    r.setPixelRatio(Math.min(devicePixelRatio || 1, hi ? 1.75 : 1.25));
+    this._prMax = hi ? 1.25 : 1; r.setPixelRatio(Math.min(devicePixelRatio || 1, this._prMax));
     r.outputColorSpace = THREE.SRGBColorSpace;
     r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.15;
     r.shadowMap.enabled = hi; r.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -37,9 +37,13 @@ export class Diorama {
     this.resize(); addEventListener('resize', () => this.resize()); try { new ResizeObserver(() => this.resize()).observe(canvas); } catch (_) {}
   }
   resize() {
+    if (this.released) return;
     const c = this.renderer.domElement, w = c.clientWidth || innerWidth, h = c.clientHeight || innerHeight;
+    // cap the render size (about 2.4 megapixels): the tilt-shift softens it anyway, and a full Retina buffer starves the
+    // browser of graphics memory, which shows up as the rest of the page flickering or layers vanishing
+    const pr = Math.max(.5, Math.min(devicePixelRatio || 1, this._prMax, Math.sqrt(2.4e6 / Math.max(1, w * h)))); this.renderer.setPixelRatio(pr);
     this.renderer.setSize(w, h, false); this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
-    const pr = this.renderer.getPixelRatio(); this.rt.setSize(w * pr, h * pr); this.post.uniforms.res.value.set(w * pr, h * pr);
+    this.rt.setSize(w * pr, h * pr); this.post.uniforms.res.value.set(w * pr, h * pr);
   }
   // ── lighting ──
   moonlight({ color = 0x9fb6ff, intensity = 1.6, dir = [-0.6, 1, 0.45], ambient = 0x2a3466, ambientI = 1.1, sky = 0x5a6cc0, ground = 0x1a2418 } = {}) {
@@ -208,7 +212,7 @@ export class Diorama {
   }
   // ── post: tilt-shift + vignette + gentle grade ──
   _post() {
-    this.rt = new THREE.WebGLRenderTarget(4, 4, { samples: 4, type: THREE.HalfFloatType });
+    this.rt = new THREE.WebGLRenderTarget(4, 4, { samples: this.opt.quality === 'high' ? 2 : 0 });
     this.post = new THREE.ShaderMaterial({ depthTest: false, depthWrite: false,
       uniforms: { tD: { value: this.rt.texture }, res: { value: new THREE.Vector2(4, 4) }, focus: { value: 0.52 }, band: { value: 0.2 }, amt: { value: 1 }, vig: { value: .42 }, flash: { value: 0 } },
       vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.,1.); }`,
@@ -222,6 +226,9 @@ export class Diorama {
     this.postScene = new THREE.Scene(); this.postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     this.postScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.post));
   }
+  // give the graphics memory back while the set isn't on screen (between fights), and take it again when it is
+  release() { if (this.released) return; this.released = true; this.paused = true; this.rt.setSize(1, 1); this.renderer.setSize(1, 1, false); if (this.moon) { this.moon.shadow.map && this.moon.shadow.map.dispose(); this.moon.shadow.map = null; } this.renderer.renderLists.dispose(); }
+  restore() { if (!this.released) return; this.released = false; this.resize(); }
   // fade foreground props that stand between the camera and a point (HD-2D "see-through")
   fadeFor(p) {
     for (const m of this.billboards) {
@@ -233,8 +240,9 @@ export class Diorama {
   }
   frame(cb) {
     const loop = () => {
+      if (this.dead) return;
       requestAnimationFrame(loop);
-      if (this.paused) { this.clock.getDelta(); return; }
+      if (this.paused || (this.skip && this.skip())) { this.clock.getDelta(); return; }
       const dt = Math.min(this.clock.getDelta(), 1 / 20); this.time += dt;
       cb && cb(dt, this.time);
       for (const u of this.updaters) u(this.time, dt);

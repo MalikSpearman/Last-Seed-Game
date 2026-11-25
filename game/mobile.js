@@ -51,7 +51,7 @@
   // keep the menu button where the corner tools live (top-right, or centred above the fight), and hidden in cinematics
   function place() {
     const app = D.getElementById('app'); if (!app) return;
-    const busy = !!D.querySelector('.boot,.modal') || B.classList.contains('fintro') || (app.classList.contains('cine') && !!D.querySelector('.ultc,.lsq,.awk,.crit,.spfin,.lsplash'));
+    const busy = !!D.querySelector('.boot,.modal,.roam3d:not(.away),.roam:not(.away)') || B.classList.contains('fintro') || (app.classList.contains('cine') && !!D.querySelector('.ultc,.lsq,.awk,.crit,.spfin,.lsplash'));
     menu.classList.toggle('hide', busy);
     menu.classList.toggle('battle', app.classList.contains('inbattle'));
     menu.classList.toggle('alt', !!D.querySelector('.csel'));

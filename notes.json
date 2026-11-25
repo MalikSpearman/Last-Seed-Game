@@ -1,5 +1,18 @@
 [
  {
+  "version": "0.3.8",
+  "date": "Nov 24, 2026",
+  "title": "3D free roam",
+  "items": [
+   "Free roam is now the 3D Moonlit Bamboo Road: pick a fighter, cross the red bridge, climb to the shrine. Strike first for an Ambush, every encounter is a real card fight on the 3D stage, then you're back on the road",
+   "Pots, chests, onigiri, an elixir, a technique scroll and the sealed offering behind the shrine guardian",
+   "Fixed: the screen could flicker or parts of it vanish after big cinematics with HD-2D stages on. The 3D stage now renders at a capped size, pauses under full-screen cinematics and frees its memory between fights",
+   "Fixed: a faint copy of the fighter could show beside them on HD-2D stages (the stage lighting now follows every move)",
+   "Settings → Display shows which graphics chip is drawing the game and whether GPU acceleration is on",
+   "Desktop app: always draws on the GPU (no quiet fallback to software rendering on blocklisted drivers) and picks the faster GPU on laptops that have two. Comes with the new installer"
+  ]
+ },
+ {
   "version": "0.3.7",
   "date": "Nov 24, 2026",
   "title": "The voice update",

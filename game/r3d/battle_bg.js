@@ -86,8 +86,10 @@ function lit(side, fd) {
   if (!L) { const a = document.createElement('div'), b = document.createElement('div'); a.className = 'lit3d shade'; b.className = 'lit3d warm'; L = lits[side] = { a, b, src: '' }; }
   const host = fd.img.parentElement; if (L.a.parentElement !== host) { host.appendChild(L.a); host.appendChild(L.b); }
   L.src = fd.img.currentSrc;
-  const im = fd.img, box = `left:${im.offsetLeft}px;top:${im.offsetTop}px;width:${im.offsetWidth}px;height:${im.offsetHeight}px`;
-  const hid = getComputedStyle(im).visibility === 'hidden' ? 'opacity:0;' : '', mk = `-webkit-mask-image:url("${L.src}");mask-image:url("${L.src}");`;
+  // follow the sprite exactly: same box, same live transform (idle breathing, lunges, flinches) and opacity, or a faint ghost shows beside it
+  const im = fd.img, cs = getComputedStyle(im), tf = cs.transform && cs.transform !== 'none' ? `transform:${cs.transform};transform-origin:${cs.transformOrigin};` : '';
+  const box = `left:${im.offsetLeft}px;top:${im.offsetTop}px;width:${im.offsetWidth}px;height:${im.offsetHeight}px;${tf}`;
+  const hid = cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity < .05 ? 'opacity:0;' : `opacity:${cs.opacity};`, mk = `-webkit-mask-image:url("${L.src}");mask-image:url("${L.src}");`;
   return { L, box: box + ';' + mk, hid };
 }
 function lightSprites(F, t) {
@@ -97,7 +99,7 @@ function lightSprites(F, t) {
     const d1x = 30 + Math.sin(t * .23 + (side === 'e' ? 2 : 0)) * 14, d1y = 34 + Math.sin(t * .17) * 8, d2x = 66 + Math.sin(t * .19 + 1) * 12, d2y = 60 + Math.cos(t * .21) * 8;
     const flick = .85 + .1 * Math.sin(t * 7.1) + .05 * Math.sin(t * 13.3);
     L.a.style.cssText = `${box};${hid}--d1x:${d1x}%;--d1y:${d1y}%;--d2x:${d2x}%;--d2y:${d2y}%`;
-    L.b.style.cssText = `${box};${hid}--wx:${side === 'p' ? 78 : 78}%;opacity:${hid ? 0 : flick}`;   // .flip mirrors the enemy, so 78% is the inner side for both
+    L.b.style.cssText = `${box};${hid}--wx:78%;${hid === 'opacity:0;' ? '' : `opacity:${flick * (+getComputedStyle(fd.img).opacity || 1)};`}`;   // .flip mirrors the enemy, so 78% is the inner side for both
   }
 }
 function clearLights() { for (const k in lits) { lits[k].a.remove(); lits[k].b.remove(); } }
@@ -111,6 +113,8 @@ function ensure() {
   D = new Diorama(cv, { quality: lowEnd ? 'low' : 'high', fogNear: 14, fogFar: 60, fogColor: 0x0c1430 });
   D.camera.fov = 30; D.faceCam = 1; D.paused = true;
   D.post.uniforms.band.value = .32; D.post.uniforms.amt.value = .6;
+  // full-screen cinematics (supers, ultimates, criticals, awakenings) cover the stage: stop drawing it so they get the GPU to themselves
+  D.skip = () => { const a = document.getElementById('app'); return !!(a && a.classList.contains('cine')) || !!document.querySelector('.lsq-wrap,.lsq,.ultc'); };
   built = build(D);
   let lastF = {}, fitT = 0;
   D.frame((dt, t) => {
@@ -136,9 +140,9 @@ export async function start(host, k) {
   ensure(); k = k || window.__ls3dKey; key = PRESETS[k] ? k : Object.keys(PRESETS)[Math.random() * 3 | 0]; P = PRESETS[key]; fit = null;
   if (cv.parentNode !== host) host.appendChild(cv);
   document.getElementById('app').classList.add('hd3d');
-  D.resize(); D.paused = false; await built; requestAnimationFrame(() => { cv.style.opacity = 1; });
+  D.restore(); D.resize(); D.paused = false; await built; requestAnimationFrame(() => { cv.style.opacity = 1; });
 }
-export function stop() { if (!D) return; cv.style.opacity = 0; document.getElementById('app').classList.remove('hd3d'); clearLights(); for (const s in casters) casters[s].m.visible = false; setTimeout(() => { if (cv.style.opacity === '0') D.paused = true; }, 900); }
+export function stop() { if (!D) return; cv.style.opacity = 0; document.getElementById('app').classList.remove('hd3d'); clearLights(); for (const s in casters) casters[s].m.visible = false; setTimeout(() => { if (cv.style.opacity === '0') D.release(); }, 900); }
 export function hit(side, big) { hitK = big ? 1.3 : .8; hitSide = side === 'e' ? 1 : -1; shake = big ? .08 : .04; }
 export function sweep() { supT = 0; }
 export const _debug = () => ({ depth: fit && fit.depth, key, P, casters: Object.fromEntries(Object.entries(casters).map(([k, c]) => [k, { vis: c.m.visible, src: c.src.slice(-30), pos: c.m.position.toArray().map(v => +v.toFixed(2)), sc: c.m.scale.toArray().map(v => +v.toFixed(2)) }])), shadows: D && D.renderer.shadowMap.enabled });
