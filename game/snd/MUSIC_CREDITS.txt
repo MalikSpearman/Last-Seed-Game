@@ -1,0 +1,21 @@
+Music from OpenTracks (formerly DOVA-SYNDROME), https://opentracks.com — used under the site's free music licence.
+Files were loudness-levelled and re-encoded for the game.
+
+m_t_rasetsu    Hell Demon – RASETSU – (獄門鬼・羅刹)     MAKOOTO           opentracks.com/en/bgm/detail/9080
+m_t_shura      Demon Battle (妖怪バトル！！)            MAKOOTO           opentracks.com/en/bgm/detail/9059
+m_boss         Ranobudanmaku (乱桜舞弾幕)               Keisuke Ito       opentracks.com/en/bgm/detail/15139
+m_battle4      Become a Grace! (雅なれ！)               shimtone          opentracks.com/en/bgm/detail/10013
+m_battle5      KATANA                                  shimtone          opentracks.com/en/bgm/detail/11143
+m_battle6      monstruo                                Keisuke Ito       opentracks.com/en/bgm/detail/15566
+m_battle7      弔い合戦                                 Next Arco         opentracks.com/en/bgm/detail/2406
+m_roam_matsuri OMATSURI BAYASHI (おまつりばやし)        蒲鉾さちこ          opentracks.com/en/bgm/detail/19295
+m_roam_fest    Tsugaru strings festival (津軽弦まつり)  Keisuke Ito       opentracks.com/en/bgm/detail/15009
+m_roam_willow  神隠しの真相 (loop version)               Sharou            opentracks.com/en/bgm/detail/7674
+m_roam_ancient Go the ancient way (道中を往く)          蒲鉾さちこ          opentracks.com/en/bgm/detail/21074
+m_neon2        Sakura (loop version)                   Make a field Music opentracks.com/en/bgm/detail/16194
+m_neon3        タイムベンド (Time Bend)                  かずち             opentracks.com/en/bgm/detail/1488
+m_roam_coast   白い灯台のある島 (Island with a White Lighthouse) KK  opentracks.com/en/bgm/detail/13759
+m_t_kaiko      Gigantic monster (大怪獣)               T.Waraya          opentracks.com/en/bgm/detail/13668
+m_t_valka      リアルロボットW                          田中芳典           opentracks.com/en/bgm/detail/10572
+m_t_maximo     The person who blocks (阻む者)          Maniira           opentracks.com/en/bgm/detail/15362
+m_t_hana       Radical Storm                           shimtone          opentracks.com/en/bgm/detail/16164
