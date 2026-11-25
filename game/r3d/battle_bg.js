@@ -197,11 +197,12 @@ function ensure() {
   // full-screen cinematics (supers, ultimates, criticals, awakenings) cover the stage: stop drawing it so they get the GPU to themselves
   D.skip = () => { const a = document.getElementById('app'); return !!(a && a.classList.contains('cine')) || !!document.querySelector('.lsq-wrap,.lsq,.ultc'); };
   built = build(D); built.then(() => { FX = new ArenaFX(D); FX.life(P.c); FX.weather(pickWeather(), P.c); });
-  let lastF = {}, fitT = 0;
+  let lastF = {};
   D.frame((dt, t) => {
     const [cx, cy, cz] = P.c;
     const F = fighters(); if (F.p || F.e) lastF = F;
-    fitT -= dt; if (fitT <= 0 || !fit) { fitT = .25; const nf = solveFit(lastF); fit = fit ? { C: fit.C.lerp(nf.C, .5), f: nf.f, M: nf.M, depth: nf.depth } : nf; }
+    // re-aim every frame, eased: the stage's talk/counter camera swings the fighters around and the set has to glide with them (a 4 Hz step here read as choppy)
+    { const nf = solveFit(lastF), a = fit ? 1 - Math.exp(-Math.min(dt, .1) * 14) : 1; fit = fit ? { C: fit.C.lerp(nf.C, a), f: nf.f, M: nf.M, depth: fit.depth + (nf.depth - fit.depth) * a } : nf; }
     hitK = Math.max(0, hitK - dt * 2.6); shake = Math.max(0, shake - dt * .45);
     let ang = Math.sin(t * .13) * .018, push = 0;
     if (supT >= 0) { supT += dt; const u = Math.min(1, supT / 1.8); ang = -.1 + ease(u) * .2; push = Math.sin(u * Math.PI) * .06; if (supT > 2.2) supT = -1; }
