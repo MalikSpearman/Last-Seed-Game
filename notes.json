@@ -1,5 +1,13 @@
 [
  {
+  "version": "0.3.83",
+  "date": "Nov 26, 2026",
+  "title": "Smoother cards and counters",
+  "items": [
+   "Less lag when playing cards and around counters on 3D arenas: the sprite lighting no longer rebuilds its masks every frame and is kept through the counter camera swing."
+  ]
+ },
+ {
   "version": "0.3.82",
   "date": "Nov 26, 2026",
   "title": "Chain reaction graphic removed",

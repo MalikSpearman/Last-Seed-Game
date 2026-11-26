@@ -273,17 +273,22 @@ const CSS = `/* 3D sets with cast shadows: the flat drop-shadow behind each spri
   radial-gradient(ellipse 26% 18% at var(--d2x,70%) var(--d2y,62%),var(--l3d,rgba(40,52,110,.5)),transparent 70%),
   linear-gradient(180deg,var(--l3a,rgba(150,165,230,.9)) 0%,var(--l3b,rgba(205,212,245,.95)) 45%,var(--l3c,rgba(120,128,190,.95)) 100%)}
 .lit3d.live.tint{mix-blend-mode:multiply;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,var(--lvamb) 100%)}\n.lit3d.live.rim{mix-blend-mode:screen;background:linear-gradient(var(--lvrd,90deg),var(--lvrc,transparent) 0%,transparent 38%),radial-gradient(ellipse 80% 40% at 50% 0%,rgba(255,240,210,var(--lvtop,0)),transparent 70%),linear-gradient(var(--lvrd,90deg),transparent 62%,var(--lvaw,transparent) 100%),linear-gradient(0deg,var(--lvtc,transparent) 0%,var(--lvtc,transparent) 100%)}\n.lit3d.warm{mix-blend-mode:screen;background:radial-gradient(ellipse 90% 70% at var(--wx,50%) 18%,var(--l3w,rgba(255,150,70,.32)),transparent 70%),linear-gradient(90deg,var(--rim,rgba(255,170,90,.0)) 0%,transparent 30%)}`;
+// write only the style properties that changed: rewriting a whole cssText (mask-image included) every frame made the browser
+// rebuild each sprite's mask layer on every tick, which is what stuttered play and the counter swing in/out
+function put(el, o) { const c = el._p || (el._p = {}); for (const k in o) { const v = o[k]; if (c[k] !== v) { c[k] = v; el.style.setProperty(k, v); } } }
 function lit(side, fd) {
   let L = lits[side];
   if (L && L.img && L.img !== fd.img) { L.a.remove(); L.b.remove(); L = null; delete lits[side]; }
-  if (!L) { const a = document.createElement('div'), b = document.createElement('div'); a.className = 'lit3d shade'; b.className = 'lit3d warm'; L = lits[side] = { a, b, src: '', img: fd.img }; }
+  if (!L) { const a = document.createElement('div'), b = document.createElement('div'); a.className = 'lit3d shade'; b.className = 'lit3d warm'; L = lits[side] = { a, b, src: '', mk: '', img: fd.img }; }
   const host = fd.img.parentElement; if (L.a.parentElement !== host) { host.appendChild(L.a); host.appendChild(L.b); }
+  if (L.a.style.display) { L.a.style.display = ''; L.b.style.display = ''; }
   L.src = fd.img.currentSrc;
+  if (L.mk !== L.src) { L.mk = L.src; const m = `url("${L.src}")`; for (const e of [L.a, L.b]) { e.style.webkitMaskImage = m; e.style.maskImage = m; } }
   // follow the sprite exactly: same box, same live transform (idle breathing, lunges, flinches) and opacity, or a faint ghost shows beside it
-  const im = fd.img, cs = getComputedStyle(im), tf = cs.transform && cs.transform !== 'none' ? `transform:${cs.transform};transform-origin:${cs.transformOrigin};` : '';
-  const box = `left:${im.offsetLeft}px;top:${im.offsetTop}px;width:${im.offsetWidth}px;height:${im.offsetHeight}px;${tf}`;
-  const hid = cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity < .05 ? 'opacity:0;' : `opacity:${cs.opacity};`, mk = `-webkit-mask-image:url("${L.src}");mask-image:url("${L.src}");`;
-  return { L, box: box + ';' + mk, hid };
+  const im = fd.img, cs = getComputedStyle(im), has = cs.transform && cs.transform !== 'none';
+  const box = { left: im.offsetLeft + 'px', top: im.offsetTop + 'px', width: im.offsetWidth + 'px', height: im.offsetHeight + 'px', transform: has ? cs.transform : 'none', 'transform-origin': has ? cs.transformOrigin : '50% 50%' };
+  const hid = cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity < .05 ? 0 : +cs.opacity;
+  return { L, box, hid };
 }
 function lightSprites(F, t) {
   for (const side of ['p', 'e']) {
@@ -291,8 +296,8 @@ function lightSprites(F, t) {
     // shade blotches drift slowly like leaves moving over a lamp; the lantern is behind the middle, so its glow sits on the inner side
     const d1x = 30 + Math.sin(t * .23 + (side === 'e' ? 2 : 0)) * 14, d1y = 34 + Math.sin(t * .17) * 8, d2x = 66 + Math.sin(t * .19 + 1) * 12, d2y = 60 + Math.cos(t * .21) * 8;
     const flick = .85 + .1 * Math.sin(t * 7.1) + .05 * Math.sin(t * 13.3);
-    L.a.style.cssText = `${box};${hid}--d1x:${d1x}%;--d1y:${d1y}%;--d2x:${d2x}%;--d2y:${d2y}%`;
-    L.b.style.cssText = `${box};${hid}--wx:78%;${hid === 'opacity:0;' ? '' : `opacity:${flick * (+getComputedStyle(fd.img).opacity || 1)};`}`;   // .flip mirrors the enemy, so 78% is the inner side for both
+    put(L.a, Object.assign({ opacity: hid ? hid.toFixed(3) : '0', '--d1x': d1x.toFixed(1) + '%', '--d1y': d1y.toFixed(1) + '%', '--d2x': d2x.toFixed(1) + '%', '--d2y': d2y.toFixed(1) + '%' }, box));
+    put(L.b, Object.assign({ opacity: hid ? (flick * hid).toFixed(3) : '0', '--wx': '78%' }, box));   // .flip mirrors the enemy, so 78% is the inner side for both
   }
 }
 // live sprite light (non-paper): the set's own lights fall on the fighters. Every point light near a fighter's mark (lanterns,
@@ -322,8 +327,8 @@ function lightLive(F, t) {
     const rc = `rgba(${hue.r * 255 | 0},${hue.g * 255 | 0},${hue.b * 255 | 0},${(.08 + .5 * n).toFixed(3)})`, tc = `rgba(${hue.r * 255 | 0},${hue.g * 255 | 0},${hue.b * 255 | 0},${(.04 + .16 * n * K.tint).toFixed(3)})`;
     const ac = `rgba(${amb.r * 255 | 0},${amb.g * 255 | 0},${amb.b * 255 | 0},${(K.amb * .45).toFixed(3)})`;
     const flick = .92 + .05 * Math.sin(t * 7.1 + (side === 'e' ? 1 : 0)) + .03 * Math.sin(t * 13.3);
-    L.a.style.cssText = `${box};${hid}--lvamb:${ac}`;
-    L.b.style.cssText = `${box};${hid === 'opacity:0;' ? hid : `opacity:${(flick * (+getComputedStyle(fd.img).opacity || 1)).toFixed(3)};`}--lvtc:${tc};--lvrc:${rc};--lvrd:${fromLeft ? '90deg' : '270deg'};--lvtop:${Math.min(.35, top / Math.max(tot, 1e-4) * .35 * n).toFixed(3)};--lvaw:${aw || 'transparent'}`;
+    put(L.a, Object.assign({ opacity: hid ? hid.toFixed(3) : '0', '--lvamb': ac }, box));
+    put(L.b, Object.assign({ opacity: hid ? (flick * hid).toFixed(3) : '0', '--lvtc': tc, '--lvrc': rc, '--lvrd': fromLeft ? '90deg' : '270deg', '--lvtop': Math.min(.35, top / Math.max(tot, 1e-4) * .35 * n).toFixed(3), '--lvaw': aw || 'transparent' }, box));
   }
 }
 function lightExtras(X, t) {
@@ -332,8 +337,8 @@ function lightExtras(X, t) {
     seen.add(fd.key); const { L, box } = lit(fd.key, fd);
     const o = fd.op < .05 ? 0 : fd.op, d1x = 32 + Math.sin(t * .2 + fd.x * .01) * 14, d1y = 36 + Math.sin(t * .15 + 1) * 8;
     // backup foes are already dimmed by the game (brightness .62), so their shade is lighter to keep them readable
-    L.a.style.cssText = `${box};opacity:${o * (fd.dim ? .7 : 1)};--d1x:${d1x}%;--d1y:${d1y}%;--d2x:68%;--d2y:62%`;
-    L.b.style.cssText = `${box};--wx:78%;opacity:${o * (.85 + .1 * Math.sin(t * 7.1 + fd.x))}`;
+    put(L.a, Object.assign({ opacity: (o * (fd.dim ? .7 : 1)).toFixed(3), '--d1x': d1x.toFixed(1) + '%', '--d1y': d1y.toFixed(1) + '%', '--d2x': '68%', '--d2y': '62%' }, box));
+    put(L.b, Object.assign({ '--wx': '78%', opacity: (o * (.85 + .1 * Math.sin(t * 7.1 + fd.x))).toFixed(3) }, box));
   }
   for (const k in lits) if (k !== 'p' && k !== 'e' && !seen.has(k)) { lits[k].a.remove(); lits[k].b.remove(); delete lits[k]; }
 }
@@ -421,7 +426,7 @@ function ensure() {
     litTick(t);
     groupPlace(lastF); const X = extras(); zoomFor(lastF, X); placeExtraCasters(X); lightExtras(X, t);
     // paper sprites: the set's light also falls over the paper cut-outs (dappled shade + warm lantern rim, masked to whatever image the fighter shows: idle, counter pose, kneel, awakened)
-    if (document.getElementById('app').classList.contains('paperon') && OTS.k <= 0) lightSprites(lastF, t); else if (OTS.k <= 0 && !P.painted && window.__ls3dLive !== false) lightLive(lastF, t); else for (const sd of ['p', 'e']) if (lits[sd]) { lits[sd].a.remove(); lits[sd].b.remove(); delete lits[sd]; }
+    if (document.getElementById('app').classList.contains('paperon') && OTS.k <= 0) lightSprites(lastF, t); else if (OTS.k <= 0 && !P.painted && window.__ls3dLive !== false) lightLive(lastF, t); else for (const sd of ['p', 'e']) if (lits[sd]) { if (OTS.k > 0 && !P.painted) { lits[sd].a.style.display = 'none'; lits[sd].b.style.display = 'none'; } else { lits[sd].a.remove(); lits[sd].b.remove(); delete lits[sd]; } }
   });
   return built;
 }
@@ -450,8 +455,9 @@ function litSet(cx) {
   const top = [mix(255, wr, .3), mix(255, wg, .3), mix(255, wb, .3)], bot = [mix(255, fr * 1.7, .45), mix(255, fg * 1.7, .45), mix(255, fb * 1.7, .45)];
   litK = { s: [0, 1, 2].map(i => c((top[i] + 250 + bot[i]) / 3) * .97), w: [wr / 255, wg / 255, wb / 255], wk: cx.P.indoor ? .26 : .2 };
 }
+let litLast = 0;
 function litTick(t) {
-  if (!litM) return; const f = .88 + .08 * Math.sin(t * 7.1) + .04 * Math.sin(t * 13.3), k = litK.wk * f, [sr, sg, sb] = litK.s, [wr, wg, wb] = litK.w, row = (s0, w0, i) => [0, 1, 2].map(j => ((j === i ? s0 : 0) + [.3, .59, .11][j] * w0 * k).toFixed(4)).join(' ') + ' 0 0';
+  if (!litM) return; const nw = performance.now(); if (nw - litLast < 70) return; litLast = nw;   /* an SVG filter re-render on both sprites: ~14 Hz is plenty for a lantern flicker */ const f = .88 + .08 * Math.sin(t * 7.1) + .04 * Math.sin(t * 13.3), k = litK.wk * f, [sr, sg, sb] = litK.s, [wr, wg, wb] = litK.w, row = (s0, w0, i) => [0, 1, 2].map(j => ((j === i ? s0 : 0) + [.3, .59, .11][j] * w0 * k).toFixed(4)).join(' ') + ' 0 0';
   litM.setAttribute('values', `${row(sr, wr, 0)} ${row(sg, wg, 1)} ${row(sb, wb, 2)} 0 0 0 1 0`);
 }
 function weatherFor(cx) {
