@@ -313,6 +313,7 @@ function lightLive(F, t) {
   for (const side of ['p', 'e']) {
     const fd = F[side]; if (!fd) continue; const { L, box, hid } = lit(side, fd);
     L.a.className = 'lit3d live tint'; L.b.className = 'lit3d live rim';
+    const nowT = performance.now(); if (L.cv && nowT - L.cvT < 60) { const fl = .92 + .05 * Math.sin(t * 7.1 + (side === 'e' ? 1 : 0)) + .03 * Math.sin(t * 13.3); put(L.a, Object.assign({ opacity: hid ? hid.toFixed(3) : '0' }, L.cv.a, box)); put(L.b, Object.assign({ opacity: hid ? (fl * hid).toFixed(3) : '0' }, L.cv.b, box)); continue; }   // the light colours change slowly: recompute ~16x a second, follow the sprite every frame
     const g = gapNow(), m = new T.Vector3(cx + (side === 'e' ? g : -g), cy + 1.1, cz);
     let sum = new T.Color(0, 0, 0), sl = 0, sr = 0, top = 0, tot = 0;
     for (const l of Ls) { if (!(l.intensity > 0)) continue; const wp = l.getWorldPosition(new T.Vector3()); if (Math.hypot(wp.x - m.x, wp.z - m.z) < 1.6) continue;   // a fighter's own aura/boss light shouldn't paint them
@@ -327,8 +328,9 @@ function lightLive(F, t) {
     const rc = `rgba(${hue.r * 255 | 0},${hue.g * 255 | 0},${hue.b * 255 | 0},${(.08 + .5 * n).toFixed(3)})`, tc = `rgba(${hue.r * 255 | 0},${hue.g * 255 | 0},${hue.b * 255 | 0},${(.04 + .16 * n * K.tint).toFixed(3)})`;
     const ac = `rgba(${amb.r * 255 | 0},${amb.g * 255 | 0},${amb.b * 255 | 0},${(K.amb * .45).toFixed(3)})`;
     const flick = .92 + .05 * Math.sin(t * 7.1 + (side === 'e' ? 1 : 0)) + .03 * Math.sin(t * 13.3);
-    put(L.a, Object.assign({ opacity: hid ? hid.toFixed(3) : '0', '--lvamb': ac }, box));
-    put(L.b, Object.assign({ opacity: hid ? (flick * hid).toFixed(3) : '0', '--lvtc': tc, '--lvrc': rc, '--lvrd': fromLeft ? '90deg' : '270deg', '--lvtop': Math.min(.35, top / Math.max(tot, 1e-4) * .35 * n).toFixed(3), '--lvaw': aw || 'transparent' }, box));
+    L.cv = { a: { '--lvamb': ac }, b: { '--lvtc': tc, '--lvrc': rc, '--lvrd': fromLeft ? '90deg' : '270deg', '--lvtop': Math.min(.35, top / Math.max(tot, 1e-4) * .35 * n).toFixed(3), '--lvaw': aw || 'transparent' } }; L.cvT = nowT;
+    put(L.a, Object.assign({ opacity: hid ? hid.toFixed(3) : '0' }, L.cv.a, box));
+    put(L.b, Object.assign({ opacity: hid ? (flick * hid).toFixed(3) : '0' }, L.cv.b, box));
   }
 }
 function lightExtras(X, t) {

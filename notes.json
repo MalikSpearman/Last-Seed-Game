@@ -1,5 +1,15 @@
 [
  {
+  "version": "0.3.86",
+  "date": "Nov 26, 2026",
+  "title": "Rushdown loads reliably",
+  "items": [
+   "Rushdown sequences no longer fall back to still sprites: both fighters' strike sheets are readied at the start of the fight and the cutscene waits for them.",
+   "The VS loading screen now also loads counter poses.",
+   "Smoother 3D sprite lighting."
+  ]
+ },
+ {
   "version": "0.3.85",
   "date": "Nov 26, 2026",
   "title": "Rivals sharpen as the bracket goes on",
