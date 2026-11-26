@@ -1,5 +1,13 @@
 [
  {
+  "version": "0.3.64",
+  "date": "Nov 25, 2026",
+  "title": "Snappier Rushdown combo",
+  "items": [
+   "Rushdown combo hits are quicker again: still a wind-up and an impact beat on each hit, at a faster pace than v0.3.63."
+  ]
+ },
+ {
   "version": "0.3.63",
   "date": "Nov 25, 2026",
   "title": "Rushdown through the 3D set, finisher wind-up",

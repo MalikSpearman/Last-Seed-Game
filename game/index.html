@@ -11043,7 +11043,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
   async function rdHit(C,att,tgt,n,N,amount,c){ const W=C.W, Hh=C.Hh, A=C.at, R=C.rv, sh=rdSheet(att), last=n===N, Q=C.seq; C.slow=0; C.o.classList.remove('slow'); C.bgv=0;
     let m=last?Q.fin:(n===1&&Q.open?Q.open:Q.moves[(n-1)%Q.moves.length]); if(!rdHas(sh,m)) m=rdHas(sh,'phys')?'phys':m;
     if(sh&&sh.rk){ const K=sh.rk.D.combo||Object.keys(sh.rk.D.F); if(last&&sh.rk.D.fin) m=sh.rk.D.fin.pose; else { let q; const FQ=window.__RKFORCE; if(FQ&&FQ.length) q=FQ.shift(); else do{ q=K[(Math.random()*K.length)|0]; }while(K.length>1&&q===C.lastM); m=q; } C.lastM=m; }
-    const wind=rdHas(sh,m+'_w')?m+'_w':(rdHas(sh,'phys_w')&&m==='phys'?'phys_w':null), D=last?240:(window.__RDGAP||300), gap=W*.13;
+    const wind=rdHas(sh,m+'_w')?m+'_w':(rdHas(sh,'phys_w')&&m==='phys'?'phys_w':null), D=last?240:(window.__RDGAP||190), gap=W*.13;
     // where the attacker stands for this hit
     if(Q.k==='phantom'&&!last){ const side=n%2?1:-1; A.face=side; A.x=R.x-gap*side; A.trail=.6; }
     else { A.face=1; A.x=R.x-gap; A.trail=Q.k==='carry'?.5:0; }
@@ -11051,7 +11051,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     if(sh&&sh.rk){ if((sh.rk.D.air||[]).includes(m)){ A.x=R.x+W*.005; A.y=(R.y||0)+Hh*(C.S.port?.03:.05); A.face=1; A.trail=.4; C.cam.ty=Hh*(C.S.port?.5:.5); } else { if(Q.k!=='juggle') A.y=0; C.cam.ty=C.Hh*.62; } }   // aerial strikes always come down from above the rival
     if(last&&sh&&sh.rk){ const gy_=C.gy, hF_=C.hF; C.cam.tz=Math.min(C.cam.tz,1.22); C.cam.ty=gy_-hF_*.62; C.cam.tx=(C.dir>0?A.x:W-A.x)+C.dir*hF_*.35; }   // frame the whole finisher: an airborne kick must not leave the top of the screen
     if(last) await rdFinCharge(C,wind);
-    else if(wind){ A.f=wind; await rdS(140); }
+    else if(wind){ A.f=wind; await rdS(85); }
     A.f=m; R.f=last?'hit_h':(n%2?'hit':'hit_h'); R.flash=70; C.cam.tz=Math.min(1.6,C.cam.tz+.03);
     const hx=(C.dir>0?R.x:W-R.x)-C.dir*W*.01, hy=C.gy-R.y-C.hF*.5; C.spark(hx,hy,last?60:18,last?14:8); C.shk(last?34:12);
     if(amount) C.nums.push({t:'-'+amount,x:hx+(Math.random()-.5)*W*.05,y:hy-Hh*.12,l:1,big:last}); C.tot=(C.tot||0)+amount;
@@ -11059,7 +11059,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     try{ Snd.fx3&&Snd.fx3(last?'hit_c':(n%3?'hit_m':'hit_h'),last?1:.7); if(last){ Snd.fx3&&Snd.fx3('ultboom',.9); } }catch(e){}
     if(Q.k==='juggle'&&n===1){ R.f='air'; R.y=Hh*.22; }
     if(Q.k==='carry'&&!last){ R.x+=W*.045; C.cam.tx+=W*.045*C.dir; C.bgv=W*.6; setTimeout(()=>{ C.bgv=0; },150); }
-    if(!last){ R.x+=W*.008; C.slow=1; await rdS(90); C.slow=0; await rdS(D); return; }
+    if(!last){ R.x+=W*.008; C.slow=1; await rdS(50); C.slow=0; await rdS(D); return; }
     // finisher
     C.S.blink(90,.7,'#fff'); impactFrame();
     if(sh&&sh.rk&&sh.rk.D.fin&&window.LSFX){ const FN=sh.rk.D.fin, fx=FN.fx, cm=C.cam, z=cm.z, SX=x=>W/2-z*cm.x+z*x, SY=y=>Hh/2-z*cm.y+z*y, gy=C.gy, hF=C.hF, fr=sh.rk.D.F[FN.pose]&&sh.rk.D.F[FN.pose][0];
