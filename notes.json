@@ -1,5 +1,17 @@
 [
  {
+  "version": "0.3.57",
+  "date": "Nov 25, 2026",
+  "title": "3D free roam in the bracket, new roam NPCs",
+  "items": [
+   "Free-roam stops in the bracket now open in 3D: the Moonlit Bamboo Road or the Neon Ward, walked as your run's fighter with your real HP and Mon. Walk off either end to head back.",
+   "NPCs are in the 3D zones: talk to them for heals, cards, conditions and deals.",
+   "12 new roam NPCs: Bruna, Maya, Nyx, Rhea, Azami, Varro, Lyra, Wukong, Rasetsu, Titan Mask, Akane and Hana, each with their own effect.",
+   "Mentors are rarer: about one roam visit in seven, at most once a run.",
+   "Fixed enemy art and portraits not loading in the 3D roam."
+  ]
+ },
+ {
   "version": "0.3.56",
   "date": "Nov 25, 2026",
   "title": "Health fixes",

@@ -107,7 +107,7 @@ export async function createRoam(host, cfg) {
   const small = Math.min(innerWidth, innerHeight) < 520;
   // ── the world: one long chain of areas, west to east, with the bamboo road in the middle; walking off either end of an
   // area loads the next one (a short fade), and every area remembers its beaten foes and opened chests for the visit
-  let FOES = [], ITEMS = [], PATHS_Z = BAM.PATHS, zone = 'bamboo', hero = null, fill = null, EX = [], entry = { x: START.x, z: START.z };
+  let FOES = [], ITEMS = [], NPCS = [], npcHome = null, PATHS_Z = BAM.PATHS, zone = 'bamboo', hero = null, fill = null, EX = [], entry = { x: START.x, z: START.z };
   const nearest = (x, z) => BAM.nearest(x, z, PATHS_Z);
   const MEM = {}, A = (n, x, z, h, o) => D.prop(I(n), x, z, h, o);
   const idleH = (cfg.frames.idle && cfg.frames.idle[0][3]) || 400;
@@ -170,10 +170,19 @@ export async function createRoam(host, cfg) {
       entry = from === 'east' ? { x: b.x - 1.4, z: b.z } : { x: a.x + 1.4, z: a.z };
       if (!MEM[name]) MEM[name] = zoneSpawn(name, P);
     }
+    if (!npcHome) npcHome = name;
+    if (name === npcHome && !MEM[name].NPCS) {
+      const P = PATHS_Z[0], pts = name === 'bamboo' ? [-87, 6, 41].map(x => { const n = nearest(x, .2); return { x: n.px, z: n.pz - .5, y: n.y }; })
+        : [.32, .58, .8].map(u => { const q = P[Math.min(P.length - 1, Math.round(u * (P.length - 1)))]; return { x: q.x, z: q.z - .5, y: q.y }; });
+      MEM[name].NPCS = (cfg.npcs || []).slice(0, 3).map((n, i) => Object.assign({ used: false }, n, pts[i]));
+    }
+    NPCS = MEM[name].NPCS || [];
     FOES = MEM[name].FOES; ITEMS = MEM[name].ITEMS; try { cfg.music && cfg.music(name); } catch (_) {}
-    for (const ex of EX) signpost(ex.x - ex.dir * .2, ex.z - 1.1, ex.y, (ZONE[ex.to] || [ex.to])[0], ex.dir);
+    if (cfg.single) EX.forEach(ex => { ex.leave = 1; });   // a single zone (a bracket run's free-roam stop): both ends lead back out
+    for (const ex of EX) signpost(ex.x - ex.dir * .2, ex.z - 1.1, ex.y, ex.leave ? (cfg.leaveLabel || 'Back to the road') : (ZONE[ex.to] || [ex.to])[0], ex.dir);
     fill = new T.PointLight(0xffe2c0, 9, 7, 1.4); D.scene.add(fill);
     for (const it of ITEMS) { it.mesh = await A(it.img, it.x, it.z, it.h, { y: it.y || 0 }); if (it.done) { if (it.kind === 'chest' || it.kind === 'rchest') { it.mesh.material = it.mesh.material.clone(); it.mesh.material.color.set(0x8a8a8a); } else it.mesh.visible = false; } }
+    for (const n of NPCS) { n.mesh = await D.prop(n.url, n.x, n.z, n.h || 1.75, { y: n.y || 0, flip: 1, blob: false }); n.blob = D.blob(n.x, n.z, .6, n.y || 0); if (n.used) { n.mesh.material = n.mesh.material.clone(); n.mesh.material.color.set(0x8a8a8a); } }
     for (const f of FOES) {
       if (f.beaten) continue;
       Object.assign(f, { st: 'idle', t: 0, x0: f.x0 ?? f.x, z0: f.z0 ?? f.z }); f.x = f.x0; f.z = f.z0;
@@ -182,7 +191,7 @@ export async function createRoam(host, cfg) {
     }
     hero = D.actor(cfg.atlas, cfg.frames, idleH / 1.75, { fps: 10, glide: cfg.glide });
     pos.set(entry.x, 0, entry.z); { const n = nearest(pos.x, pos.z); pos.y = n.y; } vel.set(0, 0); graceT = 2.5; first = true;
-    $('.r3-zone b').textContent = meta[0].toUpperCase(); $('.r3-zone i').textContent = meta[1]; $('.r3-zone').style.opacity = 1; clearTimeout(zT); zT = setTimeout(() => { $('.r3-zone').style.opacity = 0; }, 3200);
+    $('.r3-zone b').textContent = meta[0].toUpperCase(); $('.r3-zone i').textContent = meta[1]; $('.r3-zone').style.opacity = 1; clearTimeout(zT); zT = setTimeout(() => { { const z = $('.r3-zone'); if (z) z.style.opacity = 0; } }, 3200);
   }
   let zT = 0, first = true;
   async function travel(to, from) {
@@ -196,7 +205,7 @@ export async function createRoam(host, cfg) {
   // ── HUD ──
   $('.r3-hud b').textContent = cfg.name.toUpperCase();
   function hud() { const s = cfg.stats(); $('.r3-hp i').style.width = Math.max(0, Math.min(100, s.hp / s.max * 100)) + '%'; $('.r3-hud small').textContent = `${s.hp} / ${s.max} HP · ${s.mon} Mon`; }
-  hud(); setTimeout(() => { $('.r3-zone').style.opacity = 0; }, 3200);
+  hud(); setTimeout(() => { { const z = $('.r3-zone'); if (z) z.style.opacity = 0; } }, 3200);
   function pop(txt, wp, col) { const v = wp.clone().project(D.camera); const el = document.createElement('div'); el.className = 'r3-pop'; el.textContent = txt; if (col) el.style.color = col; el.style.left = (v.x * .5 + .5) * host.clientWidth + 'px'; el.style.top = (-v.y * .5 + .5) * host.clientHeight + 'px'; host.appendChild(el); setTimeout(() => el.remove(), 1400); }
   let bT = 0; function banner(t, sub, ms = 1600) { const b = $('.r3-banner'); b.querySelector('b').textContent = t; b.querySelector('span').textContent = sub || ''; b.classList.add('on'); clearTimeout(bT); if (ms) bT = setTimeout(() => b.classList.remove('on'), ms); }
 
@@ -220,8 +229,10 @@ export async function createRoam(host, cfg) {
     if (m === 'resume') setPause(false);
     if (m === 'settings') cfg.settings && cfg.settings();
     if (m === 'stage' && cfg.pickStage) cfg.pickStage().then(() => { $('.r3-stage').textContent = cfg.stageLabel(); });
-    if (m === 'quality') { try { localStorage.setItem('ls_r3q', quality === 'high' ? 'low' : 'high'); } catch (_) {} destroy(); cfg.restart && cfg.restart(); }
-    if (m === 'exit') { destroy(); cfg.exit(); } };
+    if (m === 'quality') { try { localStorage.setItem('ls_r3q', quality === 'high' ? 'low' : 'high'); } catch (_) {} if (cfg.single) { quality = quality === 'high' ? 'low' : 'high'; qb.textContent = 'Graphics: ' + (quality === 'high' ? 'High' : 'Low') + ' (from the next zone)'; return; } destroy(); cfg.restart && cfg.restart(); }
+    if (m === 'exit') leave(); };
+  function leave() { if (gone) return; destroy(); cfg.exit(); }
+  if (cfg.exitLabel) $('[data-m=exit]').textContent = cfg.exitLabel;
   function setPause(on) { paused = on; $('.r3-pause').classList.toggle('on', on); D.paused = on; for (const k in keys) keys[k] = 0; }
 
   // ── actions ──
@@ -232,7 +243,14 @@ export async function createRoam(host, cfg) {
     const f = nearestFoe(2.4); if (f && Math.sign(f.x - pos.x || face) === face) { engage(f, 'ambush'); return; }
     for (const it of ITEMS) if (!it.done && it.kind === 'pot' && Math.hypot(it.x - pos.x, it.z - pos.z) < 1.9) use(it);
   }
-  function act() { if (busy || paused || !near) return; if (near.foe) { engage(near, 'ambush'); return; } use(near); }
+  function act() { if (busy || paused || !near) return; if (near.foe) { engage(near, 'ambush'); return; } if (near.npc) { chat(near); return; } use(near); }
+  async function chat(n) {
+    busy = true; for (const k in keys) keys[k] = 0; jv = { x: 0, y: 0 }; face = Math.sign(n.x - pos.x) || face; $('.r3-prompt').style.display = 'none';
+    let r = null; try { r = await cfg.npcTalk(n.id); } catch (e) { console.warn('roam npc', e); }
+    if (gone) return; n.used = true; if (n.mesh) { n.mesh.material = n.mesh.material.clone(); n.mesh.material.color.set(0x8a8a8a); }
+    if (r && r.text) pop(r.text, n.mesh.position.clone().add(new T.Vector3(0, (n.h || 1.75) + .3, 0)), r.col || '#ffe9b0');
+    hud(); busy = false;
+  }
   function use(it) {
     if (it.kind === 'rchest' && FOES.some(f => f.id === it.lock && !f.beaten)) { banner('Sealed', it.lock === 'nue' ? 'Beat the shrine guardian first' : it.lock === 'gasha' ? 'Beat the Gashadokuro first' : 'Beat this area\'s guardian first'); return; }
     it.done = true; const at = it.mesh.position.clone().add(new T.Vector3(0, it.h + .3, 0));
@@ -247,9 +265,9 @@ export async function createRoam(host, cfg) {
     await new Promise(r => setTimeout(r, 900));
     host.classList.add('away'); D.paused = true;
     const win = await cfg.engage(f.id, how, f.stage);
-    if (gone) return;
+    if (gone) return; if (win === 'leave') { leave(); return; }
     host.classList.remove('away'); D.paused = false; hud();
-    if (win) { f.beaten = true; f.st = 'down'; f.t = 0; const r = cfg.loot('win') || {}; if (r.text) pop(r.text, pos.clone().add(new T.Vector3(0, 2.3, 0)), r.col); if (f.boss) banner('Clear!', f.id === 'nue' ? 'The sealed offering opens' : 'The hoard is yours to open', 1800); }
+    if (win) { f.beaten = true; f.st = 'down'; f.t = 0; const r = cfg.loot('win') || {}; if (r.text) pop(r.text, pos.clone().add(new T.Vector3(0, 2.3, 0)), r.col); hud(); if (f.boss) banner('Clear!', f.id === 'nue' ? 'The sealed offering opens' : 'The hoard is yours to open', 1800); }
     else { f.st = 'idle'; f.x = f.x0; f.z = f.z0; f.mesh.position.set(f.x, f.y || 0, f.z); pos.set(entry.x, 0, entry.z); banner('K.O.', zone === 'bamboo' ? 'You wake up at the start of the road' : 'You come to where you walked in', 2200); }
     busy = false;
   }
@@ -267,7 +285,8 @@ export async function createRoam(host, cfg) {
     if (n.over > 0) { const k = n.w / n.d; nx = n.px + (nx - n.px) * k; nz = n.pz + (nz - n.pz) * k; n = nearest(nx, nz); }
     pos.x = nx; pos.z = nz; pos.y += (n.y - pos.y) * Math.min(1, dt * 14);
     // walking off the end of the area: on to the next one
-    if (!busy && !paused) for (const ex of EX) if ((ex.dir < 0 && ix < -.3 && pos.x <= ex.x + .3) || (ex.dir > 0 && ix > .3 && pos.x >= ex.x - .3)) { travel(ex.to, ex.dir > 0 ? 'west' : 'east'); break; }
+    if (!busy && !paused) for (const ex of EX) if ((ex.dir < 0 && ix < -.3 && pos.x <= ex.x + .3) || (ex.dir > 0 && ix > .3 && pos.x >= ex.x - .3)) { if (ex.leave) leave(); else travel(ex.to, ex.dir > 0 ? 'west' : 'east'); break; }
+    if (gone) return;   // just walked out of a single zone
     hero.root.position.copy(pos); fill.position.set(pos.x - .6, pos.y + 2.2, pos.z + 2.4);
     atkT = Math.max(0, atkT - dt);
     const moving = Math.hypot(vel.x, vel.y) > .6; if (atkT <= 0) hero.set(moving ? 'run' : 'idle');
@@ -297,11 +316,15 @@ export async function createRoam(host, cfg) {
     // prompts
     near = null; let best = 1.9;
     for (const it of ITEMS) { if (it.done) continue; const d = Math.hypot(it.x - pos.x, it.z - pos.z); if (d < best && Math.abs((it.y || 0) - pos.y) < 1) { best = d; near = it; } }
+    for (const n of NPCS) { if (n.used) continue; const d = Math.hypot(n.x - pos.x, n.z - pos.z); if (d < Math.max(best, 2.2) && Math.abs((n.y || 0) - pos.y) < 1) { best = d; near = n; } }
+    // NPCs breathe and face you
+    for (const n of NPCS) if (n.mesh) { n.mesh.scale.y = (n.base = n.base || n.mesh.scale.y) * (1 + Math.sin(t * 2 + n.x) * .015); n.mesh.scale.x = (pos.x > n.x ? 1 : -1) * Math.abs(n.mesh.scale.x); }
+    if (gone) return;
     const pr = $('.r3-prompt');
     if (near && !busy) { pr.style.display = 'block'; pr.lastChild.textContent = near.label; pr.firstChild.textContent = touch ? 'ACT' : 'E'; } else pr.style.display = 'none';
   });
-  function destroy() { gone = true; D.paused = true; D.dead = true; removeEventListener('keydown', kd, true); removeEventListener('keyup', ku, true); try { D.renderer.dispose(); D.renderer.forceContextLoss(); } catch (_) {} host.innerHTML = ''; }
+  function destroy() { clearTimeout(zT); clearTimeout(bT); gone = true; D.paused = true; D.dead = true; removeEventListener('keydown', kd, true); removeEventListener('keyup', ku, true); try { D.renderer.dispose(); D.renderer.forceContextLoss(); } catch (_) {} host.innerHTML = ''; }
   banner('', '', 1);
-  window.__R3 = { pos, get FOES() { return FOES; }, get ITEMS() { return ITEMS; }, get zone() { return zone; }, travel };
+  window.__R3 = { pos, get NPCS() { return NPCS; }, get FOES() { return FOES; }, get ITEMS() { return ITEMS; }, get zone() { return zone; }, travel };
   return { destroy, pause: setPause };
 }

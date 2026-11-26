@@ -336,6 +336,7 @@ export class Diorama {
       if (this.paused || (this.skip && this.skip())) { this.clock.getDelta(); return; }
       const dt = Math.min(this.clock.getDelta(), 1 / 20); this.time += dt;
       cb && cb(dt, this.time);
+      if (this.dead) return;
       for (const u of this.updaters) u(this.time, dt);
       this._lights(this.focus || this.camera.position);
       if (this.faceCam) { const c = this.camera.position; for (const m of this.billboards) m.rotation.y = Math.atan2(c.x - m.position.x, c.z - m.position.z) * this.faceCam; }
