@@ -1,5 +1,17 @@
 [
  {
+  "version": "0.3.61",
+  "date": "Nov 25, 2026",
+  "title": "Rushdown chase cutscene",
+  "items": [
+   "Rushdown now cuts to a chase: the Rush hit knocks your rival off the screen, then your fighter sprints and dashes after them while the background tears past.",
+   "All 31 fighters have their own run and dash frames, with weapons held the way they fight.",
+   "Hana flies after her target on her esper power, hands in her pockets. Valka boosts in. Both hover with a glow in their own colour.",
+   "Speed lines are left-to-right only and only appear once the rival is knocked into the next scene.",
+   "Fighters keep their outline for the whole cutscene, and both fighters reappear properly when the Rushdown ends."
+  ]
+ },
+ {
   "version": "0.3.60",
   "date": "Nov 25, 2026",
   "title": "Kaede's Rushdown finisher, Rushdown demo in Training",

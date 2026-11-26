@@ -10893,10 +10893,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     const draw=t=>{ if(!on) return; requestAnimationFrame(draw); if(t-last<45) return; last=t; g.clearRect(0,0,W,H);
       const k=Math.min(1,(t-t0)/180);   // lines rush in over the first beat
       g.fillStyle='#fff'; g.globalAlpha=.9*k;
-      for(let i=0;i<150;i++){ const a=Math.random()*Math.PI*2, w=.004+Math.random()*.016, inner=R*(.17+Math.random()*.2)*(1.4-k*.4);
-        g.beginPath(); g.moveTo(fx+Math.cos(a)*inner,fy+Math.sin(a)*inner*.8); g.lineTo(fx+Math.cos(a-w)*R,fy+Math.sin(a-w)*R); g.lineTo(fx+Math.cos(a+w)*R,fy+Math.sin(a+w)*R); g.closePath();
-        g.fillStyle=Math.random()<.35?col:'#fff'; g.fill(); }
-      g.globalAlpha=.75*k; for(let i=0;i<46;i++){ const y=Math.random()*H, L=W*(.15+Math.random()*.45), x=Math.random()*W, th=1+Math.random()*3.5;
+      g.globalAlpha=.8*k; for(let i=0;i<90;i++){ const y=Math.random()*H, L=W*(.15+Math.random()*.45), x=Math.random()*W, th=1+Math.random()*3.5;
         g.fillStyle=Math.random()<.5?col:'#fff'; g.fillRect(dir>0?x-L:x,y,L,th); }
       g.globalAlpha=1; };
     requestAnimationFrame(draw); RSD.sl={cv,stop:()=>{ on=false; }}; return RSD.sl; }
@@ -10922,26 +10919,37 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
   function rdSheet(side){ const r_=rdSheet0(side), id=phxWho(side), rk=F[side]&&!F[side].classList.contains('awk')?rkGet(id):null; if(r_&&rk) r_.rk=rk; else if(rk) return {id,rk,im:rk.im,still:1}; return r_; }
   function rdSheet0(side){ const id=phxWho(side), H=poseSrc(id); if(H&&!F[side].classList.contains('awk')){ poseLoad(side); const im=POSE_IMG[H.file]; if(im&&im.naturalWidth) return {id,H,im}; }
     const el=$('.spr img',F[side]); return el&&el.naturalWidth?{id,im:el,still:1}:null; }
+  function rdSheetC(side){ const sh=rdSheet(side); if(sh) sh.cut=rdCuts(sh.id); return sh; }
   // one frame of a fighter, feet at (x,gy), standing hF tall; face: +1 right, -1 left
-  function rdFrame(g,sh,name,x,gy,hF,face,o){ if(!sh) return; o=o||{}; const RKF=sh.rk&&sh.rk.D.F[name]; g.save(); g.globalAlpha=o.a==null?1:o.a; if(o.comp) g.globalCompositeOperation=o.comp; if(o.filter) g.filter=o.filter;
+  // the fighters keep their outline in the cutscene: cream paper rim in paper mode, else a thin dark ink line
+  function rdFrame(g,sh,name,x,gy,hF,face,o){ if(!sh) return; o=o||{}; const RKF=sh.rk&&sh.rk.D.F[name]; if(!o.noRim&&!o.filter&&(o.a==null||o.a>.9)){ const pp=app.classList.contains('paperon'), w=hF*(pp?.017:.006), col=pp?'brightness(0) invert(.95) sepia(.25)':'brightness(0)';
+      for(let i=0;i<8;i++){ const an=i*Math.PI/4; rdFrame(g,sh,name,x+Math.cos(an)*w,gy+Math.sin(an)*w,hF,face,Object.assign({},o,{noRim:1,filter:col,a:pp?1:.85})); } }
+    g.save(); g.globalAlpha=o.a==null?1:o.a; if(o.comp) g.globalCompositeOperation=o.comp; if(o.filter) g.filter=o.filter;
     if(o.rot){ g.translate(x,gy-hF*.5); g.rotate(o.rot); g.translate(-x,-(gy-hF*.5)); }
     g.translate(x,gy); if(face<0) g.scale(-1,1);
+    const ci=!RKF&&sh.cut&&sh.cut[name];
     if(RKF){ const [sx,sy,sw,shh,ax,ay]=RKF[0], k=hF/sh.rk.D.ref*.86; g.drawImage(sh.rk.im,sx,sy,sw,shh,-ax*k,-ay*k,sw*k,shh*k); }
+    else if(ci){ const k=hF*.94/(sh.cut.run1||ci).naturalHeight; g.drawImage(ci,-ci.naturalWidth*k*.5,-ci.naturalHeight*k,ci.naturalWidth*k,ci.naturalHeight*k); }
     else if(sh.still){ const iw=sh.im.naturalWidth, ih=sh.im.naturalHeight, k=hF/ih*1.05; g.drawImage(sh.im,-iw*k/2,-ih*k,iw*k,ih*k); }
     else { const f=(sh.H.full[name]||sh.H.full.idle)[0], [sx,sy,sw,shh,ax,ay]=f, k=hF/sh.H.full.idle[0][3]*gFix(sh.id,sh.H.full[name]?name:'idle'); g.drawImage(sh.im,sx,sy,sw,shh,-ax*k,-ay*k,sw*k,shh*k); }
     g.restore(); }
-  function rdHas(sh,n){ if(sh&&sh.rk&&sh.rk.D.F[n]) return true; return !!(sh&&!sh.still&&sh.H&&sh.H.full[n]); }
+  function rdHas(sh,n){ if(sh&&sh.rk&&sh.rk.D.F[n]) return true; return !!(sh&&((sh.cut&&sh.cut[n])||(!sh.still&&sh.H&&sh.H.full[n]))); }
+  // dedicated chase cut-outs: run1/run2 (sprint cycle) and dash (boost burst), facing right, feet at the bottom edge
+  const RD_CUT={};
+  // fighters who fly instead of run in the chase: how high they hover (x fighter height) and the glow under them
+  const RD_FLY={hana:{lift:.16,col:'#c040ff'},valka:{lift:.07,col:'#ffd23f'}};
+  function rdCuts(id){ if(!RD_CUT[id]){ const o={}; RD_CUT[id]=o; ['run1','run2','dash'].forEach(k=>{ const i=new Image(); i.onload=()=>{ o[k]=i; }; i.src='img/rd/'+id+'_'+k+'.webp'; }); } return RD_CUT[id]; }
   const RD_SEQ=[
     {k:'flurry', name:'Flurry',  moves:['jab','cross','jab','cross','kick'], fin:'upper'},
     {k:'juggle', name:'Juggle',  moves:['kick','cross','kick','jab'], fin:'phys', open:'upper'},
     {k:'phantom',name:'Phantom', moves:['kick','cross','kick','jab'], fin:'phys'},
     {k:'carry',  name:'Carry',   moves:['jab','kick','cross','kick'], fin:'kick'}];
   function rdCine(att,tgt,col,cardName){ const S=u7Stage(att,'rdc'); const {o,W,Hh,fg,sg,scv,fcv}=S; S.cine(true); S.bars(true);
-    const dir=att==='p'?1:-1, X=x=>dir>0?x:W-x, sr=scv.width/W, fr=fcv.width/W, A=rdSheet(att), T=rdSheet(tgt), rnd=Math.random;
+    const dir=att==='p'?1:-1, X=x=>dir>0?x:W-x, sr=scv.width/W, fr=fcv.width/W, A=rdSheetC(att), T=rdSheet(tgt), rnd=Math.random;
     const BG=rdBg();
     const gy=Hh*(S.port?.72:.86), hF=Hh*(S.port?.34:.5);
     o.insertAdjacentHTML('beforeend',`<div class="rdc-ttl"><b>RUSHDOWN</b><i>${cardName||''}</i></div><div class="rdc-tot"><b></b><i></i></div>`); o.style.setProperty('--c',col);
-    const C={S,o,W,Hh,dir,phase:'chase',t0:performance.now(),pt:0,bgx:0,bgv:W*3.2,lines:1,cam:{x:W/2,y:Hh/2,z:1,tz:1,tx:W/2,ty:Hh/2},shake:0,
+    const C={S,o,W,Hh,dir,phase:'chase',t0:performance.now(),pt:0,bgx:0,bgv:W*9,lines:0,cam:{x:W/2,y:Hh/2,z:1,tz:1,tx:W/2,ty:Hh/2},shake:0,
       at:{x:W*.3,y:0,f:'run',face:1,trail:1},rv:{x:W*1.02,y:Hh*.24,rot:0,vr:-.012,f:'air',vx:0,vy:0,away:0},bits:[],nums:[],flash:0,slow:0,seq:null,hit:null,done:false};
     C.dt=0; let last=performance.now();
     const shk=v=>{ C.shake=Math.max(C.shake,v); };
@@ -10955,8 +10963,8 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
       // world: the set's backdrop streaking past (motion-blurred), darkened, tinted toward the element
       C.bgx=(C.bgx+C.bgv*d/1000)%(W*4);
       sg.setTransform(sr*cm.z,0,0,sr*cm.z,sr*cx,sr*cy); sg.globalCompositeOperation='source-over'; sg.globalAlpha=1; sg.fillStyle='#07050f'; sg.fillRect(-W,-Hh,W*3,Hh*3);
-      if(BG.naturalWidth){ const ih=Hh*1.25, iw=ih*BG.naturalWidth/BG.naturalHeight, y0=gy-ih*.82, blur=Math.min(6,C.bgv/W*1.6)|0;
-        for(let b=0;b<=blur;b++){ sg.globalAlpha=1/(b+1); const off=-(C.bgx+b*C.bgv*.006)*dir; for(let xx=((off%iw)+iw)%iw-iw*2; xx<W*2; xx+=iw){ sg.save(); if(dir<0){ sg.translate(W,0); sg.scale(-1,1); } sg.drawImage(BG,xx,y0,iw,ih); sg.restore(); } }
+      if(BG.naturalWidth){ const ih=Hh*1.25, iw=ih*BG.naturalWidth/BG.naturalHeight, y0=gy-ih*.82, blur=Math.min(9,C.bgv/W*1.2)|0;
+        for(let b=0;b<=blur;b++){ sg.globalAlpha=1/(b+1); const off=-(C.bgx+b*C.bgv*.004)*dir; for(let xx=((off%iw)+iw)%iw-iw*2; xx<W*2; xx+=iw){ sg.save(); if(dir<0){ sg.translate(W,0); sg.scale(-1,1); } sg.drawImage(BG,xx,y0,iw,ih); sg.restore(); } }
         sg.globalAlpha=1; }
       sg.globalAlpha=1; sg.fillStyle=C.slow?'rgba(10,6,24,.55)':'rgba(10,6,24,.3)'; sg.fillRect(-W,-Hh,W*3,Hh*3);
       sg.globalCompositeOperation='overlay'; sg.fillStyle=col; sg.globalAlpha=C.slow?.15:.28; sg.fillRect(-W,-Hh,W*3,Hh*3); sg.globalCompositeOperation='source-over'; sg.globalAlpha=1;
@@ -10971,6 +10979,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
       // after-images
       if(C.at.trail&&!C.at.hide) for(let i=4;i>=1;i--){ rdFrame(fg,A,C.at.f,X(C.at.x-i*W*.035*C.at.trail),gy-C.at.y,hF,dir*(C.at.face),{a:.12+.05*(4-i),filter:'brightness(2) saturate(.2)',rot:(C.at.lean||0)*dir}); }
       if(!C.rv.hide) rdFrame(fg,T,C.rv.f,X(C.rv.x),gy-C.rv.y,hF,-dir,{rot:C.rv.rot*dir,filter:C.rv.flash>0?'brightness(3) saturate(0)':''});
+      if(C.fly&&!C.at.hide&&C.at.y>2){ const gx=X(C.at.x), gyy=gy-C.at.y-hF*.35, r=hF*.55; const gg=fg.createRadialGradient(gx,gyy,0,gx,gyy,r); gg.addColorStop(0,C.fly.col+'66'); gg.addColorStop(1,C.fly.col+'00'); fg.save(); fg.globalCompositeOperation='lighter'; fg.fillStyle=gg; fg.fillRect(gx-r,gyy-r,r*2,r*2); fg.restore(); }
       if(!C.at.hide) rdFrame(fg,A,C.at.f,X(C.at.x),gy-C.at.y,hF,dir*C.at.face,{rot:(C.at.lean||0)*dir});
       if(C.rv.flash>0) C.rv.flash-=dt;
       // sparks + numbers
@@ -10978,9 +10987,9 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
       for(const nm of C.nums){ nm.l-=dt/900; nm.y-=dt*.04; fg.globalAlpha=Math.max(0,Math.min(1,nm.l*2)); fg.font=`${Math.round(Hh*(nm.big?.11:.075))}px Anton`; fg.textAlign='center'; fg.lineWidth=Hh*.012; fg.strokeStyle='#12091c'; fg.strokeText(nm.t,nm.x,nm.y); fg.fillStyle=nm.big?'#ffd36b':'#fff'; fg.fillText(nm.t,nm.x,nm.y); } fg.globalAlpha=1; C.nums=C.nums.filter(n=>n.l>0);
       // speed lines (screen space)
       fg.setTransform(fr,0,0,fr,0,0);
-      if(C.lines>.02){ const fx=X(W*.5), fy=gy-hF*.55, R=Math.hypot(W,Hh); fg.globalAlpha=C.lines*.85;
-        for(let i=0;i<110;i++){ const a=rnd()*Math.PI*2, w=.003+rnd()*.012, inner=R*(.3+rnd()*.18); fg.beginPath(); fg.moveTo(fx+Math.cos(a)*inner,fy+Math.sin(a)*inner*.75); fg.lineTo(fx+Math.cos(a-w)*R,fy+Math.sin(a-w)*R); fg.lineTo(fx+Math.cos(a+w)*R,fy+Math.sin(a+w)*R); fg.closePath(); fg.fillStyle=rnd()<.35?col:'#fff'; fg.fill(); }
-        for(let i=0;i<34;i++){ const y=rnd()*Hh, L=W*(.15+rnd()*.5), x=rnd()*W; fg.fillStyle=rnd()<.5?col:'#fff'; fg.fillRect(dir>0?x-L:x,y,L,1+rnd()*3); } fg.globalAlpha=1; }
+      if(C.lines>.02){ fg.globalAlpha=C.lines*.85;
+        for(let i=0;i<10;i++){ const y=rnd()*Hh, L=W*(.4+rnd()*.7), x=rnd()*W*1.4-W*.2; fg.fillStyle='rgba(0,0,0,.35)'; fg.fillRect(dir>0?x-L:x,y,L,4+rnd()*10); }
+        for(let i=0;i<80;i++){ const y=rnd()*Hh, L=W*(.15+rnd()*.5), x=rnd()*W; fg.fillStyle=rnd()<.5?col:'#fff'; fg.fillRect(dir>0?x-L:x,y,L,1+rnd()*3); } fg.globalAlpha=1; }
       if(C.slow){ const g2=fg.createRadialGradient(W/2,Hh/2,Hh*.3,W/2,Hh/2,Hh*.95); g2.addColorStop(0,'rgba(0,0,0,0)'); g2.addColorStop(1,'rgba(40,0,10,.55)'); fg.fillStyle=g2; fg.fillRect(0,0,W,Hh); }
     };
     requestAnimationFrame(frame);
@@ -10991,14 +11000,20 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
   function rdBg(){ const url=(window.__lsArena&&window.__lsArena.bg)||'img/arena.webp'; if(!RDC.bg||RDC.bgu!==url){ RDC.bg=new Image(); RDC.bg.src=url; RDC.bgu=url; } return RDC.bg; }
   // the chase: run frames under speed lines, the rival tumbling ahead; then the catch and the freeze
   async function rdChase(C,att){ const W=C.W, Hh=C.Hh, A=C.at, R=C.rv; let tt=0;
-    const RUNF=rdHas(rdSheet(att),'rush')?'rush':'run'; A.lean=.14;
-    C.script=(d)=>{ tt+=d; A.f=RUNF; A.y=Math.abs(Math.sin(tt/90))*Hh*.012; R.rot+=R.vr*d; R.x=Math.max(W*.66,R.x-d*W*.00042); R.y=Math.max(Hh*.07,R.y-d*Hh*.00012); };
+    const sh=rdSheetC(att), cyc=rdHas(sh,'run1')&&rdHas(sh,'run2'), RUNF=rdHas(sh,'rush')?'rush':'run', DUR=window.__RDCHASE||1500; let dashed=false;
+    A.lean=cyc?0:.14; A.x=W*.3;
+    C.script=(d)=>{ tt+=d; const k=Math.min(1,tt/DUR); C.lines=Math.min(1,tt/140); const cyc=rdHas(sh,'run1')&&rdHas(sh,'run2'); A.lean=cyc?0:.14;
+      const FL=RD_FLY[sh&&sh.id]; C.fly=FL||null;
+      if(k<.58){ A.f=cyc?(Math.floor(tt/(FL?160:75))%2?'run2':'run1'):RUNF; A.y=FL?(FL.lift*Hh*.5+Math.sin(tt/220)*Hh*.012):Math.abs(Math.sin(tt/75*Math.PI/2))*Hh*.014; C.bgv=W*9; }
+      else { if(!dashed){ dashed=true; C.S.blink(90,.45,'#fff'); C.shk(16); C.cam.z=1.12; try{ Snd.fx3&&Snd.fx3('dash',1); Snd.fx3&&Snd.fx3('whoosh_h',1); }catch(e){} }
+        A.f=rdHas(sh,'dash')?'dash':RUNF; A.y=FL?FL.lift*Hh*.4:0; C.bgv=W*16; A.x=Math.min(W*.42,A.x+d*W*.0004); }
+      R.rot+=R.vr*d; R.x=Math.max(W*.7,R.x-d*W*.0005); R.y=Math.max(Hh*.07,R.y-d*Hh*.00012); };
     try{ Snd.fx3&&Snd.fx3('dash',1); Snd.fx3&&Snd.fx3('whoosh_h',1); }catch(e){} C.shk(10);
     const ttl=C.o.querySelector('.rdc-ttl'); ttl.classList.add('on');
-    await rdS(window.__RDCHASE||1150); ttl.classList.remove('on');
+    await rdS(DUR); ttl.classList.remove('on');
     // the catch: one blink of a dash, then everything stops
     C.script=null; try{ Snd.fx3&&Snd.fx3('whoosh_h',.9); }catch(e){}
-    const x0=A.x, x1=R.x-W*.16; for(let i=0;i<6;i++){ A.x=x0+(x1-x0)*(i+1)/6; await rdS(16); }
+    const x0=A.x, x1=R.x-W*.16; A.f=rdHas(sh,'dash')?'dash':A.f; for(let i=0;i<6;i++){ A.x=x0+(x1-x0)*(i+1)/6; await rdS(16); }
     A.lean=0; A.f=rdHas(rdSheet(att),'jab_w')?'jab_w':'phys_w'; A.y=0; R.f='hurt'; R.rot=0; R.vr=0; R.y=Hh*.06;
     C.S.blink(140,.85,'#fff'); C.shk(18); try{ Snd.fx3&&Snd.fx3('sflash',.9); Snd.fx3&&Snd.fx3('hit_m',.6); }catch(e){}
     C.lines=0; C.bgv=0; C.at.trail=0; C.slow=1; C.o.classList.add('slow');
@@ -11012,6 +11027,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     if(Q.k==='phantom'&&!last){ const side=n%2?1:-1; A.face=side; A.x=R.x-gap*side; A.trail=.6; }
     else { A.face=1; A.x=R.x-gap; A.trail=Q.k==='carry'?.5:0; }
     if(Q.k==='juggle'&&n>1) A.y=R.y-Hh*.02;
+    if(last&&sh&&sh.rk){ const gy_=Hh*(C.S.port?.72:.86), hF_=Hh*(C.S.port?.34:.5); C.cam.tz=Math.min(C.cam.tz,1.22); C.cam.ty=gy_-hF_*.62; C.cam.tx=(C.dir>0?A.x:W-A.x)+C.dir*hF_*.35; }   // frame the whole finisher: an airborne kick must not leave the top of the screen
     if(wind){ A.f=wind; await rdS(last?(sh&&sh.rk?260:120):45); }
     A.f=m; R.f=last?'hit_h':(n%2?'hit':'hit_h'); R.flash=70; C.cam.tz=Math.min(1.6,C.cam.tz+.03);
     const hx=(C.dir>0?R.x:W-R.x)-C.dir*W*.01, hy=Hh*(C.S.port?.72:.86)-R.y-Hh*.25; C.spark(hx,hy,last?60:18,last?14:8); C.shk(last?34:12);
@@ -11033,7 +11049,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     else { R.f='air'; C.lines=.7; C.bgv=W*2; for(let i=0;i<24;i++){ R.x+=W*.05; R.y+=Hh*.004; R.rot-=.3; await rdS(16); } C.lines=0; C.bgv=0; }
     await rdS(300); }
   async function rushdownFx(ev){ try{ rkGet(phxWho(ev.from)); }catch(_){ } const tgt=ev.side, att=ev.from, d=rdDir(att), c=CARDS[ev.card]||{}; rdReset(); if(AIR[tgt]) airClear(tgt);
-    const W=innerWidth, col=LCOL[elOf(c)]||'#ffffff'; RSD.gap=Math.abs(sprC('p').x-sprC('e').x); const bgI=rdBg(); poseLoad(att); poseLoad(tgt);
+    const W=innerWidth, col=LCOL[elOf(c)]||'#ffffff'; RSD.gap=Math.abs(sprC('p').x-sprC('e').x); const bgI=rdBg(); poseLoad(att); poseLoad(tgt); rdCuts(phxWho(att));
     // on the field: the Rush hit blasts the rival off the screen
     launchSplash(att,c,ev,'RUSHDOWN!'); if(!vsay(att,'_launch',1)) vsay(att,'_atk',1); try{ annCall('maxc',true); }catch(e){}
     whiteHit(tgt); impactFrame(); await hitStop(160); shake(24,420); try{ Snd.fx3&&Snd.fx3('impact_h',1); Snd.fx3&&Snd.fx3('whoosh_h',1); }catch(e){}
@@ -11043,7 +11059,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     { const A=sprC(att); rdCam(1.9,A.x,A.top+A.h*.32,W*(.5-d*.04),innerHeight*.42,300,'cubic-bezier(.55,0,.25,1)'); } if(fly) await fly.finished.catch(()=>{});
     // cut to the chase (give the backdrop a moment if it is still loading)
     if(!bgI.complete) await Promise.race([new Promise(r=>{ bgI.onload=r; bgI.onerror=r; }),sleep(500)]);
-    const C=rdCine(att,tgt,col,c.name); { const pool=rkGet(phxWho(att))?RD_SEQ.filter(q=>q.k!=='juggle'):RD_SEQ; C.seq=window.__RDSEQ!=null?RD_SEQ[window.__RDSEQ]:pool[(Math.random()*pool.length)|0]; }   // grounded strike sheets: no air-juggle carry C.S.blink(180,1,'#fff'); rdCamOff(1);
+    const C=rdCine(att,tgt,col,c.name); { const pool=rkGet(phxWho(att))?RD_SEQ.filter(q=>q.k!=='juggle'):RD_SEQ; C.seq=window.__RDSEQ!=null?RD_SEQ[window.__RDSEQ]:pool[(Math.random()*pool.length)|0]; }   /* grounded strike sheets: no air-juggle carry */ C.S.blink(180,1,'#fff'); rdCamOff(1);
     $('.spr',F[att])&&($('.spr',F[att]).style.visibility='hidden'); $('.spr',F[tgt])&&($('.spr',F[tgt]).style.visibility='hidden');
     await rdChase(C,att);
     if(att!=='p') rdWait(NETB?RUSH.secs*1000:1000); }
