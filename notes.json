@@ -1,5 +1,14 @@
 [
  {
+  "version": "0.3.81",
+  "date": "Nov 26, 2026",
+  "title": "One mentor per turn, online energy back to 3",
+  "items": [
+   "Only one mentor ability can be used per turn (yours and the rival's).",
+   "Online matches go back to 3 Energy per turn (offline versus keeps 4)."
+  ]
+ },
+ {
   "version": "0.3.80",
   "date": "Nov 26, 2026",
   "title": "Online fixes: coin flip, hands, rival mentors",
