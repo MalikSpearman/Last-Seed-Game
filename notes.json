@@ -1,5 +1,16 @@
 [
  {
+  "version": "0.3.59",
+  "date": "Nov 25, 2026",
+  "title": "Rush cards for every fighter, Kaede's new Rushdown",
+  "items": [
+   "Every fighter's Rush card now does something of its own: Burn, Bleed, Chill, Exposed, Guard break, double hits, card draw, Power, Counter, Strings, Overflow and more.",
+   "Lyra's Rush adds Encore (your next attack this turn hits twice), Gogogo's applies a status the rival doesn't have yet, and Jo's flips a coin for bonus damage.",
+   "Kaede's Rushdown combo now uses new paper-style strikes (left jab, low sweep, uppercut, roundhouse, spinning backfist) in a random order, ending on a flaming roundhouse finisher.",
+   "New effects library behind the scenes for upcoming attacks."
+  ]
+ },
+ {
   "version": "0.3.58",
   "date": "Nov 25, 2026",
   "title": "Super knockdowns, new Rasetsu paper art",
