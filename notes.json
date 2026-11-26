@@ -1,5 +1,14 @@
 [
  {
+  "version": "0.3.66",
+  "date": "Nov 25, 2026",
+  "title": "Supers follow the size chart",
+  "items": [
+   "Level 1 Supers now size the fighter taking the hit against the attacker's real body in that Super, so the size chart holds: a tall rival stands taller and a small one smaller, whoever is attacking.",
+   "A fighter knocked down by a Super keeps the right size and lying-down pose to the very last frame instead of snapping back at the end."
+  ]
+ },
+ {
   "version": "0.3.65",
   "date": "Nov 25, 2026",
   "title": "Rush art for Rasetsu and Kaede, Smash-style trails and smoke",

@@ -17,7 +17,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -171,7 +171,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -282,7 +282,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -436,7 +436,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -539,7 +539,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -693,7 +693,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -809,7 +809,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -963,7 +963,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -1075,7 +1075,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -1229,7 +1229,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -1383,7 +1383,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -1537,7 +1537,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -1672,7 +1672,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -1826,7 +1826,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -2002,7 +2002,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -2156,7 +2156,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -2343,7 +2343,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -2497,7 +2497,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -2646,7 +2646,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -2800,7 +2800,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -2958,7 +2958,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -3112,7 +3112,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -3253,7 +3253,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -3407,7 +3407,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -3566,7 +3566,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -3720,7 +3720,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -3900,7 +3900,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -4054,7 +4054,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -4245,7 +4245,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -4399,7 +4399,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -4618,7 +4618,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -4772,7 +4772,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -4983,7 +4983,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -5137,7 +5137,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -5350,7 +5350,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -5504,7 +5504,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -5703,7 +5703,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -5857,7 +5857,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -6054,7 +6054,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -6208,7 +6208,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -6439,7 +6439,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -6593,7 +6593,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -6793,7 +6793,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -6947,7 +6947,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -7155,7 +7155,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -7309,7 +7309,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -7516,7 +7516,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -7670,7 +7670,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -7865,7 +7865,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -8019,7 +8019,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -8205,7 +8205,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -8359,7 +8359,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -8566,7 +8566,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -8720,7 +8720,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -8920,7 +8920,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -9074,7 +9074,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -9316,7 +9316,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -9470,7 +9470,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -9679,7 +9679,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -9833,7 +9833,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
@@ -10062,7 +10062,7 @@ function drawP(screen){ cx.save(); cx.globalCompositeOperation='lighter'; for(co
   else { cx.beginPath(); cx.arc(p.x,p.y,p.s*(1-.5*p.t/p.life),0,7); cx.fill(); } } cx.restore(); cx.globalAlpha=1; }
 // sprites: keyed frame images, anchored at the feet (ax = fraction of width)
 const AXS={}, AYS={};
-function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
+function spr(k,x,y,o){ o=o||{}; const i=IM[k]; if(!i) return; if(window.__lsqAF&&__AX[k]!=null&&k.slice(0,3)!=='sh_') window.__lsqAF(i,(o.h||300)/(o.ref?(IM[o.ref]||i).height:i.height)); const h=(o.h||300), s=h/(o.ref?(IM[o.ref]||i).height:i.height), w=i.width*s, hh=i.height*s, ax=(AXS[k]!=null?AXS[k]:.5);
   cx.save(); cx.translate(x,y); if(o.rot) cx.rotate(o.rot); if(o.flip) cx.scale(-1,1); cx.scale(1+(o.sq||0),1-(o.sq||0)); cx.globalAlpha=o.a==null?1:o.a;
   if(o.tint){ const c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const c2=c.getContext('2d'); c2.drawImage(i,0,0); c2.globalCompositeOperation='source-atop'; c2.fillStyle=o.tint; c2.fillRect(0,0,i.width,i.height); cx.globalCompositeOperation=o.blend||'lighter'; cx.drawImage(c,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh); }
   else (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh):cx.drawImage(i,-w*ax,-hh*(AYS[k]!=null?AYS[k]:1),w,hh)); cx.restore(); }
@@ -10216,7 +10216,7 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=(window.__lsqVH&&window.__lsqVH(i,KD))||300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
   if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
   cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
