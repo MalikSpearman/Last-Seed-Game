@@ -1,11 +1,47 @@
 /* Last Seed effect library (procedural, canvas 2D). No images: every effect is drawn each frame, so it scales to any screen.
    LSFX.play(name, x, y, opts) → draws on a full-screen canvas over `opts.host` (default: #overlay or body).
    opts: size (px, roughly the hit's scale), col (main colour), dir (1 = travels right, -1 = left), delay (ms), speed (multiplier)
-   Effects: impact, shatter, flameFan, fireball, runeCircle, starStorm, goldTunnel, blackout, speedPanel, ringWave, emberRise, iceLance */
+   Effects: impact, shatter, flameFan, fireball, runeCircle, starStorm, goldTunnel, blackout, speedPanel, ringWave, emberRise, iceLance, swordTrail, powerSmoke, trailPuff */
 (function () {
   const TAU = Math.PI * 2, cl = t => Math.max(0, Math.min(1, t)), ease = t => 1 - Math.pow(1 - t, 3), easeIn = t => t * t * t, rnd = (a, b) => a + Math.random() * (b - a);
   const hex = (c, a) => { c = String(c).replace('#', ''); if (c.length === 3) c = c.split('').map(x => x + x).join(''); const n = parseInt(c, 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; };
   const hsl = (h, a, l) => `hsla(${h % 360},100%,${l || 62}%,${a})`;
+  // crescent band between two ellipses, thickest at the head (the blade) and tapering to nothing at the tail
+  function drawCrescent(c, x, y, r, head, tail, w, col, alpha, flat) {
+    if (Math.abs(head - tail) < .02 || alpha <= 0) return; flat = flat || .62; const N = 44;
+    const band = (kw, fill) => { const P = []; for (let i = 0; i <= N; i++) { const q = i / N, an = tail + (head - tail) * q; P.push([an, w * kw * Math.pow(q, .7)]); }
+      c.beginPath(); P.forEach(([an], i) => { const px = x + Math.cos(an) * r, py = y + Math.sin(an) * r * flat; i ? c.lineTo(px, py) : c.moveTo(px, py); });
+      for (let i = N; i >= 0; i--) { const [an, wq] = P[i], R0 = r - wq; c.lineTo(x + Math.cos(an) * R0, y + Math.sin(an) * R0 * flat); } c.closePath(); c.fillStyle = fill; c.fill(); };
+    c.save(); c.globalAlpha = alpha; c.globalCompositeOperation = 'source-over';
+    c.shadowColor = hex(col, 1); c.shadowBlur = w * .6; band(1.25, hex(col, .5)); c.shadowBlur = 0; band(1, hex(col, .95)); band(.62, 'rgba(255,244,240,.97)'); band(.3, '#ffffff'); c.restore();
+  }
+  // Smash-style power smoke at a fighter's feet: soft puffs blasted along the ground plus bright streaks fanning out and up.
+  // makeSmoke(size, dir, col) returns draw(c, x, y, t) for t in 0..1, so the battle actors can draw it on their own canvas too
+  function makeSmoke(S, dir, col) {
+    dir = dir || 1; col = col || '#ffffff';
+    // flat 2D anime smoke: solid cel-shaded puffs (ink outline, tinted shadow side, white highlight) that shrink away, plus hard-edged speed streaks
+    const n = parseInt(String(col).replace('#', '').padEnd(6, '0').slice(0, 6), 16), R = n >> 16 & 255, G = n >> 8 & 255, B = n & 255, white = R + G + B > 690;
+    const shade = white ? '#c9cfe3' : `rgb(${R * .78 | 0},${G * .78 | 0},${B * .78 | 0})`, mid = white ? '#eef1fa' : `rgb(${(R + 255) / 2 | 0},${(G + 255) / 2 | 0},${(B + 255) / 2 | 0})`, ink = '#1b1426';
+    const puffs = [...Array(22)].map(() => ({ a: rnd(-.15, .65), v: rnd(.2, 1.35), r: rnd(.1, .22), d: rnd(0, .12), life: rnd(.55, .95) }));
+    const streaks = [...Array(16)].map(() => ({ a: rnd(.08, .7), L: rnd(.8, 1.9), w: rnd(.012, .03), d: rnd(0, .14), o: rnd(.05, .3) }));
+    return function (c, x, y, t) {
+      c.save(); c.globalCompositeOperation = 'source-over'; c.lineJoin = 'round';
+      // streaks: solid white wedges with an ink edge, shooting out and up from the feet
+      for (const q of streaks) { const u = cl((t - q.d) / .5); if (u <= 0 || u >= 1) continue; const e = ease(u), ang = -q.a, dx = dir * Math.cos(ang), dy = Math.sin(ang), len = S * q.L;
+        const st = S * q.o + len * Math.max(0, e - .45) * 1.6, en = S * q.o + len * e, w = S * q.w * (1 - u * .6);
+        const x0 = x + dx * st, y0 = y + dy * st, x1 = x + dx * en, y1 = y + dy * en, nx = -dy * w, ny = dx * w;
+        if (en - st < 2) continue; c.beginPath(); c.moveTo(x0 - nx * .3, y0 - ny * .3); c.lineTo(x0 + nx, y0 + ny); c.lineTo(x1, y1); c.closePath();
+        c.fillStyle = ink; c.lineWidth = Math.max(1.5, S * .012); c.strokeStyle = ink; c.stroke(); c.fillStyle = mid; c.fill(); }
+      // puffs: three passes over the same circles so they merge into one cloud: ink outline, shadow tone, then highlight offset up
+      const P = []; for (const p of puffs) { const u = cl((t - p.d) / p.life); if (u <= 0 || u >= 1) continue; const e = ease(u), ang = -p.a, dist = S * p.v * e,
+        grow = u < .25 ? .55 + u / .25 * .45 : 1 - Math.pow((u - .25) / .75, 1.6), r = S * p.r * grow * (.8 + e * .5);
+        if (r < .5) continue; P.push([x + dir * Math.cos(ang) * dist, y + Math.sin(ang) * dist * .5 - S * .04 * e - r * .35, r]); }
+      const pass = (k, dx_, dy_, fill) => { c.fillStyle = fill; c.beginPath(); for (const [px, py, r] of P) { c.moveTo(px + dx_ * r + r * k, py + dy_ * r); c.arc(px + dx_ * r, py + dy_ * r, r * k, 0, TAU); } c.fill(); };
+      const ow = Math.max(2, S * .016);
+      c.fillStyle = ink; c.beginPath(); for (const [px, py, r] of P) { c.moveTo(px + r + ow, py); c.arc(px, py, r + ow, 0, TAU); } c.fill();
+      pass(1, 0, 0, shade); pass(.78, -.12 * dir, -.16, mid); pass(.42, -.28 * dir, -.32, '#ffffff');
+      c.restore(); };
+  }
   let cv = null, cx = null, list = [], raf = 0, dpr = 1, host = null;
   function ensure(h) {
     h = h || document.getElementById('overlay') || document.body;
@@ -208,12 +244,34 @@
         for (let i = 0; i < 16; i++) { const u = i / 16 * g0, px = x + (x1 - x) * u, py = y + (y1 - y) * u + Math.sin(i * 3.1) * W * 1.4; c.fillStyle = `rgba(220,250,255,${f * (1 - u) * .9})`; star5(c, px, py, W * .35, i); c.fill(); } } }, o);
       FX.shatter(x1, y1, { size: S * .8, dir, col, delay: (o.delay || 0) + 150, host: o.host, speed: o.speed });
     },
+    // Smash-style sword trail: a solid crescent that sweeps along the swing, white at the blade's edge, coloured rim, tapering to a point at the tail.
+    // o: size (radius), col, dir (1 = swings toward the right), a0/a1 (start/end angle, canvas radians, before flipping), w (thickness), flat (vertical squash, 1 = round)
+    swordTrail(x, y, o) {
+      const S = o.size || 260, col = o.col || '#ff2d4a', dir = o.dir || 1, flat = o.flat != null ? o.flat : .62, W = o.w || S * .34;
+      let a0 = o.a0 != null ? o.a0 : Math.PI * 1.02, a1 = o.a1 != null ? o.a1 : -.8; if (dir < 0) { a0 = Math.PI - a0; a1 = Math.PI - a1; }
+      add({ dur: o.dur || 480, draw(c, t) { const sw = Math.min(1, t * 3.2), head = a0 + (a1 - a0) * ease(sw), tail = a0 + (a1 - a0) * Math.min(sw, cl((t - .35) / .65));
+        drawCrescent(c, x, y, S, head, tail, W, col, cl(1 - (t - .3) / .7), flat); } }, o);
+    },
+    // power smoke kicked up at a fighter's feet (dashes, heavy swings, landings). o: size, dir (1 = blasts toward the right), col
+    powerSmoke(x, y, o) { const d = makeSmoke(o.size || 220, o.dir || 1, o.col || '#ffffff'); add({ dur: o.dur || 760, draw(c, t) { d(c, x, y, t); } }, o); },
+    // one small 2D smoke puff left behind a fighter flying through the air (launches, knockbacks): pops in, then shrinks away
+    trailPuff(x, y, o) {
+      const S = o.size || 40, col = o.col || '#ffffff', n = parseInt(String(col).replace('#', '').padEnd(6, '0').slice(0, 6), 16), R = n >> 16 & 255, G = n >> 8 & 255, B = n & 255, white = R + G + B > 690;
+      const shade = white ? '#c9cfe3' : `rgb(${R * .78 | 0},${G * .78 | 0},${B * .78 | 0})`, mid = white ? '#eef1fa' : `rgb(${(R + 255) / 2 | 0},${(G + 255) / 2 | 0},${(B + 255) / 2 | 0})`;
+      const bl = [...Array(3)].map((_, i) => ({ dx: rnd(-.5, .5), dy: rnd(-.35, .35), r: rnd(.5, .8) })), dx = o.dx || 0, dy = o.dy != null ? o.dy : -.25;
+      add({ dur: o.dur || 520, draw(c, t) { const g = t < .2 ? .5 + t / .2 * .5 : 1 - Math.pow((t - .2) / .8, 1.4), px = x + dx * S * t, py = y + dy * S * t; if (g <= .02) return;
+        const P = bl.map(b => [px + b.dx * S, py + b.dy * S, b.r * S * g]), ow = Math.max(1.5, S * .07);
+        c.fillStyle = '#1b1426'; c.beginPath(); for (const [a, b, r] of P) { c.moveTo(a + r + ow, b); c.arc(a, b, r + ow, 0, TAU); } c.fill();
+        for (const [k, ox, oy, f] of [[1, 0, 0, shade], [.75, -.12, -.16, mid], [.38, -.26, -.3, '#ffffff']]) { c.fillStyle = f; c.beginPath(); for (const [a, b, r] of P) { c.moveTo(a + ox * r + r * k, b + oy * r); c.arc(a + ox * r, b + oy * r, r * k, 0, TAU); } c.fill(); } } }, o);
+    },
   };
 
   const LSFX = {
     list: Object.keys(FX),
     play(name, x, y, o) { const f = FX[name]; if (!f) return false; try { f(x, y, o || {}); return true; } catch (e) { console.warn('LSFX', name, e); return false; } },
     clear() { list = []; if (cv) { cv.remove(); cv = null; } },
+    crescent: drawCrescent,
+    makeSmoke,
   };
   window.LSFX = LSFX;
 })();

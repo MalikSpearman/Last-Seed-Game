@@ -1,5 +1,17 @@
 [
  {
+  "version": "0.3.65",
+  "date": "Nov 25, 2026",
+  "title": "Rush art for Rasetsu and Kaede, Smash-style trails and smoke",
+  "items": [
+   "Rasetsu's Rush card, Crimson Charge, has its own art and attack: a wild cross-body swing of her sheathed odachi, drawn at full length, with new wind-up and follow-through sprites.",
+   "Kaede's Rush card, Flare Rush, has its own art and attack: a low crouch with fire flaring at her heels, then a rocket punch with her right fist.",
+   "New Smash-style sword trail: a solid crescent that follows the swing, white at the blade's edge and rimmed in the fighter's element colour.",
+   "New 2D power smoke kicks out behind the back foot on big wind-ups and dashes, drawn behind the fighter.",
+   "Big swings now stay on screen until their trail and smoke finish instead of cutting off early."
+  ]
+ },
+ {
   "version": "0.3.64",
   "date": "Nov 25, 2026",
   "title": "Snappier Rushdown combo",
