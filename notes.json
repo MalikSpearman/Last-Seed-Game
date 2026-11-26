@@ -1,5 +1,16 @@
 [
  {
+  "version": "0.3.77",
+  "date": "Nov 26, 2026",
+  "title": "Smoother counters in 3D, paper characters in free roam",
+  "items": [
+   "Fixed the frame drops when a counter opens on a 3D arena: the 3D set now stops redrawing while the counter camera holds still, and resumes the moment the counter ends.",
+   "3D free roam: characters, foes and NPCs now get the paper cut-out outline.",
+   "Bracket runs: a roam fight now uses the arena where you met the foe, instead of the stage picked in the 3D test.",
+   "Free roam foes spawn with more spacing, so a regular foe no longer hides under the guardian."
+  ]
+ },
+ {
   "version": "0.3.76",
   "date": "Nov 26, 2026",
   "title": "Gashadokuro redrawn + lighting fix",

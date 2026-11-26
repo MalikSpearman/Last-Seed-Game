@@ -5578,18 +5578,28 @@ async function free3d(opts){ opts=opts||{}; if(document.querySelector('.roam3d,.
   const done=()=>{ try{ Snd.amb(null); }catch(e){} wrap.remove(); app.classList.remove('dim'); if(INRUN){ RES(LOOT.length?LOOT.join(' · '):'You walk back to the road empty-handed.'); return; } if(run===me) run=null; title(); };
   const note=r=>{ if(INRUN&&r&&r.text) LOOT.push(r.text.replace(/^Chest · /,'')); return r; };
   // a foe's battle sprite as a plain image URL for the 3D road (cut out of its pack once)
-  const packArt=async p=>{ if(PK[p]) return PK[p]; const E=PACKS.img&&PACKS.img[p]; if(!E) return A(p); try{ const im=await pkImg(E[0]); if(!im) return A(p); if(PK[p]) return PK[p]; const [,x,y,w,hh]=E, cv=document.createElement('canvas'); cv.width=w; cv.height=hh; cv.getContext('2d').drawImage(im,x,y,w,hh,0,0,w,hh); const bl=await new Promise(r=>cv.toBlob(r,'image/webp',.92)); return PK[p]=PK[p]||URL.createObjectURL(bl); }catch(_){ return A(p); } }, foeArt=id=>packArt('img/foe_'+id+'.webp');
-  const npcs=[]; if(INRUN){ for(const id of (opts.npcIds||roamNpcs(2,ST,opts.map||'bamboo'))){ const ment=!ROAM_NPC[id]&&!!MENTORS[id], nm=(ment?MENTORS[id].name:(FIGHTERS[id]||{}).name)||id; npcs.push({id,npc:true,ment,label:'Talk to '+nm,url:await packArt('img/'+id+'.webp')}); } }
+  // paper sprites on: the 3D road gets the same paper outline as the battle (every frame of the hero's sheet, foes and NPCs)
+  const ppLoad=u=>new Promise(r=>{ const i=new Image(); i.crossOrigin='anonymous'; i.onload=()=>r(i); i.onerror=()=>r(null); i.src=u; });
+  const ppURL=async u=>{ if(!paperOn()||!u) return u; try{ const im=await ppLoad(u); if(!im) return u; const c=ppFrame(im,0,0,im.naturalWidth,im.naturalHeight); const bl=await new Promise(r=>c.toBlob(r,'image/png')); return bl?URL.createObjectURL(bl):u; }catch(_){ return u; } };
+  const ppAtlas=async(url,frames)=>{ if(!paperOn()) return {url,frames}; try{ const im=await ppLoad(A(url)); if(!im) return {url,frames};
+      const uniq=new Map(); for(const k in frames) for(const f of frames[k]) uniq.set(f.slice(0,4).join(','),f);
+      const W=Math.min(8192,Math.max(2048,im.naturalWidth+256)); let x=0,y=0,rowH=0; const place=new Map(), cuts=[];
+      for(const [key,f] of uniq){ const c=ppFrame(im,f[0],f[1],f[2],f[3]); if(x+c.width>W){ x=0; y+=rowH+2; rowH=0; } place.set(key,[x,y,c.width,c.height,c._o]); cuts.push([c,x,y]); x+=c.width+2; rowH=Math.max(rowH,c.height); }
+      const cv=document.createElement('canvas'); cv.width=W; cv.height=Math.min(8192,y+rowH+2); const g=cv.getContext('2d'); for(const [c,cx_,cy_] of cuts) g.drawImage(c,cx_,cy_);
+      const out={}; for(const k in frames) out[k]=frames[k].map(f=>{ const [nx,ny,nw,nh,o]=place.get(f.slice(0,4).join(',')); return [nx,ny,nw,nh,f[4]+o,f[5]+o].concat(f.slice(6)); });
+      const bl=await new Promise(r=>cv.toBlob(r,'image/png')); return bl?{url:URL.createObjectURL(bl),frames:out,idleH:frames.idle&&frames.idle[0][3]}:{url,frames}; }catch(e){ console.warn('paper roam',e); return {url,frames}; } };
+  const packArt=async p=>{ if(PK[p]) return PK[p]; const E=PACKS.img&&PACKS.img[p]; if(!E) return A(p); try{ const im=await pkImg(E[0]); if(!im) return A(p); if(PK[p]) return PK[p]; const [,x,y,w,hh]=E, cv=document.createElement('canvas'); cv.width=w; cv.height=hh; cv.getContext('2d').drawImage(im,x,y,w,hh,0,0,w,hh); const bl=await new Promise(r=>cv.toBlob(r,'image/webp',.92)); return PK[p]=PK[p]||URL.createObjectURL(bl); }catch(_){ return A(p); } }, foeArt=async id=>ppURL(await packArt('img/foe_'+id+'.webp'));
+  const npcs=[]; if(INRUN){ for(const id of (opts.npcIds||roamNpcs(2,ST,opts.map||'bamboo'))){ const ment=!ROAM_NPC[id]&&!!MENTORS[id], nm=(ment?MENTORS[id].name:(FIGHTERS[id]||{}).name)||id; npcs.push({id,npc:true,ment,label:'Talk to '+nm,url:await ppURL(await packArt('img/'+id+'.webp'))}); } }
   const npcTalk=async id=>{ if(run!==me) return null; const used=()=>{ const ru=run.roamUsed=run.roamUsed||[], k='n:'+ST+':'+id; if(!ru.includes(k)) ru.push(k); };
     if(!ROAM_NPC[id]&&MENTORS[id]){ const M=MENTORS[id]; await talk(M.meet.lines.map(([w,t])=>[w==='@'?HERO:w,t])); store.metM=store.metM||[]; if(!store.metM.includes(id)) store.metM.push(id); save(); Snd.sfx('steal'); used(); LOOT.push(M.name+' met');
       await modal('A new mentor',`<b>${M.name}</b> · ${M.sub}<br>${M.pass}<br><br>From your next run you can choose ${M.name} as your mentor, with their technique <b>${CARDS[M.card].name}</b>.`,'',[['Good','','ok']]); return {text:'New mentor: '+M.name,col:'#ffd27a'}; }
     const N=ROAM_NPC[id]; if(!N) return null; await talk(N.lines); const msg=await N.go(); used(); if(msg) LOOT.push(msg); return {text:msg}; };
-  try{ await M.createRoam(wrap,{ start:opts.start, single:INRUN, npcs, npcTalk, exitLabel:INRUN?'Leave the zone':null, maxFoes:INRUN?3:null, music:roamMusic, foePool:(INRUN&&ROAM_POOL[opts.map])||ROAM_POOL.bamboo, atlas:AT.url||('img/'+AT.file), frames:AT.full, glide:RH==='ito'?{run:{lift:.42,bob:.07,lean:.2,sway:.05}}:null, name:FIGHTERS[RH].name, ava:await packArt(`img/p_${RH}.webp`), foeArt,
+  try{ await M.createRoam(wrap,{ start:opts.start, single:INRUN, npcs, npcTalk, exitLabel:INRUN?'Leave the zone':null, maxFoes:INRUN?3:null, music:roamMusic, foePool:(INRUN&&ROAM_POOL[opts.map])||ROAM_POOL.bamboo, paper:paperOn()?ppURL:null, ...(await ppAtlas(AT.url||('img/'+AT.file),AT.full).then(r=>({atlas:r.url,frames:r.frames,idleH:r.idleH}))), glide:RH==='ito'?{run:{lift:.42,bob:.07,lean:.2,sway:.05}}:null, name:FIGHTERS[RH].name, ava:await packArt(`img/p_${RH}.webp`), foeArt,
     stats:()=>({hp:Math.max(0,run.hp),max:run.maxHp,mon:run.mon||0}),
     sfx:k=>{ try{ Snd.sfx(k==='alert'?'vs':k==='swing'?'whoosh':k); }catch(e){} },
     settings:()=>{ try{ openSettings(); }catch(e){} },
-    stageLabel:()=>{ const k=store.r3stage||'auto'; return 'Fight stage: '+(k==='auto'?'Auto (where you stand)':k==='random'?'Random':(stageOf(k)||{n:k}).n); },
-    pickStage:async()=>{ const v=await stagePick(store.r3stage||'auto',{title:'Fight stage for roam encounters',extra:[['auto','Auto · where you stand'],['random','Random']],pickLabel:'Use this stage'}); if(v){ store.r3stage=v; try{ save(); }catch(_){ } } },
+    stageLabel:INRUN?null:()=>{ const k=store.r3stage||'auto'; return 'Fight stage: '+(k==='auto'?'Auto (where you stand)':k==='random'?'Random':(stageOf(k)||{n:k}).n); },
+    pickStage:INRUN?null:async()=>{ const v=await stagePick(store.r3stage||'auto',{title:'Fight stage for roam encounters',extra:[['auto','Auto · where you stand'],['random','Random']],pickLabel:'Use this stage'}); if(v){ store.r3stage=v; try{ save(); }catch(_){ } } },
     exit:done, restart:()=>{ if(INRUN) return; try{ Snd.amb(null); }catch(e){} wrap.remove(); if(run===me) run=null; app.classList.remove('dim'); free3d(opts); },
     loot:k=>note((()=>{ if(run!==me) return null;
       if(k==='pot'){ const m=2+((Math.random()*5)|0); run.mon+=m; Snd.sfx('impact'); return {text:'+'+m+' Mon'}; }
@@ -5602,7 +5612,7 @@ async function free3d(opts){ opts=opts||{}; if(document.querySelector('.roam3d,.
       return null; })()),
     engage:async(foe,how,where)=>{ if(run!==me) return false; const F=foeOf(foe,INRUN?ST:0), amb=how==='ambush', mods=(F.mods||[]).concat(amb?[{e:{hp:-8,exposed:1}}]:[{e:{guard:6}}]);
       app.classList.remove('dim'); await vsSplash(F,0,amb?'Ambush':'Ambushed'); if(run!==me) return false;
-      const rk=store.r3stage||'auto', sk=rk==='random'?pick(STAGE_ALL).k:rk, base={name:F.name,hp:F.hp,power:F.power||0,bg:F.bg,mods,pack:F.pack};
+      const rk=INRUN?'auto':(store.r3stage||'auto'), sk=rk==='random'?pick(STAGE_ALL).k:rk, base={name:F.name,hp:F.hp,power:F.power||0,bg:F.bg,mods,pack:F.pack};
       try{ (sk==='auto'||!stageOf(sk))?Snd.ambVol(.22):Snd.amb(null); }catch(e){}
       if(INRUN) RS_where='festival'; let win; if(sk==='auto'||!stageOf(sk)){ window.__ls3dKey=where||'road'; win=await battle(F,0,Object.assign(base,{hd3d:true})); window.__ls3dKey=null; } else win=await stageBattle(F,0,stageCustom(sk,base));
       if(run!==me) return false; if(INRUN){ RS_b=null; RS_where='festival'; RS_ctx=null; try{ autoSave(); }catch(_){ } } show(h('div','scr')); app.classList.add('dim'); roamMusic(window.__R3&&window.__R3.zone);

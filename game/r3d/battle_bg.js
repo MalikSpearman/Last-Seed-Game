@@ -381,10 +381,13 @@ function ensure() {
   D.camera.fov = 30; D.faceCam = 1; D.paused = true; D.scene0 = D.scene;
   D.post.uniforms.band.value = .32; D.post.uniforms.amt.value = .6;
   // full-screen cinematics (supers, ultimates, criticals, awakenings) cover the stage: stop drawing it so they get the GPU to themselves
-  D.skip = () => { const a = document.getElementById('app'); return !!(a && a.classList.contains('cine')) || !!document.querySelector('.lsq-wrap,.lsq,.ultc'); };
+  // counter: once the over-the-shoulder camera has swung in and settled, the view holds still while the player answers,
+  // so the set stops redrawing (a full 3D + comic-shading frame every tick was what dropped counters to ~11 fps); it resumes the moment the counter ends or the camera moves
+  const otsHeld = () => { const hold = OTS.on && OTS.F0 && OTS.k >= 1 && OTS.w === (OTS.mode === 'wide' ? 1 : 0) && shake <= 0 && hitK <= 0; if (!hold) { OTS.hs = 0; return false; } const n = performance.now(); if (!OTS.hs) OTS.hs = n; const r = n - OTS.hs > 120; if (r) window.__OH = (window.__OH || 0) + 1; return r; };
+  D.skip = () => { const a = document.getElementById('app'); return !!(a && a.classList.contains('cine')) || !!document.querySelector('.lsq-wrap,.lsq,.ultc') || otsHeld(); };
   built = Promise.resolve();
   let lastF = {};
-  D.frame((dt, t) => {
+  D.frame((dt, t) => { window.__RF = (window.__RF || 0) + 1;
     fieldTick(t, dt);
     // a painted set is framed like its 2D painting: wide screens zoom the lens (never dolly in, which would bare the painting's edges)
     { const tq = Math.tan(Math.PI / 12) * (P.cover ? Math.min(1, P.cover / D.camera.aspect) : 1), fv = Math.atan(tq) * 360 / Math.PI; if (Math.abs(D.camera.fov - fv) > 1e-3) { D.camera.fov = fv; D.camera.updateProjectionMatrix(); } }

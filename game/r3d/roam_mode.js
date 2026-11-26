@@ -110,7 +110,7 @@ export async function createRoam(host, cfg) {
   let FOES = [], ITEMS = [], NPCS = [], npcHome = null, PATHS_Z = BAM.PATHS, zone = 'bamboo', hero = null, fill = null, EX = [], entry = { x: START.x, z: START.z };
   const nearest = (x, z) => BAM.nearest(x, z, PATHS_Z);
   const MEM = {}, A = (n, x, z, h, o) => D.prop(I(n), x, z, h, o);
-  const idleH = (cfg.frames.idle && cfg.frames.idle[0][3]) || 400;
+  const idleH = cfg.idleH || (cfg.frames.idle && cfg.frames.idle[0][3]) || 400;   // idleH: the body height without a paper outline, so the outline doesn't shrink the hero
   const pos = new T.Vector3(START.x, 0, START.z), vel = new T.Vector2(); let face = 1, atkT = 0, busy = false, paused = false, gone = false;
   function clearWorld() {
     const old = D.scene; D.scene = new T.Scene(); D.scene.fog = new T.Fog(0x0c1430, 20, 70); D.scene.background = new T.Color(0x0c1430);
@@ -130,16 +130,18 @@ export async function createRoam(host, cfg) {
     // at most two enemies per area, guardian included: one boss and one regular foe
     const bosses = F.filter(f => f.boss), regs = F.filter(f => !f.boss), keep = [];
     if (bosses.length) keep.push(bosses[(Math.random() * bosses.length) | 0]);
-    if (regs.length) keep.push(regs[(Math.random() * regs.length) | 0]);
+    { const b = keep[0], ok = regs.filter(f => !b || Math.hypot(f.x - b.x, f.z - b.z) > 7 || Math.abs((f.y || 0) - (b.y || 0)) > 1.2); if (ok.length) keep.push(ok[(Math.random() * ok.length) | 0]); }   // never on the guardian's spot
     return keep.slice(0, cfg.maxFoes || 2);
   }
   // an arena area: a regular foe or two along the path, a guardian on the clearing at the end of each region, loot by the way
   const LOOTS = [['rp_pot', 'pot', 'Break the pot', .75], ['rp_barrel', 'pot', 'Smash the barrel', .9], ['rp_crates', 'pot', 'Break the crates', .9], ['rp_food', 'food', 'Eat the onigiri', .5], ['rp_elixir', 'elixir', 'Drink the elixir', .6], ['rp_chest', 'chest', 'Open the chest', .75]];
   function zoneSpawn(name, P) {
     const pool = (cfg.foePool || []).slice().sort(() => Math.random() - .5), pick = a => a.splice((Math.random() * a.length) | 0, 1)[0];
-    const pts = P.filter(p => Math.abs(p.x) > 3.5 && p.x - P[0].x > 5 && P[P.length - 1].x - p.x > 5), F = [], IT = [];
+    // regular foes never stand on the guardian's spot or on each other: a foe hidden behind another's sprite gets engaged in its place
+    const bc = BOSSZ[name] ? P.reduce((a, b) => Math.abs(b.x) < Math.abs(a.x) ? b : a) : null, far = (p, q, d) => Math.hypot(p.x - q.x, p.z - q.z) > d;
+    let pts = P.filter(p => Math.abs(p.x) > 3.5 && p.x - P[0].x > 5 && P[P.length - 1].x - p.x > 5 && (!bc || far(p, { x: bc.x + 1.5, z: bc.z }, 7))); const F = [], IT = [];
     const nf = pts.length ? 1 + (Math.random() < .45 ? 1 : 0) : 0;
-    for (let i = 0; i < nf && pts.length; i++) { const p = pick(pts); F.push({ id: pool.pop() || 'tanuki', src: 'battle', x: p.x, z: p.z, y: p.y, h: 2, stage: name }); }
+    for (let i = 0; i < nf && pts.length; i++) { const p = pick(pts); F.push({ id: pool.pop() || 'tanuki', src: 'battle', x: p.x, z: p.z, y: p.y, h: 2, stage: name }); pts = pts.filter(q => far(q, p, 6)); }
     if (BOSSZ[name]) { const c = P.reduce((a, b) => Math.abs(b.x) < Math.abs(a.x) ? b : a); F.push({ id: pool.pop() || 'tengu', src: 'battle', x: c.x + 1.5, z: c.z, y: c.y, h: 3, stage: name, boss: 1 });
       IT.push({ img: 'rp_rchest', kind: 'rchest', label: 'Open the guardian\'s hoard', h: .85, x: c.x + 4, z: c.z + .9, y: c.y, lock: F[F.length - 1].id }); }
     const lp = P.filter(p => p.x - P[0].x > 2.5 && P[P.length - 1].x - p.x > 2.5);
@@ -186,7 +188,7 @@ export async function createRoam(host, cfg) {
     for (const f of FOES) {
       if (f.beaten) continue;
       Object.assign(f, { st: 'idle', t: 0, x0: f.x0 ?? f.x, z0: f.z0 ?? f.z }); f.x = f.x0; f.z = f.z0;
-      const url = f.src ? (cfg.foeArt ? await cfg.foeArt(f.id) : GAMEIMG + 'foe_' + f.id + '.webp') : I('foe_' + f.id);
+      let url = f.src ? (cfg.foeArt ? await cfg.foeArt(f.id) : GAMEIMG + 'foe_' + f.id + '.webp') : I('foe_' + f.id); if (!f.src && cfg.paper) url = await cfg.paper(url);   // roam-only foes get the paper outline too
       f.mesh = await D.prop(url, f.x, f.z, f.h, { y: f.y || 0, flip: 1, blob: false }); f.base = f.mesh.scale.y; f.blob = D.blob(f.x, f.z, f.boss ? 1 : .7, f.y || 0);
     }
     hero = D.actor(cfg.atlas, cfg.frames, idleH / 1.75, { fps: 10, glide: cfg.glide });
