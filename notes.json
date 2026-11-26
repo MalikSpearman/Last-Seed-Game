@@ -1,5 +1,13 @@
 [
  {
+  "version": "0.3.82",
+  "date": "Nov 26, 2026",
+  "title": "Chain reaction graphic removed",
+  "items": [
+   "Removed the flaming chain graphic that rose up on chain reactions. The CHAIN banner and bonus damage still show."
+  ]
+ },
+ {
   "version": "0.3.81",
   "date": "Nov 26, 2026",
   "title": "One mentor per turn, online energy back to 3",
