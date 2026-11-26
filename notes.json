@@ -1,5 +1,14 @@
 [
  {
+  "version": "0.3.54",
+  "date": "Nov 25, 2026",
+  "title": "Counter poses and fighters coming back",
+  "items": [
+   "When you counter, your fighter now always swings into the foreground facing away from the camera, even against foes, bosses and mentors who have no counter art of their own",
+   "Fixed fighters sometimes staying invisible after an ult, super or critical (most often on 3D stages): the game now checks both fighters when a cinematic ends and at each turn, and puts back anyone left missing"
+  ]
+ },
+ {
   "version": "0.3.53",
   "date": "Nov 25, 2026",
   "title": "Paper outline fixes",
