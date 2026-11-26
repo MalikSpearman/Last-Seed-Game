@@ -1,5 +1,15 @@
 [
  {
+  "version": "0.3.53",
+  "date": "Nov 25, 2026",
+  "title": "Paper outline fixes",
+  "items": [
+   "Group fights: the enemies waiting in the back line now use paper art and the paper outline too.",
+   "Fixed fighters losing their paper outline after taking hits (most noticeable after an Ultimate).",
+   "The next enemy stepping in during a group or wave fight keeps the paper look."
+  ]
+ },
+ {
   "version": "0.3.52",
   "date": "Nov 25, 2026",
   "title": "Online lobby picks, Google account sign-in",
