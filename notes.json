@@ -1,5 +1,17 @@
 [
  {
+  "version": "0.3.55",
+  "date": "Nov 25, 2026",
+  "title": "Rushdown cinematic",
+  "items": [
+   "Rushdown is now its own cinematic: the Rush hit blasts the rival off the field, then it cuts to a full-screen chase with after-images and heavy speed lines",
+   "You catch them, everything freezes into slow motion while you pick the cards to throw",
+   "Then an auto-combo plays out with the fighter's own attack moves, one hit per card: Flurry, Juggle, Phantom or Carry",
+   "On 3D stages the fight lands on the next stage over behind the closing flash",
+   "Fixed: both fighters disappearing after a Rushdown"
+  ]
+ },
+ {
   "version": "0.3.54",
   "date": "Nov 25, 2026",
   "title": "Counter poses and fighters coming back",

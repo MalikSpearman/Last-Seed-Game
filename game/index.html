@@ -1599,6 +1599,27 @@ svg line.lk{stroke:rgba(160,160,160,.35)!important;stroke-dasharray:.04rem .08re
 @keyframes airIn{from{opacity:0}to{opacity:1}}
 .lsplash{position:absolute;inset:0;z-index:60;pointer-events:none;overflow:hidden}
 /* ── RUSH / RUSHDOWN ── */
+.ux7.rdc .u7c{transition:filter .25s}
+.ux7.rdc.slow .u7c{filter:saturate(.35) contrast(1.15) brightness(.85)}
+.ux7.rdc .u7f{transition:filter .25s}.ux7.rdc.slow .u7f{filter:saturate(.55)}
+.rdc-ttl{position:absolute;z-index:6;left:0;right:0;top:16%;text-align:center;pointer-events:none;opacity:0;transform:skewX(-10deg) scale(1.6);transition:opacity .2s,transform .35s cubic-bezier(.2,1.4,.3,1)}
+.rdc-ttl.on{opacity:1;transform:skewX(-10deg) scale(1)}
+.rdc-ttl b{display:block;font:400 1.05rem/1 'Anton',sans-serif;letter-spacing:.06em;color:#fff;text-shadow:.04rem .05rem 0 #12091c,0 0 .3rem var(--c)}
+.rdc-ttl i{display:inline-block;margin-top:.06rem;padding:.03rem .12rem;background:#07050fcc;font:700 .16rem/1 'Barlow Condensed',sans-serif;letter-spacing:.3em;text-transform:uppercase;color:var(--c);font-style:normal}
+.rdc-tot{position:absolute;z-index:6;right:6%;top:24%;text-align:right;pointer-events:none;transform:skewX(-10deg);opacity:0}
+.rdc-tot.pop{opacity:1;animation:rdcPop .22s cubic-bezier(.2,1.5,.3,1)}
+.rdc-tot b{display:block;font:400 .5rem/1 'Anton',sans-serif;color:#fff;text-shadow:.03rem .04rem 0 #12091c,0 0 .2rem var(--c)}
+.rdc-tot i{display:block;font:400 .34rem/1 'Anton',sans-serif;color:#ffd36b;font-style:normal;text-shadow:.03rem .03rem 0 #12091c}
+.rdc-tot.fin b{color:#ffd36b}
+.ux7.e .rdc-tot{right:auto;left:6%;text-align:left}
+@keyframes rdcPop{0%{transform:skewX(-10deg) scale(1.5)}100%{transform:skewX(-10deg) scale(1)}}
+.rdspd{position:absolute;inset:0;width:100%;height:100%;z-index:61;pointer-events:none;mix-blend-mode:screen}
+.rdboost #bg{filter:blur(.05rem) brightness(1.15) saturate(1.2)!important}
+.rdboost #stage .fighter:not(.p):not(.e){filter:blur(.03rem)}
+.rdslowfx{position:absolute;inset:0;z-index:63;pointer-events:none;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 50%,transparent 35%,rgba(10,6,24,.5) 100%);animation:rdSlowIn 1.4s ease-out both}
+.rdslowfx b{font:400 .9rem/1 'Anton',sans-serif;letter-spacing:.3em;color:transparent;-webkit-text-stroke:.012rem color-mix(in srgb,var(--c) 70%,#fff);opacity:.5;transform:skewX(-10deg);animation:rdSlowTx 1.4s cubic-bezier(.2,.8,.3,1) both}
+@keyframes rdSlowIn{0%{opacity:0;backdrop-filter:none}12%{opacity:1}70%{opacity:1}100%{opacity:.0}}
+@keyframes rdSlowTx{0%{transform:skewX(-10deg) scale(1.6);opacity:0}15%{transform:skewX(-10deg) scale(1);opacity:.55}100%{transform:skewX(-10deg) scale(1.08);opacity:0}}
 .lsplash.rush .tag{color:#fff4d6;font-size:.8rem;-webkit-text-stroke:.016rem #1a0606}
 .rdchase #stage{filter:saturate(1.15) contrast(1.08)}
 .rdchase #bg{filter:blur(.04rem) brightness(1.08)}
@@ -10812,11 +10833,41 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     num(t.x,t.top+t.h*.16,{COLOSSAL:'TOO MASSIVE',CALAMITY:'UNMOVED',IMMOVABLE:'IMMOVABLE'}[ev.tag]||'IMMOVABLE','txt','#ffd27a'); try{ Snd.fx3&&Snd.fx3('block_h',.7); }catch(e){} await sleep(360); }
   // ── RUSH / RUSHDOWN ── placeholder animation built from the poses every fighter already has (rush, run, jab/cross/kick/upper, launch/air/hurt/down);
   //    swap in the dedicated running / dashing and combo sprites once they are drawn.
-  const RSD={anims:[],wait:null};
+  const RSD={anims:[],wait:null,cam:null,camAn:[],sl:null};
+  // the Rushdown camera: one zoom for the backdrop (#bg, which also holds the 3D canvas) and the fighters (#stage), focus point kept on screen
+  function rdCamT(){ return RSD.cam||{z:1,x:0,y:0}; }
+  function rdCam(z,fx,fy,tx,ty,ms,ease){ if(document.body.classList.contains('rm')) return Promise.resolve(); const W=innerWidth,H=innerHeight, ox=W/2, oy=H/2;
+    // focus point (fx,fy) is in the UN-zoomed screen; it lands on (tx,ty)
+    const T={z, x:tx-ox-z*(fx-ox), y:ty-oy-z*(fy-oy)}, A=rdCamT();
+    // never pan past the backdrop's edge (the 3D canvas is exactly screen-sized): no black bars
+    const mxX=Math.max(0,(z*W-W)/2), mxY=Math.max(0,(z*H-H)/2); T.x=Math.max(-mxX,Math.min(mxX,T.x)); T.y=Math.max(-mxY,Math.min(mxY,T.y)); RSD.cam=T;
+    const els=[document.getElementById('bg'),stageEl].filter(Boolean), out=[];
+    RSD.camAn.forEach(a=>{ try{ a.commitStyles(); }catch(_){ } try{ a.cancel(); }catch(_){ } }); RSD.camAn=[];
+    for(const el of els){ const a=el.animate([{scale:String(A.z),translate:`${A.x}px ${A.y}px`},{scale:String(T.z),translate:`${T.x}px ${T.y}px`}],{duration:Math.max(1,ms*speed),easing:ease||'cubic-bezier(.2,.85,.25,1)',fill:'forwards'}); RSD.camAn.push(a); out.push(a.finished.catch(()=>{})); }
+    return Promise.all(out); }
+  // a point measured on the (possibly zoomed) screen, back in un-zoomed screen coordinates
+  function rdUn(x,y){ const T=RSD.cam; if(!T) return [x,y]; const ox=innerWidth/2, oy=innerHeight/2; return [ox+(x-ox-T.x)/T.z, oy+(y-oy-T.y)/T.z]; }
+  function rdCamOn(z,x,y,tx,ty,ms,ease){ const [ux,uy]=rdUn(x,y); return rdCam(z,ux,uy,tx,ty,ms,ease); }
+  function rdCamOff(ms){ if(!RSD.cam) return Promise.resolve(); const p=rdCam(1,innerWidth/2,innerHeight/2,innerWidth/2,innerHeight/2,ms||320,'cubic-bezier(.4,0,.2,1)'); return p.then(()=>{ RSD.camAn.forEach(a=>{ try{ a.cancel(); }catch(_){ } }); RSD.camAn=[]; RSD.cam=null; [document.getElementById('bg'),stageEl].forEach(el=>{ if(el){ el.style.scale=''; el.style.translate=''; } }); }); }
+  // anime focus lines: thin wedges from the screen edge toward a focus point, redrawn every few frames; plus fast horizontal streaks the way the runner is going
+  function rdSpeed(fx,fy,col,dir){ rdSpeedOff(); const cv=h('canvas','rdspd'), W=innerWidth,H=innerHeight, dpr=Math.min(2,devicePixelRatio||1); cv.width=W*dpr; cv.height=H*dpr; overlay.appendChild(cv);
+    const g=cv.getContext('2d'); g.scale(dpr,dpr); const R=Math.hypot(W,H); let on=true, t0=performance.now(), last=0;
+    const draw=t=>{ if(!on) return; requestAnimationFrame(draw); if(t-last<45) return; last=t; g.clearRect(0,0,W,H);
+      const k=Math.min(1,(t-t0)/180);   // lines rush in over the first beat
+      g.fillStyle='#fff'; g.globalAlpha=.9*k;
+      for(let i=0;i<150;i++){ const a=Math.random()*Math.PI*2, w=.004+Math.random()*.016, inner=R*(.17+Math.random()*.2)*(1.4-k*.4);
+        g.beginPath(); g.moveTo(fx+Math.cos(a)*inner,fy+Math.sin(a)*inner*.8); g.lineTo(fx+Math.cos(a-w)*R,fy+Math.sin(a-w)*R); g.lineTo(fx+Math.cos(a+w)*R,fy+Math.sin(a+w)*R); g.closePath();
+        g.fillStyle=Math.random()<.35?col:'#fff'; g.fill(); }
+      g.globalAlpha=.75*k; for(let i=0;i<46;i++){ const y=Math.random()*H, L=W*(.15+Math.random()*.45), x=Math.random()*W, th=1+Math.random()*3.5;
+        g.fillStyle=Math.random()<.5?col:'#fff'; g.fillRect(dir>0?x-L:x,y,L,th); }
+      g.globalAlpha=1; };
+    requestAnimationFrame(draw); RSD.sl={cv,stop:()=>{ on=false; }}; return RSD.sl; }
+  function rdSpeedOff(fade){ const S=RSD.sl; if(!S) return; RSD.sl=null; if(fade){ S.cv.animate([{opacity:1},{opacity:0}],{duration:fade,easing:'ease-out',fill:'forwards'}).finished.then(()=>{ S.stop(); S.cv.remove(); }).catch(()=>{ S.stop(); S.cv.remove(); }); } else { S.stop(); S.cv.remove(); } }
   const rdDir=att=>att==='p'?1:-1;   // the rival always flies toward their own back edge
   function rdGo(side,x,y,ms,ease){ const sp=$('.spr',F[side]); if(!sp) return; const a=sp.animate([{translate:`${x}px ${y||0}%`}],{duration:Math.max(1,ms*speed),easing:ease||'cubic-bezier(.2,.8,.3,1)',fill:'forwards'}); RSD.anims.push(a); return a; }
-  function rdReset(){ RSD.anims.forEach(a=>{ try{ a.cancel(); }catch(e){} }); RSD.anims=[]; s.classList.remove('rdslow','rdchase'); overlay.querySelectorAll('.rdlines,.rdwait').forEach(x=>x.remove()); RSD.wait=null; }
-  function rdWait(ms,txt){ const w=h('div','rdwait',`<b>${txt||'RIVAL IS CHOOSING'}</b><i><u></u></i>`); overlay.appendChild(w); RSD.wait=w; $('u',w).animate([{transform:'scaleX(1)'},{transform:'scaleX(0)'}],{duration:ms,easing:'linear',fill:'forwards'}); }
+  function rdReset(){ RSD.anims.forEach(a=>{ try{ a.cancel(); }catch(e){} }); RSD.anims=[]; s.classList.remove('rdslow','rdchase','rdboost'); overlay.querySelectorAll('.rdlines,.rdwait,.rdslowfx').forEach(x=>x.remove()); RSD.wait=null; rdSpeedOff();
+    RSD.camAn.forEach(a=>{ try{ a.cancel(); }catch(_){ } }); RSD.camAn=[]; RSD.cam=null; [document.getElementById('bg'),stageEl].forEach(el=>{ if(el){ el.style.scale=''; el.style.translate=''; } }); if(typeof RDC!=='undefined'&&RDC.S) RDC.S.end(); }
+  function rdWait(ms,txt){ const w=h('div','rdwait',`<b>${txt||'RIVAL IS CHOOSING'}</b><i><u></u></i>`); (RDC.S?RDC.S.o:overlay).appendChild(w); RSD.wait=w; $('u',w).animate([{transform:'scaleX(1)'},{transform:'scaleX(0)'}],{duration:ms,easing:'linear',fill:'forwards'}); }
   // a plain Rush: the rival is knocked back (onto the ground when their sprite has a down frame) and gets back up
   async function knockFx(ev){ const tgt=ev.side, d=rdDir(ev.from), sp=$('.spr',F[tgt]); if(!sp) return; const W=Math.abs(sprC('p').x-sprC('e').x);
     const H=poseSrc(phxWho(tgt)), dn=!!(H&&H.full.down)&&!F[tgt].classList.contains('awk');
@@ -10825,25 +10876,127 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     const t=sprC(tgt); fxs('dust',t.x+d*t.w*.2,t.top+t.h*.97,t.h*.6,600,0,d<0); smokeTrail(tgt,4,60); shake(9,240); try{ Snd.fx3&&Snd.fx3('dash',.7); Snd.fx3&&Snd.fx3('bodyfall',.6); }catch(e){}
     hitTag(t.x,t.top+t.h*.2,dn?'KNOCKDOWN':'KNOCKBACK','big'); await sleep(320); }
   // RUSHDOWN: blast the rival off-screen toward their back, chase (the 3D arena changes to the next set), catch up in slow motion
+  // ── RUSHDOWN CINEMATIC ──
+  const RDC={S:null};
+  function rdSheet(side){ const id=phxWho(side), H=poseSrc(id); if(H&&!F[side].classList.contains('awk')){ poseLoad(side); const im=POSE_IMG[H.file]; if(im&&im.naturalWidth) return {id,H,im}; }
+    const el=$('.spr img',F[side]); return el&&el.naturalWidth?{id,im:el,still:1}:null; }
+  // one frame of a fighter, feet at (x,gy), standing hF tall; face: +1 right, -1 left
+  function rdFrame(g,sh,name,x,gy,hF,face,o){ if(!sh) return; o=o||{}; g.save(); g.globalAlpha=o.a==null?1:o.a; if(o.comp) g.globalCompositeOperation=o.comp; if(o.filter) g.filter=o.filter;
+    if(o.rot){ g.translate(x,gy-hF*.5); g.rotate(o.rot); g.translate(-x,-(gy-hF*.5)); }
+    g.translate(x,gy); if(face<0) g.scale(-1,1);
+    if(sh.still){ const iw=sh.im.naturalWidth, ih=sh.im.naturalHeight, k=hF/ih*1.05; g.drawImage(sh.im,-iw*k/2,-ih*k,iw*k,ih*k); }
+    else { const f=(sh.H.full[name]||sh.H.full.idle)[0], [sx,sy,sw,shh,ax,ay]=f, k=hF/sh.H.full.idle[0][3]*gFix(sh.id,sh.H.full[name]?name:'idle'); g.drawImage(sh.im,sx,sy,sw,shh,-ax*k,-ay*k,sw*k,shh*k); }
+    g.restore(); }
+  function rdHas(sh,n){ return !!(sh&&!sh.still&&sh.H.full[n]); }
+  const RD_SEQ=[
+    {k:'flurry', name:'Flurry',  moves:['jab','cross','jab','cross','kick'], fin:'upper'},
+    {k:'juggle', name:'Juggle',  moves:['kick','cross','kick','jab'], fin:'phys', open:'upper'},
+    {k:'phantom',name:'Phantom', moves:['kick','cross','kick','jab'], fin:'phys'},
+    {k:'carry',  name:'Carry',   moves:['jab','kick','cross','kick'], fin:'kick'}];
+  function rdCine(att,tgt,col,cardName){ const S=u7Stage(att,'rdc'); const {o,W,Hh,fg,sg,scv,fcv}=S; S.cine(true); S.bars(true);
+    const dir=att==='p'?1:-1, X=x=>dir>0?x:W-x, sr=scv.width/W, fr=fcv.width/W, A=rdSheet(att), T=rdSheet(tgt), rnd=Math.random;
+    const BG=rdBg();
+    const gy=Hh*(S.port?.72:.86), hF=Hh*(S.port?.34:.5);
+    o.insertAdjacentHTML('beforeend',`<div class="rdc-ttl"><b>RUSHDOWN</b><i>${cardName||''}</i></div><div class="rdc-tot"><b></b><i></i></div>`); o.style.setProperty('--c',col);
+    const C={S,o,W,Hh,dir,phase:'chase',t0:performance.now(),pt:0,bgx:0,bgv:W*3.2,lines:1,cam:{x:W/2,y:Hh/2,z:1,tz:1,tx:W/2,ty:Hh/2},shake:0,
+      at:{x:W*.3,y:0,f:'run',face:1,trail:1},rv:{x:W*1.02,y:Hh*.24,rot:0,vr:-.012,f:'air',vx:0,vy:0,away:0},bits:[],nums:[],flash:0,slow:0,seq:null,hit:null,done:false};
+    C.dt=0; let last=performance.now();
+    const shk=v=>{ C.shake=Math.max(C.shake,v); };
+    const spark=(x,y,n,v)=>{ for(let i=0;i<n;i++){ const a=rnd()*Math.PI*2, s=(.3+rnd())*v; C.bits.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:1,r:2+rnd()*4,c:rnd()<.5?col:'#fff'}); } };
+    C.spark=spark; C.shk=shk;
+    const frame=now=>{ if(!o.isConnected||C.done) return; requestAnimationFrame(frame); const dt=Math.min(50,now-last); last=now; const k=C.slow?0.12:1, d=dt*k/(speed||1);
+      const t=now-C.t0; C.pt+=d;
+      // camera
+      const cm=C.cam; cm.z+=(cm.tz-cm.z)*Math.min(1,dt*.006); cm.x+=(cm.tx-cm.x)*Math.min(1,dt*.006); cm.y+=(cm.ty-cm.y)*Math.min(1,dt*.006); C.shake*=Math.pow(.88,dt/16);
+      const shx=(rnd()-.5)*C.shake, shy=(rnd()-.5)*C.shake*.7, cx=W/2-cm.z*cm.x+shx, cy=Hh/2-cm.z*cm.y+shy;
+      // world: the set's backdrop streaking past (motion-blurred), darkened, tinted toward the element
+      C.bgx=(C.bgx+C.bgv*d/1000)%(W*4);
+      sg.setTransform(sr*cm.z,0,0,sr*cm.z,sr*cx,sr*cy); sg.globalCompositeOperation='source-over'; sg.globalAlpha=1; sg.fillStyle='#07050f'; sg.fillRect(-W,-Hh,W*3,Hh*3);
+      if(BG.naturalWidth){ const ih=Hh*1.25, iw=ih*BG.naturalWidth/BG.naturalHeight, y0=gy-ih*.82, blur=Math.min(6,C.bgv/W*1.6)|0;
+        for(let b=0;b<=blur;b++){ sg.globalAlpha=1/(b+1); const off=-(C.bgx+b*C.bgv*.006)*dir; for(let xx=((off%iw)+iw)%iw-iw*2; xx<W*2; xx+=iw){ sg.save(); if(dir<0){ sg.translate(W,0); sg.scale(-1,1); } sg.drawImage(BG,xx,y0,iw,ih); sg.restore(); } }
+        sg.globalAlpha=1; }
+      sg.globalAlpha=1; sg.fillStyle=C.slow?'rgba(10,6,24,.55)':'rgba(10,6,24,.3)'; sg.fillRect(-W,-Hh,W*3,Hh*3);
+      sg.globalCompositeOperation='overlay'; sg.fillStyle=col; sg.globalAlpha=C.slow?.15:.28; sg.fillRect(-W,-Hh,W*3,Hh*3); sg.globalCompositeOperation='source-over'; sg.globalAlpha=1;
+      // ground streaks
+      sg.fillStyle='rgba(255,255,255,.08)'; for(let i=0;i<24;i++){ const yy=gy+((i*53)%120)/120*Hh*.12-Hh*.01, L=W*(.1+((i*37)%10)/14)*Math.min(1,C.bgv/W), xx=((i*311-C.bgx*1.4*dir)%(W*1.6)+W*1.6)%(W*1.6)-W*.3; sg.fillRect(xx,yy,L,2); }
+      S.present(t);
+      // foreground: fighters, speed lines, sparks
+      fg.setTransform(fr,0,0,fr,0,0); fg.clearRect(0,0,W,Hh); fg.setTransform(fr*cm.z,0,0,fr*cm.z,fr*cx,fr*cy);
+      if(C.script) C.script(d,C);
+      // shadows
+      fg.fillStyle='rgba(0,0,0,.45)'; for(const q of [C.at,C.rv]){ if(q.hide) continue; const lift=Math.max(0,q.y), sc=Math.max(.3,1-lift/(Hh*.6)); fg.beginPath(); fg.ellipse(X(q.x),gy+2,hF*.22*sc,hF*.035*sc,0,0,7); fg.fill(); }
+      // after-images
+      if(C.at.trail&&!C.at.hide) for(let i=4;i>=1;i--){ rdFrame(fg,A,C.at.f,X(C.at.x-i*W*.035*C.at.trail),gy-C.at.y,hF,dir*(C.at.face),{a:.12+.05*(4-i),filter:'brightness(2) saturate(.2)',rot:(C.at.lean||0)*dir}); }
+      if(!C.rv.hide) rdFrame(fg,T,C.rv.f,X(C.rv.x),gy-C.rv.y,hF,-dir,{rot:C.rv.rot*dir,filter:C.rv.flash>0?'brightness(3) saturate(0)':''});
+      if(!C.at.hide) rdFrame(fg,A,C.at.f,X(C.at.x),gy-C.at.y,hF,dir*C.at.face,{rot:(C.at.lean||0)*dir});
+      if(C.rv.flash>0) C.rv.flash-=dt;
+      // sparks + numbers
+      fg.globalCompositeOperation='lighter'; for(const b of C.bits){ b.x+=b.vx*dt/16; b.y+=b.vy*dt/16; b.vy+=.25*dt/16; b.l-=.022*dt/16; if(b.l>0){ fg.globalAlpha=b.l; fg.fillStyle=b.c; fg.fillRect(b.x,b.y,b.r,b.r); } } fg.globalAlpha=1; fg.globalCompositeOperation='source-over'; C.bits=C.bits.filter(b=>b.l>0);
+      for(const nm of C.nums){ nm.l-=dt/900; nm.y-=dt*.04; fg.globalAlpha=Math.max(0,Math.min(1,nm.l*2)); fg.font=`${Math.round(Hh*(nm.big?.11:.075))}px Anton`; fg.textAlign='center'; fg.lineWidth=Hh*.012; fg.strokeStyle='#12091c'; fg.strokeText(nm.t,nm.x,nm.y); fg.fillStyle=nm.big?'#ffd36b':'#fff'; fg.fillText(nm.t,nm.x,nm.y); } fg.globalAlpha=1; C.nums=C.nums.filter(n=>n.l>0);
+      // speed lines (screen space)
+      fg.setTransform(fr,0,0,fr,0,0);
+      if(C.lines>.02){ const fx=X(W*.5), fy=gy-hF*.55, R=Math.hypot(W,Hh); fg.globalAlpha=C.lines*.85;
+        for(let i=0;i<110;i++){ const a=rnd()*Math.PI*2, w=.003+rnd()*.012, inner=R*(.3+rnd()*.18); fg.beginPath(); fg.moveTo(fx+Math.cos(a)*inner,fy+Math.sin(a)*inner*.75); fg.lineTo(fx+Math.cos(a-w)*R,fy+Math.sin(a-w)*R); fg.lineTo(fx+Math.cos(a+w)*R,fy+Math.sin(a+w)*R); fg.closePath(); fg.fillStyle=rnd()<.35?col:'#fff'; fg.fill(); }
+        for(let i=0;i<34;i++){ const y=rnd()*Hh, L=W*(.15+rnd()*.5), x=rnd()*W; fg.fillStyle=rnd()<.5?col:'#fff'; fg.fillRect(dir>0?x-L:x,y,L,1+rnd()*3); } fg.globalAlpha=1; }
+      if(C.slow){ const g2=fg.createRadialGradient(W/2,Hh/2,Hh*.3,W/2,Hh/2,Hh*.95); g2.addColorStop(0,'rgba(0,0,0,0)'); g2.addColorStop(1,'rgba(40,0,10,.55)'); fg.fillStyle=g2; fg.fillRect(0,0,W,Hh); }
+    };
+    requestAnimationFrame(frame);
+    C.end=()=>{ C.done=true; S.end(); RDC.S=null; };
+    RDC.S=C; return C; }
+  const rdS=ms=>sleep(ms);
+  // the backdrop the chase streaks past: the set's own painting, loaded as soon as a Rushdown starts
+  function rdBg(){ const url=(window.__lsArena&&window.__lsArena.bg)||'img/arena.webp'; if(!RDC.bg||RDC.bgu!==url){ RDC.bg=new Image(); RDC.bg.src=url; RDC.bgu=url; } return RDC.bg; }
+  // the chase: run frames under speed lines, the rival tumbling ahead; then the catch and the freeze
+  async function rdChase(C,att){ const W=C.W, Hh=C.Hh, A=C.at, R=C.rv; let tt=0;
+    const RUNF=rdHas(rdSheet(att),'rush')?'rush':'run'; A.lean=.14;
+    C.script=(d)=>{ tt+=d; A.f=RUNF; A.y=Math.abs(Math.sin(tt/90))*Hh*.012; R.rot+=R.vr*d; R.x=Math.max(W*.66,R.x-d*W*.00042); R.y=Math.max(Hh*.07,R.y-d*Hh*.00012); };
+    try{ Snd.fx3&&Snd.fx3('dash',1); Snd.fx3&&Snd.fx3('whoosh_h',1); }catch(e){} C.shk(10);
+    const ttl=C.o.querySelector('.rdc-ttl'); ttl.classList.add('on');
+    await rdS(window.__RDCHASE||1150); ttl.classList.remove('on');
+    // the catch: one blink of a dash, then everything stops
+    C.script=null; try{ Snd.fx3&&Snd.fx3('whoosh_h',.9); }catch(e){}
+    const x0=A.x, x1=R.x-W*.16; for(let i=0;i<6;i++){ A.x=x0+(x1-x0)*(i+1)/6; await rdS(16); }
+    A.lean=0; A.f=rdHas(rdSheet(att),'jab_w')?'jab_w':'phys_w'; A.y=0; R.f='hurt'; R.rot=0; R.vr=0; R.y=Hh*.06;
+    C.S.blink(140,.85,'#fff'); C.shk(18); try{ Snd.fx3&&Snd.fx3('sflash',.9); Snd.fx3&&Snd.fx3('hit_m',.6); }catch(e){}
+    C.lines=0; C.bgv=0; C.at.trail=0; C.slow=1; C.o.classList.add('slow');
+    C.cam.tz=1.28; const mx=(x1+R.x)/2; C.cam.tx=C.dir>0?mx:W-mx; C.cam.ty=C.Hh*.62; }
+  // one hit of the auto-combo, chosen sequence, n of N
+  async function rdHit(C,att,tgt,n,N,amount,c){ const W=C.W, Hh=C.Hh, A=C.at, R=C.rv, sh=rdSheet(att), last=n===N, Q=C.seq; C.slow=0; C.o.classList.remove('slow'); C.bgv=0;
+    let m=last?Q.fin:(n===1&&Q.open?Q.open:Q.moves[(n-1)%Q.moves.length]); if(!rdHas(sh,m)) m=rdHas(sh,'phys')?'phys':m;
+    const wind=rdHas(sh,m+'_w')?m+'_w':(rdHas(sh,'phys_w')&&m==='phys'?'phys_w':null), D=last?240:110, gap=W*.13;
+    // where the attacker stands for this hit
+    if(Q.k==='phantom'&&!last){ const side=n%2?1:-1; A.face=side; A.x=R.x-gap*side; A.trail=.6; }
+    else { A.face=1; A.x=R.x-gap; A.trail=Q.k==='carry'?.5:0; }
+    if(Q.k==='juggle'&&n>1) A.y=R.y-Hh*.02;
+    if(wind){ A.f=wind; await rdS(last?120:45); }
+    A.f=m; R.f=last?'hit_h':(n%2?'hit':'hit_h'); R.flash=70; C.cam.tz=Math.min(1.6,C.cam.tz+.03);
+    const hx=(C.dir>0?R.x:W-R.x)-C.dir*W*.01, hy=Hh*(C.S.port?.72:.86)-R.y-Hh*.25; C.spark(hx,hy,last?60:18,last?14:8); C.shk(last?34:12);
+    if(amount) C.nums.push({t:'-'+amount,x:hx+(Math.random()-.5)*W*.05,y:hy-Hh*.12,l:1,big:last}); C.tot=(C.tot||0)+amount;
+    const tot=C.o.querySelector('.rdc-tot'); tot.querySelector('b').textContent=n+' HIT'+(n>1?'S':''); tot.querySelector('i').textContent=C.tot; tot.classList.remove('pop'); void tot.offsetWidth; tot.classList.add('pop');
+    try{ Snd.fx3&&Snd.fx3(last?'hit_c':(n%3?'hit_m':'hit_h'),last?1:.7); if(last){ Snd.fx3&&Snd.fx3('ultboom',.9); } }catch(e){}
+    if(Q.k==='juggle'&&n===1){ R.f='air'; R.y=Hh*.22; }
+    if(Q.k==='carry'&&!last){ R.x+=W*.045; C.cam.tx+=W*.045*C.dir; C.bgv=W*.6; setTimeout(()=>{ C.bgv=0; },150); }
+    if(!last){ R.x+=W*.008; await rdS(D); return; }
+    // finisher
+    C.S.blink(90,.7,'#fff'); impactFrame();
+    if(Q.k==='flurry'){ R.f='air'; for(let i=0;i<22;i++){ R.y+=Hh*.035; R.rot-=.25; await rdS(16); } }
+    else if(Q.k==='juggle'){ R.f='air'; for(let i=0;i<10;i++){ R.y=Math.max(0,R.y-Hh*.05); R.rot-=.4; await rdS(16); } R.f='down'; R.rot=0; R.y=0; C.shk(40); C.spark(hx,Hh*(C.S.port?.72:.86),50,12); try{ Snd.fx3&&Snd.fx3('bodyfall',1); }catch(e){} await rdS(260); }
+    else { R.f='air'; C.lines=.7; C.bgv=W*2; for(let i=0;i<24;i++){ R.x+=W*.05; R.y+=Hh*.004; R.rot-=.3; await rdS(16); } C.lines=0; C.bgv=0; }
+    await rdS(300); }
   async function rushdownFx(ev){ const tgt=ev.side, att=ev.from, d=rdDir(att), c=CARDS[ev.card]||{}; rdReset(); if(AIR[tgt]) airClear(tgt);
-    const W=innerWidth, gap=Math.abs(sprC('p').x-sprC('e').x), col=LCOL[elOf(c)]||'#ffffff'; RSD.gap=gap;
+    const W=innerWidth, col=LCOL[elOf(c)]||'#ffffff'; RSD.gap=Math.abs(sprC('p').x-sprC('e').x); const bgI=rdBg(); poseLoad(att); poseLoad(tgt);
+    // on the field: the Rush hit blasts the rival off the screen
     launchSplash(att,c,ev,'RUSHDOWN!'); if(!vsay(att,'_launch',1)) vsay(att,'_atk',1); try{ annCall('maxc',true); }catch(e){}
-    whiteHit(tgt); impactFrame(); await hitStop(140); shake(22,420); try{ Snd.fx3&&Snd.fx3('impact_h',1); Snd.fx3&&Snd.fx3('whoosh_h',1); }catch(e){}
+    whiteHit(tgt); impactFrame(); await hitStop(160); shake(24,420); try{ Snd.fx3&&Snd.fx3('impact_h',1); Snd.fx3&&Snd.fx3('whoosh_h',1); }catch(e){}
     { const t=sprC(tgt); shockRing(t.x,t.y,col,true); fxs('dust',t.x,t.top+t.h*.97,t.h*.9,700,0,d<0); }
-    pose(tgt,[['launch',160],['air',99999,{spin:-30*d}]]); smokeTrail(tgt,8,40); camLines(d,col,tgt);
-    await rdGo(tgt,d*W*.9,-14,420,'cubic-bezier(.3,.6,.4,1)').finished.catch(()=>{});
-    // the chase
-    s.classList.add('rdchase'); const ln=h('div','rdlines '+(d>0?'r':'l')); ln.style.setProperty('--c',col); overlay.appendChild(ln);
-    pose(att,[['rush',180],['run',99999]]); try{ Snd.fx3&&Snd.fx3('dash',1); }catch(e){} smokeTrail(att,10,70);
-    rdGo(att,d*gap*.66,0,900,'cubic-bezier(.5,0,.6,1)');
-    const host=window.__lsArena&&window.__lsArena.host, three=app.classList.contains('hd3d');
-    if(three&&host){ const wipe=h('div','rdwipe '+(d>0?'r':'l')); wipe.style.setProperty('--c',col); overlay.appendChild(wipe); await sleep(260);
-      const ch=ls3dGet('transition',host); await Promise.race([ch,new Promise(r=>setTimeout(r,1600))]); const nk=await Promise.race([ch,Promise.resolve(null)]);
-      wipe.classList.add('out'); setTimeout(()=>wipe.remove(),500); if(nk) try{ ls3dCall('impact',tgt,{fin:true}); }catch(e){} }
-    else await sleep(650);
-    // catch up: the rival tumbles back in from the edge and hangs, stunned, right in front of the attacker
-    rdGo(tgt,d*gap*.08,-6,360,'cubic-bezier(.15,.85,.35,1)'); pose(tgt,[['air',260,{spin:-14*d}],['hurt',99999]]);
-    await sleep(330); pose(att,[['rush',99999]]); ln.remove(); s.classList.remove('rdchase'); s.classList.add('rdslow'); impactFrame(); try{ Snd.fx3&&Snd.fx3('sflash',.8); }catch(e){}
+    pose(tgt,[['launch',160],['air',99999,{spin:-30*d}]]); smokeTrail(tgt,8,40);
+    const fly=rdGo(tgt,d*W*.95,-16,380,'cubic-bezier(.3,.6,.4,1)'); pose(att,[['rush',99999]]);
+    { const A=sprC(att); rdCam(1.9,A.x,A.top+A.h*.32,W*(.5-d*.04),innerHeight*.42,300,'cubic-bezier(.55,0,.25,1)'); } if(fly) await fly.finished.catch(()=>{});
+    // cut to the chase (give the backdrop a moment if it is still loading)
+    if(!bgI.complete) await Promise.race([new Promise(r=>{ bgI.onload=r; bgI.onerror=r; }),sleep(500)]);
+    const C=rdCine(att,tgt,col,c.name); C.seq=RD_SEQ[window.__RDSEQ!=null?window.__RDSEQ:(Math.random()*RD_SEQ.length)|0]; C.S.blink(180,1,'#fff'); rdCamOff(1);
+    $('.spr',F[att])&&($('.spr',F[att]).style.visibility='hidden'); $('.spr',F[tgt])&&($('.spr',F[tgt]).style.visibility='hidden');
+    await rdChase(C,att);
     if(att!=='p') rdWait(NETB?RUSH.secs*1000:1000); }
   async function rushPickFx(ev){ if(RSD.wait){ RSD.wait.remove(); RSD.wait=null; } const att=ev.from; if(att==='p'||!ev.cards.length) return;
     const r=(ehand||F[att]).getBoundingClientRect(), t=sprC(ev.side);
@@ -10853,24 +11006,19 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     await sleep(500); }
   const RD_VA=['blood','fire','ice','life','metal','mind','shadow','sound','storm','venom','water','wind'];
   const RD_K=['jab','cross','kick','upper','jab','kick','cross','upper'];
-  async function rushHitFx(ev){ const tgt=ev.side, att=ev.from, d=rdDir(att), last=ev.n===ev.of, t=sprC(tgt), c=CARDS[ev.card]||{}, col=LCOL[elOf(c)]||'#ffffff';
-    const k=last?'upper':RD_K[(ev.n-1)%RD_K.length]; pose(att,[[k+'_w',70],[k,last?360:170]]); pose(tgt,[[last?'hit_h':'hit',last?300:140],['hurt',99999]]);
-    await sleep(70); whiteHit(tgt); hurt(tgt,last); hud(ev.s);
-    fxs('va_'+(RD_VA.includes(elOf(c))?elOf(c):'tech'),t.x-d*t.w*.1,t.y,t.h*(last?.9:.55),420,(ev.n*47)%360,d<0);
-    num(t.x+((ev.n%2)?-1:1)*t.w*.12,t.top+t.h*(.1+((ev.n%3)*.06)),'-'+ev.amount,'dmg');
-    { const tag=h('div','rdcard',`<b>${(CARDS[ev.card]||{}).name||''}</b><i>HIT ${ev.n}</i>`); tag.style.left=t.x+'px'; tag.style.top=(t.top-t.h*.05)+'px'; tag.style.setProperty('--c',col); overlay.appendChild(tag); setTimeout(()=>tag.remove(),700); }
-    rdGo(tgt,d*(RSD.gap||gap0())*(.08+ev.n*.012),last?-18:-6,last?260:120);
-    shake(last?18:7,last?340:150); try{ Snd.fx3&&Snd.fx3(last?'ultboom':'hit_h',last?.9:.55); }catch(e){}
-    if(last){ impactFrame(); shockRing(t.x,t.y,col,true); await hitStop(120); }
-    await sleep(last?380:150); }
+  async function rushHitFx(ev){ const C=RDC.S, c=CARDS[ev.card]||{}; hud(ev.s); if(!C) return; if(RSD.wait){ RSD.wait.remove(); RSD.wait=null; }
+    await rdHit(C,ev.from,ev.side,ev.n,ev.of,ev.amount,c); }
   function gap0(){ return Math.abs(sprC('p').x-sprC('e').x)||innerWidth*.3; }
   async function rushEndFx(ev){ const tgt=ev.side, att=ev.from; s.classList.remove('rdslow'); if(RSD.wait){ RSD.wait.remove(); RSD.wait=null; }
-    const t=sprC(tgt); if(ev.n) hitTag(t.x,t.top+t.h*.3,'RUSHDOWN ×'+ev.n+' · '+ev.total,'crit'); else hitTag(t.x,t.top+t.h*.3,'RUSHDOWN','crit');
-    pose(tgt,[['air',200,{spin:-20*rdDir(att)}],['down',700,{land:1}]]); await sleep(420);
-    // back to the marks: both fighters reset to their own side of the (possibly new) arena
-    const sps=[$('.spr',F.p),$('.spr',F.e)].filter(Boolean); await Promise.all(sps.map(sp=>sp.animate([{opacity:1},{opacity:0}],{duration:200*speed,fill:'forwards'}).finished.catch(()=>{})));
-    rdReset(); poseEnd('p'); poseEnd('e'); sps.forEach(sp=>sp.animate([{opacity:0},{opacity:1}],{duration:260*speed}));
-    { const tt=sprC(tgt); fxs('dust',tt.x,tt.top+tt.h*.97,tt.h*.5,500,0,false); } await sleep(280); }
+    const C=RDC.S; if(C){ if(!ev.n){ C.seq={k:'carry',moves:[],fin:'phys'}; await rdHit(C,att,tgt,1,1,0,CARDS[ev.card]||{}); }
+      C.o.querySelector('.rdc-tot').classList.add('fin'); await sleep(260); C.S.blink(420,1,'#fff'); await sleep(90);
+      // the chase ends somewhere else: the 3D set swaps to the neighbouring one behind the white-out
+      const host=window.__lsArena&&window.__lsArena.host; if(app.classList.contains('hd3d')&&host){ try{ const ch=ls3dGet('transition',host); const nk=await Promise.race([ch,new Promise(r=>setTimeout(r,1800))]); if(nk) try{ ls3dCall('impact',tgt,{fin:true}); }catch(e){} }catch(e){} }
+      C.end(); }
+    const sps=[$('.spr',F.p),$('.spr',F.e)].filter(Boolean); rdReset(); poseEnd('p'); poseEnd('e');
+    sps.forEach(sp=>{ sp.getAnimations().forEach(a=>{ try{ a.cancel(); }catch(e){} }); sp.style.visibility=''; sp.style.opacity=''; sp.animate([{opacity:0},{opacity:1}],{duration:260*speed}); });
+    { const t=sprC(tgt); hitTag(t.x,t.top+t.h*.3,ev.n?'RUSHDOWN ×'+ev.n+' · '+ev.total:'RUSHDOWN','crit'); }
+    pose(tgt,[['down',700,{land:1}]]); { const tt=sprC(tgt); fxs('dust',tt.x,tt.top+tt.h*.97,tt.h*.5,500,0,false); } await sleep(420); }
   // the attacker throws away cards from their hand: real-time window like the counter window (slow motion, timer), tap cards to throw them
   function rushWindow(){ return new Promise(done_=>{ const f=b.p, DUR=window.__RDDUR||RUSH.secs*1000, ids=f.hand.slice(), pick=new Set(); let fin=false;
     const root=h('div','rdpick',`<div class="rd-top"><i>RUSHDOWN</i><b>Throw cards at them: one hit each</b><div class="rd-tm"><span>${(DUR/1000).toFixed(1)}</span><small>s</small><em><u></u></em></div></div><div class="rd-hand"></div><div class="rd-foot"><div class="rd-tot">TOTAL <b>0</b></div><button type="button" class="rd-all">THROW ALL<kbd>A</kbd></button><button type="button" class="rd-go">GO<kbd>Space</kbd></button></div>`);
