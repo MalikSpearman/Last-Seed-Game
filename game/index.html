@@ -11157,8 +11157,8 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
       else if(BG.naturalWidth){ const ih=Hh*1.25, iw=ih*BG.naturalWidth/BG.naturalHeight, y0=gy-ih*.82, blur=Math.min(9,C.bgv/W*1.2)|0;
         for(let b=0;b<=blur;b++){ sg.globalAlpha=1/(b+1); const off=-(C.bgx+b*C.bgv*.004)*dir; for(let xx=((off%iw)+iw)%iw-iw*2; xx<W*2; xx+=iw){ sg.save(); if(dir<0){ sg.translate(W,0); sg.scale(-1,1); } sg.drawImage(BG,xx,y0,iw,ih); sg.restore(); } }
         sg.globalAlpha=1; }
-      sg.globalAlpha=1; sg.fillStyle=C.slow?'rgba(10,6,24,.55)':'rgba(10,6,24,.3)'; sg.fillRect(-W,-Hh,W*3,Hh*3);
-      sg.globalCompositeOperation='overlay'; sg.fillStyle=col; sg.globalAlpha=C.slow?.15:.28; sg.fillRect(-W,-Hh,W*3,Hh*3); sg.globalCompositeOperation='source-over'; sg.globalAlpha=1;
+      sg.globalAlpha=1; sg.fillStyle=C.slow&&!C.hold?'rgba(10,6,24,.55)':'rgba(10,6,24,.3)'; sg.fillRect(-W,-Hh,W*3,Hh*3);
+      sg.globalCompositeOperation='overlay'; sg.fillStyle=col; sg.globalAlpha=C.slow&&!C.hold?.15:.28; sg.fillRect(-W,-Hh,W*3,Hh*3); sg.globalCompositeOperation='source-over'; sg.globalAlpha=1;
       // ground streaks
       sg.fillStyle='rgba(255,255,255,.08)'; for(let i=0;i<24;i++){ const yy=gy+((i*53)%120)/120*Hh*.12-Hh*.01, L=W*(.1+((i*37)%10)/14)*Math.min(1,C.bgv/W), xx=((i*311-C.bgx*1.4*dir)%(W*1.6)+W*1.6)%(W*1.6)-W*.3; sg.fillRect(xx,yy,L,2); }
       S.present(t);
@@ -11202,7 +11202,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
       if(C.lines>.02){ fg.globalAlpha=C.lines*.85;
         for(let i=0;i<10;i++){ const y=rnd()*Hh, L=W*(.4+rnd()*.7), x=rnd()*W*1.4-W*.2; fg.fillStyle='rgba(0,0,0,.35)'; fg.fillRect(dir>0?x-L:x,y,L,4+rnd()*10); }
         for(let i=0;i<80;i++){ const y=rnd()*Hh, L=W*(.15+rnd()*.5), x=rnd()*W; fg.fillStyle=rnd()<.5?col:'#fff'; fg.fillRect(dir>0?x-L:x,y,L,1+rnd()*3); } fg.globalAlpha=1; }
-      if(C.slow){ const g2=fg.createRadialGradient(W/2,Hh/2,Hh*.3,W/2,Hh/2,Hh*.95); g2.addColorStop(0,'rgba(0,0,0,0)'); g2.addColorStop(1,'rgba(40,0,10,.55)'); fg.fillStyle=g2; fg.fillRect(0,0,W,Hh); }
+      if(C.slow&&!C.hold){ const g2=fg.createRadialGradient(W/2,Hh/2,Hh*.3,W/2,Hh/2,Hh*.95); g2.addColorStop(0,'rgba(0,0,0,0)'); g2.addColorStop(1,'rgba(40,0,10,.55)'); fg.fillStyle=g2; fg.fillRect(0,0,W,Hh); }
     };
     requestAnimationFrame(frame);
     C.end=()=>{ C.done=true; if(C.ch) try{ C.ch.m.chase(false); }catch(e){} S.end(); RDC.S=null; };
@@ -11227,7 +11227,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     // the catch: everything stops
     A.lean=0; A.trail=0; A.f=rdHas(rdSheet(att),'jab_w')?'jab_w':'phys_w'; A.y=0; R.f='hurt'; R.rot=0; R.y=Hh*.06;
     C.S.blink(140,.85,'#fff'); C.shk(18); try{ Snd.fx3&&Snd.fx3('sflash',.9); Snd.fx3&&Snd.fx3('hit_m',.6); }catch(e){}
-    C.lines=0; C.slow=1; C.o.classList.add('slow');
+    C.lines=0; C.slow=1; C.hold=1;
     C.cam.tz=1.28; const mx=(AX+R.x)/2; C.cam.tx=C.dir>0?mx:W-mx; C.cam.ty=C.Hh*.62; }
   async function rdChase(C,att){ const W=C.W, Hh=C.Hh, A=C.at, R=C.rv; let tt=0;
     const sh=rdSheetC(att), cyc=rdHas(sh,'run1')&&rdHas(sh,'run2'), RUNF=rdHas(sh,'rush')?'rush':'run', DUR=window.__RDCHASE||1500; let dashed=false;
@@ -11246,7 +11246,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     const x0=A.x, x1=R.x-W*.16; A.f=rdHas(sh,'dash')?'dash':A.f; for(let i=0;i<6;i++){ A.x=x0+(x1-x0)*(i+1)/6; await rdS(16); }
     A.lean=0; A.f=rdHas(rdSheet(att),'jab_w')?'jab_w':'phys_w'; A.y=0; R.f='hurt'; R.rot=0; R.vr=0; R.y=Hh*.06;
     C.S.blink(140,.85,'#fff'); C.shk(18); try{ Snd.fx3&&Snd.fx3('sflash',.9); Snd.fx3&&Snd.fx3('hit_m',.6); }catch(e){}
-    C.lines=0; C.bgv=0; C.at.trail=0; C.slow=1; C.o.classList.add('slow');
+    C.lines=0; C.bgv=0; C.at.trail=0; C.slow=1; C.hold=1;   /* the catch waits for the picks: frozen but lit, not dimmed */
     C.cam.tz=1.28; const mx=(x1+R.x)/2; C.cam.tx=C.dir>0?mx:W-mx; C.cam.ty=C.Hh*.62; }
   // fighters whose strikes swing a weapon (blade trail); kicks never trail
   function rdNeg(ms){ const o=h('div','rdneg'); overlay.appendChild(o); setTimeout(()=>o.remove(),ms*(speed||1)); }
@@ -11261,7 +11261,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     C.charge.burst=1; C.S.blink(160,.45,C.col); C.shk(16); try{ Snd.fx3&&Snd.fx3('sflash',1); Snd.fx3&&Snd.fx3('whoosh_h',1); }catch(e){}
     await rdS(170); C.slow=0; C.o.classList.remove('slow'); C.charge=null; C.cam.tz=Math.max(1.2,C.cam.tz-.25); }
   // one hit of the auto-combo, chosen sequence, n of N
-  async function rdHit(C,att,tgt,n,N,amount,c){ const W=C.W, Hh=C.Hh, A=C.at, R=C.rv, sh=rdSheet(att), last=n===N, Q=C.seq; C.slow=0; C.o.classList.remove('slow'); C.bgv=0;
+  async function rdHit(C,att,tgt,n,N,amount,c){ const W=C.W, Hh=C.Hh, A=C.at, R=C.rv, sh=rdSheet(att), last=n===N, Q=C.seq; C.slow=0; C.hold=0; C.o.classList.remove('slow'); C.bgv=0;
     let m=last?Q.fin:(n===1&&Q.open?Q.open:Q.moves[(n-1)%Q.moves.length]); if(!rdHas(sh,m)) m=rdHas(sh,'phys')?'phys':m;
     if(sh&&sh.rk){ const K=sh.rk.D.combo||Object.keys(sh.rk.D.F); if(last&&sh.rk.D.fin) m=sh.rk.D.fin.pose; else { let q; const FQ=window.__RKFORCE; if(FQ&&FQ.length) q=FQ.shift(); else do{ q=K[(Math.random()*K.length)|0]; }while(K.length>1&&q===C.lastM); m=q; } C.lastM=m; }
     const wind=rdHas(sh,m+'_w')?m+'_w':(rdHas(sh,'phys_w')&&m==='phys'?'phys_w':null), D=last?240:(window.__RDGAP||140), gap=W*.13;

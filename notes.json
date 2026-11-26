@@ -1,5 +1,13 @@
 [
  {
+  "version": "0.3.78",
+  "date": "Nov 26, 2026",
+  "title": "Rushdown pick screen is no longer dark",
+  "items": [
+   "The Rushdown card-pick screen over the chase map is no longer dimmed, so the map and fighters stay clearly visible while you choose."
+  ]
+ },
+ {
   "version": "0.3.77",
   "date": "Nov 26, 2026",
   "title": "Smoother counters in 3D, paper characters in free roam",
