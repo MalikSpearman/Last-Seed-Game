@@ -1,5 +1,16 @@
 [
  {
+  "version": "0.3.58",
+  "date": "Nov 25, 2026",
+  "title": "Super knockdowns, new Rasetsu paper art",
+  "items": [
+   "Fighters knocked down by a super now lie flat on the ground in their own lying-down pose instead of falling over as a turned standing sprite. Nyx, Orin and Rei, who have no lying-down pose, drop to their kneel.",
+   "The fighter taking a super is drawn to the size chart, so a big fighter stays big and a small one stays small next to the attacker.",
+   "With paper sprites on, the fighter taking a super stays in paper form for the whole cinematic.",
+   "New paper sprite for Rasetsu, closer to her original look: odachi sheathed and held upright."
+  ]
+ },
+ {
   "version": "0.3.57",
   "date": "Nov 25, 2026",
   "title": "3D free roam in the bracket, new roam NPCs",

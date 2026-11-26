@@ -171,9 +171,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 // Rising Phoenix, grounded: flame dash → in-world uppercut → rival launched up a fire pillar → she rises as a phoenix → meteor dive drives them into the ground
 const FIRE='255,130,40', PAL={hex:'#ff8a2a',rgb:FIRE,light:'#ffe2b0',mid:'#e0501a',dark:'#2a0600'};
@@ -262,7 +262,7 @@ const scene={end:END, reset(){ FE.b=[]; FB.b=[]; lastT=0; camSnap(W/2,H/2,1); hx
 const A={bg:'img/bg_festival.webp',fire_loop:'img/fire_loop.webp',k_cutin:'img/k_cutin.webp',k_splash:'img/k_splash.webp'};
 for(const n of ['phoenix','pillar','boom','meteor','ring','embers']) A['kfx_'+n]='img/kfx_'+n+'.webp';
 for(const n of ['focus','charge','rush','rupw','rup','rsmw','rsm','rac1','rac2','rac3','rec','land','rcross','win','upper_w','upper_m','upper']) A['kr_'+n]='img/kr_'+n+'.webp'; 
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.jin=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"jr_1": 0.4945, "jr_2": 0.4477, "jr_3": 0.4895, "jr_4": 0.4551, "jr_5": 0.5949, "jr_6": 0.5451, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={"jr_1": 0.9805, "jr_2": 0.9802, "jr_3": 0.9803, "jr_4": 0.9853, "jr_5": 0.9852, "jr_6": 0.984};
@@ -436,9 +436,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 // Crescent Flash (Lv1 Super, Deal 8 + Counter 4): iai stance → cut-in → stillness → he flashes past the rival in one draw →
 // a crescent trail hangs in the air → he sheathes, and on the click the cut lands → he turns into a counter stance under a moon ring.
@@ -519,7 +519,7 @@ const scene={end:END, reset(){ camSnap(W/2,H/2,1); },
  }};
 const A={bg:'img/bg_moon.webp',jin_cutin:'img/jin_cutin.webp',jin_cutin2:'img/jin_cutin2.webp'};
 for(let i=1;i<=6;i++) A['jr_'+i]='img/jr_'+i+'.webp'; 
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.bruna=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"br_1": 0.5487, "br_2": 0.5, "br_3": 0.42, "br_4": 0.4681, "br_5": 0.5, "br_6": 0.5503, "br_7": 0.45, "br_8": 0.5, "br_9": 0.5429, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={"br_1": 0.9834, "br_2": 0.9794, "br_3": 0.9802, "br_4": 0.9814, "br_5": 0.9814, "br_6": 0.9835, "br_7": 0.9882, "br_8": 0.9818, "br_9": 0.9812};
@@ -693,9 +693,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 // Freight Train Charge (Lv1 Super: Gain 8 Guard, Deal 6): shields clang → cut-in → she digs in and builds steam →
 // charges the length of the road like a train → shield-face impact → skids to a stop → raises a hex iron guard.
@@ -789,7 +789,7 @@ const scene={end:END, reset(){ D=[]; camSnap(W/2,H/2,1); },
  }};
 const A={bg:'img/bg_road.webp',b_cutin:'img/b_cutin.webp',bruna_cutin:'img/bruna_cutin.webp'};
 for(let i=1;i<=9;i++) A['br_'+i]='img/br_'+i+'.webp'; 
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.suzu=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"sz_1": 0.4892, "sz_2": 0.5297, "sz_3": 0.5167, "sz_4": 0.4866, "sz_5": 0.5013, "sz_6": 0.5816, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={"sz_1": 0.9836, "sz_2": 0.9838, "sz_3": 0.9836, "sz_4": 0.9805, "sz_5": 0.9803, "sz_6": 0.9814};
@@ -963,9 +963,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 // Drum Break (Lv1 Super: Deal 2 four times, Draw 1): thunderheads roll in → cut-in → three drum beats, each one cracks a bolt across the stage →
 // she leaps, sticks to the sky, and slams the drum: a sky-splitting bolt drops on the rival → a stray spark becomes a card in her hand.
@@ -1055,7 +1055,7 @@ const scene={end:END, reset(){ camSnap(W/2,H/2,1); lit=0; },
  }};
 const A={bg:'img/bg_festival.webp',s_cutin:'img/s_cutin.webp',suzu_cutin:'img/suzu_cutin.webp'};
 for(let i=1;i<=6;i++) A['sz_'+i]='img/sz_'+i+'.webp'; 
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.nyx=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"nx_1": 0.4962, "nx_2": 0.4678, "nx_3": 0.526, "nx_4": 0.4619, "nx_5": 0.5, "nx_6": 0.6331, "nx_7": 0.5, "nx_8": 0.4492, "nx_9": 0.5, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={"nx_1": 0.9838, "nx_2": 0.9836, "nx_3": 0.9783, "nx_4": 0.9815, "nx_5": 0.9783, "nx_6": 0.9839, "nx_7": 0.9827, "nx_8": 0.9876, "nx_9": 0.9862};
@@ -1229,9 +1229,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 // Veil Cut (Lv1 Super: Deal 6, Apply 2 Exposed): shadow gathers → cut-in → she spins into her veils and sinks into a shadow pool →
 // the pool slides under the rival → she rises behind them → a slash and a spinning X-cut → their guard peels away in shards → two Exposed sigils brand them.
@@ -1363,7 +1363,7 @@ const scene={end:END, reset(){ SM=[]; camSnap(W/2,H/2,1); },
  }};
 const A={bg:'img/bg_festival.webp',n_cutin:'img/n_cutin.webp',nyx_cutin:'img/nyx_cutin.webp'};
 for(let i=1;i<=9;i++) A['nx_'+i]='img/nx_'+i+'.webp'; 
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.orin=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"or_1": 0.516, "or_2": 0.49, "or_3": 0.469, "or_4": 0.543, "or_5": 0.434, "or_6": 0.53, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={"or_1": 0.992, "or_2": 0.992, "or_3": 0.992, "or_4": 0.992, "or_5": 0.99, "or_6": 0.992};
@@ -1537,9 +1537,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 // Frost Seal (Lv1 Super: Apply 2 Chill, Gain 6 Guard): snow falls, prayer beads rise → cut-in → he chants and a snowflake seal forms →
 // palm strike to the ground: the seal races across the floor and ice bursts up around the rival's legs, locking them → a second pulse freezes them higher →
@@ -1652,7 +1652,7 @@ const scene={end:END, reset(){ SM=[]; camSnap(W/2,H/2,1); },
  }};
 const A={bg:'img/bg_moon.webp',o_cutin:'img/o_cutin.webp',orin_cutin:'img/orin_cutin.webp'};
 for(let i=1;i<=6;i++) A['or_'+i]='img/or_'+i+'.webp'; 
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.varro=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"varro_game": 0.53, "vs_1": 0.302, "vs_2": 0.59, "vs_3": 0.645, "vs_4": 0.55, "vs_5": 0.594, "vs_6": 0.422, "vs_7": 0.502, "vs_8": 0.362, "vs_9": 0.501, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={"varro_game": 0.994, "vs_1": 0.988, "vs_2": 0.986, "vs_3": 0.988, "vs_4": 0.986, "vs_5": 0.986, "vs_6": 0.986, "vs_7": 0.989, "vs_8": 0.988, "vs_9": 0.986};
@@ -1826,9 +1826,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 // King's Decree (Lv1 Super: Deal 10, Gain 1 Power): gold dust, sword on his shoulder → cut-in → he points the greatsword at the rival: a golden decree wave knocks them back a step →
 // dash in → cleave (2) → rising slash (2) → shoulder charge launches them (2) → he leaps above and drives the sword down, slamming them into the ground (4, impact frame):
@@ -1982,7 +1982,7 @@ scene.end=s2r(END);
 const A={bg:'img/bg_road.webp',varro_cutin:'img/varro_cutin.webp',varro_game:'img/varro_game.webp'};
 for(let i=1;i<=9;i++) A['vs_'+i]='img/vs_'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp'; for(let i=1;i<=8;i++) A['bl_'+i]='img/bl_'+i+'.webp';
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.vex=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"vex_game": 0.656, "vx_1": 0.43, "vx_2": 0.696, "vx_3": 0.218, "vx_4": 0.315, "vx_5": 0.421, "vx_6": 0.523, "vx_7": 0.952, "vx_8": 0.368, "vx_9": 0.505, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489, "vu_1": 0.69, "vu_2": 0.357, "vu_3": 0.415, "vu_4": 0.248, "vu_5": 0.5, "vu_6": 0.518}, __AY={"vex_game": 0.993, "vx_1": 0.986, "vx_2": 0.987, "vx_3": 0.982, "vx_4": 0.983, "vx_5": 0.987, "vx_6": 0.987, "vx_7": 0.988, "vx_8": 0.982, "vx_9": 0.989, "vu_1": 0.991, "vu_2": 0.991, "vu_3": 0.99, "vu_4": 0.99, "vu_5": 0.5, "vu_6": 0.986};
@@ -2156,9 +2156,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 // Soul Brand (Lv1 Super: Apply 4 Burn, deal 4 that ignores Guard). Everything is Vex's teal soulfire.
 // cut-in → he slams the lance butt down: a soulfire ring races across the ground and wailing skulls circle the rival →
@@ -2323,7 +2323,7 @@ scene.end=s2r(END);
 const A={bg:'img/bg_moon.webp',vex_cutin:'img/vex_cutin.webp',vex_game:'img/vex_game.webp'};
 for(let i=1;i<=9;i++) A['vx_'+i]='img/vx_'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp'; for(let i=1;i<=8;i++) A['bx_'+i]='img/bx_'+i+'.webp'; for(let i=1;i<=6;i++){ A['vxg_'+i]='img/vxg_'+i+'.webp'; A['vu_'+i]='img/vu_'+i+'.webp'; }
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.rhea=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"rhea_game": 0.172, "rh_1": 0.571, "rh_2": 0.367, "rh_3": 0.509, "rh_4": 0.461, "rh_5": 0.448, "rh_6": 0.505, "rh_7": 0.19, "rh_8": 0.5, "rh_9": 0.572, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489, "rhea_fx1": 0.5, "rhea_fx2": 0.5, "rhea_fx3": 0.5, "rhea_fx4": 0.5, "rhea_fx5": 0.5, "rhea_fx6": 0.5}, __AY={"rhea_game": 0.999, "rh_1": 0.987, "rh_2": 0.986, "rh_3": 0.987, "rh_4": 0.987, "rh_5": 0.987, "rh_6": 0.988, "rh_7": 0.989, "rh_8": 0.987, "rh_9": 0.985, "rhea_fx1": 0.5, "rhea_fx2": 0.5, "rhea_fx3": 0.5, "rhea_fx4": 0.5, "rhea_fx5": 0.5, "rhea_fx6": 0.5};
@@ -2497,9 +2497,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 // Rend (Lv1 Super: Deal 3 three times, Apply 2 Bleed). All blood-crimson.
 // cut-in → she crouches and ROARS: a blood ring bursts at her feet and a blood moon rises → pounces in on all fours →
@@ -2626,7 +2626,7 @@ scene.end=s2r(END);
 const A={bg:'img/bg_festival.webp',rhea_cutin:'img/rhea_cutin.webp',rhea_game:'img/rhea_game.webp'};
 for(let i=1;i<=9;i++) A['rh_'+i]='img/rh_'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp'; for(let i=1;i<=8;i++) A['rb_'+i]='img/rb_'+i+'.webp'; for(let i=1;i<=6;i++) A['rhea_fx'+i]='img/rhea_fx'+i+'.webp';
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.maximo=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"maximo_game": 0.485, "mx_1": 0.592, "mx_2": 0.299, "mx_3": 0.895, "mx_4": 0.488, "mx_5": 0.619, "mx_6": 0.415, "mx_7": 0.608, "mx_8": 0.045, "mx_9": 0.558, "mu_1": 0.557, "mu_2": 0.315, "mu_3": 0.5, "mu_4": 0.5, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={"maximo_game": 0.997, "mx_1": 0.989, "mx_2": 0.986, "mx_3": 0.987, "mx_4": 0.985, "mx_5": 0.988, "mx_6": 0.986, "mx_7": 0.988, "mx_8": 0.984, "mx_9": 0.984, "mu_1": 0.991, "mu_2": 0.993, "mu_3": 0.988, "mu_4": 0.984};
@@ -2800,9 +2800,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 // Titan Mask — Flying Elbow (Lv1 Super: Deal 9, Gain 4 Guard). Champion gold with royal purple.
 // cut-in → showman taunt under a spotlight, flash bulbs and gold stars → charge → running shoulder tackle flips the rival flat (3) →
@@ -2938,7 +2938,7 @@ scene.end=s2r(END);
 const A={bg:'img/bg_festival.webp',maximo_cutin:'img/maximo_cutin.webp',maximo_game:'img/maximo_game.webp'};
 for(let i=1;i<=9;i++) A['mx_'+i]='img/mx_'+i+'.webp'; for(let i=1;i<=4;i++) A['mu_'+i]='img/mu_'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp'; for(let i=1;i<=8;i++) A['mb_'+i]='img/mb_'+i+'.webp'; for(let i=1;i<=6;i++) A['maximo_fx'+i]='img/maximo_fx'+i+'.webp';
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.akane=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"akane_game": 0.432, "akane_fgame": 0.541, "ak_1": 0.404, "ak_2": 0.141, "ak_3": 0.04, "ak_4": 0.205, "ak_5": 0.144, "ak_6": 0.396, "ak_7": 0.299, "ak_8": 0.513, "ak_9": 0.488, "akf_1": 0.5, "aks_1": 0.5, "akf_2": 0.574, "aks_2": 0.5, "akx": 0.5, "akfl": 0.5, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489, "akane_fx1": 0.5, "akane_fx2": 0.5, "akane_fx3": 0.5, "akane_fx4": 0.5, "akane_fx5": 0.5, "akane_fx6": 0.5}, __AY={"akane_game": 0.996, "akane_fgame": 0.994, "ak_1": 0.988, "ak_2": 0.986, "ak_3": 0.986, "ak_4": 0.987, "ak_5": 0.988, "ak_6": 0.985, "ak_7": 0.989, "ak_8": 0.985, "ak_9": 0.989, "akf_1": 0.5, "aks_1": 0.5, "akf_2": 0.996, "aks_2": 0.993, "akx": 0.5, "akfl": 1.0, "akane_fx1": 0.5, "akane_fx2": 0.5, "akane_fx3": 0.5, "akane_fx4": 0.5, "akane_fx5": 0.5, "akane_fx6": 0.5};
@@ -3112,9 +3112,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 // Feather Fall (Lv1 Super: Deal 4 four times, Apply 1 Exposed, go light). Gravity violet + pale ice-blue. The blade NEVER leaves the scabbard.
 // cut-in → she taps the scabbard: gravity rings pulse and the world goes weightless — rubble, petals and the rival drift up →
@@ -3233,7 +3233,7 @@ scene.end=s2r(END);
 const A={bg:'img/bg_moon.webp',akane_cutin:'img/akane_cutin.webp',akane_game:'img/akane_game.webp',akane_fgame:'img/akane_fgame.webp'};
 for(let i=1;i<=9;i++) A['ak_'+i]='img/ak_'+i+'.webp'; for(let i=1;i<=2;i++){ A['akf_'+i]='img/akf_'+i+'.webp'; A['aks_'+i]='img/aks_'+i+'.webp'; } A.akx='img/akx.webp'; A.akfl='img/akfl.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp'; for(let i=1;i<=8;i++) A['kb_'+i]='img/kb_'+i+'.webp'; for(let i=1;i<=6;i++) A['akane_fx'+i]='img/akane_fx'+i+'.webp';
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.shio=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"shio_game": 0.5, "sp_1": 0.5, "sp_2": 0.5, "sp_3": 0.5, "sp_4": 0.5, "sp_5": 0.5, "sp_6": 0.5, "sp_7": 0.5, "sp_8": 0.5, "sp_9": 0.5, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={"shio_game": 1.0, "sp_1": 1.0, "sp_2": 1.0, "sp_3": 1.0, "sp_4": 1.0, "sp_5": 1.0, "sp_6": 1.0, "sp_7": 1.0, "sp_8": 1.0, "sp_9": 1.0};
@@ -3407,9 +3407,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 // Splash Step (Lv1 Super: Gain 6 Guard, Apply 2 Soaked). All water: cyan, aqua, white foam.
 // droplets gather → cut-in "Splash Step!" → three dancing tide-steps across the water, each foot-plant splashing up a crown →
@@ -3546,7 +3546,7 @@ scene.end=s2r(END);
 const A={bg:'img/bg_moon.webp',shio_cutin:'img/shio_cutin.webp',shio_game:'img/shio_game.webp'};
 for(let i=1;i<=9;i++) A['sp_'+i]='img/sp_'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp'; for(let i=1;i<=8;i++){ A['wg_'+i]='img/wg_'+i+'.webp'; A['wv_'+i]='img/wv_'+i+'.webp'; }
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.rei=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"rei_game": 0.5, "rk_1": 0.5, "rk_2": 0.5, "rk_3": 0.5, "rk_4": 0.5, "rk_5": 0.5, "rk_6": 0.5, "rk_7": 0.5, "rk_8": 0.5, "rk_9": 0.5, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={"rei_game": 1.0, "rk_1": 1.0, "rk_2": 1.0, "rk_3": 1.0, "rk_4": 1.0, "rk_5": 1.0, "rk_6": 1.0, "rk_7": 0.5, "rk_8": 0.5, "rk_9": 1.0};
@@ -3720,9 +3720,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 // Flash Kick (Lv1 Super: Deal 6, Apply 2 Shock, add 2 Flash Steps to your hand). All lightning: volt yellow, white-hot core, electric blue.
 // static crackles → cut-in "Flash Kick!" → he flash-steps across in zig-zag bolts → low sweep (1) → knee (1) → spinning roundhouse (1) →
@@ -3880,7 +3880,7 @@ scene.end=s2r(END);
 const A={bg:'img/bg_moon.webp',rei_cutin:'img/rei_cutin.webp',rei_game:'img/rei_game.webp'};
 for(let i=1;i<=9;i++) A['rk_'+i]='img/rk_'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp'; for(let i=1;i<=8;i++){ A['le_'+i]='img/le_'+i+'.webp'; }
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.azami=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"azami_game": 0.5, "zk_1": 0.5, "zk_2": 0.5, "zk_3": 0.5, "zk_4": 0.5, "zk_5": 0.5, "zk_6": 0.5, "zk_7": 0.5, "zk_8": 0.5, "zk_9": 0.5, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={"azami_game": 1.0, "zk_1": 1.0, "zk_2": 0.5, "zk_3": 0.5, "zk_4": 1.0, "zk_5": 1.0, "zk_6": 0.5, "zk_7": 0.5, "zk_8": 1.0, "zk_9": 1.0};
@@ -4054,9 +4054,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 // Needle Storm (Lv1 Super: Deal 2 three times, Apply 2 Poison). Poison green + deep purple; her needles glow toxic green.
 // mist curls at her feet → cut-in "Needle Storm!" → smoke bomb: she vanishes in a burst of toxic smoke → reappears spinning mid-air and
@@ -4225,7 +4225,7 @@ scene.end=s2r(END);
 const A={bg:'img/bg_moon.webp',azami_cutin:'img/azami_cutin.webp',azami_game:'img/azami_game.webp'};
 for(let i=1;i<=9;i++) A['zk_'+i]='img/zk_'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp'; for(let i=1;i<=8;i++){ A['pz_'+i]='img/pz_'+i+'.webp'; }
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.mirei=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"mirei_game": 0.5, "mr_1": 0.5, "mr_2": 0.5, "mr_3": 0.5, "mr_4": 0.5, "mr_5": 0.5, "mr_6": 0.5, "mr_7": 0.5, "mr_8": 0.5, "mr_9": 0.5, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489, "ma_1": 0.62, "ma_2": 0.5, "ma_3": 0.32}, __AY={"mirei_game": 1.0, "mr_1": 1.0, "mr_2": 1.0, "mr_3": 1.0, "mr_4": 1.0, "mr_5": 1.0, "mr_6": 1.0, "mr_7": 1.0, "mr_8": 1.0, "mr_9": 1.0};
@@ -4399,9 +4399,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 // Gentle Theft (Lv1 Super: Deal 6, heal all the damage it deals). Jade-green spirit light with soft pink ribbons.
 // healing motes rise → cut-in "Gentle Theft!" → she glides in, robes flowing → a gentle palm to the chest (2): spirit threads wrap the rival →
@@ -4598,7 +4598,7 @@ scene.end=s2r(END);
 const A={bg:'img/bg_moon.webp',mirei_cutin:'img/mirei_cutin.webp',mirei_game:'img/mirei_game.webp'};
 for(let i=1;i<=9;i++) A['mr_'+i]='img/mr_'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp'; for(let i=1;i<=8;i++){ A['sd_'+i]='img/sd_'+i+'.webp'; A['ma_'+i]='img/ma_'+i+'.webp'; }
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.gozen=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"gz_1": 0.542, "gz_2": 0.465, "gz_3": 0.495, "gz_4": 0.409, "gz_5": 0.534, "gz_6": 0.5, "gz_7": 0.482, "gz_8": 0.523, "gz_9": 0.592, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={};
@@ -4772,9 +4772,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 
 // Teacher's Rebuke (Lv1 Super: Gain 5 Counter, deal 5). Gold light with crimson sparks.
@@ -4963,7 +4963,7 @@ scene.end=s2r(END);
 const A={bg:'img/bg_road.webp',wall:'img/gz_wall.webp',crater:'img/gz_crater.webp',gozen_cutin:'img/gozen_cutin.webp',gozen_game:'img/gozen_game.webp'};
 for(let i=1;i<=9;i++) A['gz_'+i]='img/gz_'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp'; for(let i=1;i<=8;i++){ A['pw_'+i]='img/pw_'+i+'.webp'; A['ca_'+i]='img/ca_'+i+'.webp'; }
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.jo=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"jo_1": 0.495, "jo_2": 0.553, "jo_3": 0.443, "jo_4": 0.462, "jo_5": 0.538, "jo_6": 0.522, "jo_7": 0.442, "jo_8": 0.48, "jo_9": 0.517, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489, "jo_r1": 0.522, "jo_r2": 0.414, "jo_r3": 0.502}, __AY={};
@@ -5137,9 +5137,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 
 // Hot Hand (Lv1 Super: roll a die, deal 4 plus the roll, draw 1). Lucky green and festival gold.
@@ -5330,7 +5330,7 @@ scene.end=s2r(END);
 const A={bg:'img/bg_festival.webp',jo_cutin:'img/jo_cutin.webp',jo_game:'img/jo_game.webp'};
 for(let i=1;i<=9;i++) A['jo_'+i]='img/jo_'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp'; for(let i=1;i<=8;i++){ A['jp_'+i]='img/jp_'+i+'.webp'; A['dz_'+i]='img/dz_'+i+'.webp'; A['df_'+i]='img/df_'+i+'.webp'; } for(const k of ['r1','r2','r3']) A['jo_'+k]='img/jo_'+k+'.webp';
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.valka=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"vk_1": 0.5, "vk_2": 0.5, "vk_3": 0.19, "vk_4": 0.341, "vk_5": 0.542, "vk_6": 0.556, "vk_7": 0.065, "vk_8": 0.507, "vk_9": 0.653, "vk_a1": 0.432, "vk_a2": 0.544, "vk_a3": 0.511, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={};
@@ -5504,9 +5504,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 
 // Binder Dash (Lv1 Super: gain 6 Guard, deal 6). Amber plasma, white armour, lightning.
@@ -5683,7 +5683,7 @@ scene.end=s2r(END);
 const A={bg:'img/bg_road.webp',valka_cutin:'img/valka_cutin.webp',valka_game:'img/valka_game.webp'};
 for(let i=1;i<=9;i++) A['vk_'+i]='img/vk_'+i+'.webp'; for(const k of ['a1','a2','a3']) A['vk_'+k]='img/vk_'+k+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp'; for(let i=1;i<=8;i++){ A['hx_'+i]='img/hx_'+i+'.webp'; A['tx_'+i]='img/tx_'+i+'.webp'; }
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.hana=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"hana_f1": 0.659, "hana_f2": 0.534, "hana_f3": 0.518, "hana_f4": 0.626, "hana_f5": 0.524, "hana_f6": 0.624, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={};
@@ -5857,9 +5857,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 
 // Lift (Lv1 Super, a skill: gain 6 Guard and 30 Overflow, apply 2 Strain). No damage, so no attack: a power-up.
@@ -6034,7 +6034,7 @@ scene.end=s2r(END);
 const A={bg:'img/bg_road.webp',hana_cutin:'img/hana_cutin.webp'};
 for(let i=1;i<=6;i++) A['hana_f'+i]='img/hana_f'+i+'.webp'; for(let i=1;i<=8;i++){ A['hp_'+i]='img/hp_'+i+'.webp'; A['pz_'+i]='img/pzh_'+i+'.webp'; } for(let i=1;i<=102;i++) A['hsv_'+i]='img/hsv_'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp';
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.tetsu=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"te_1": 0.583, "te_2": 0.534, "te_3": 0.536, "te_4": 0.504, "te_5": 0.476, "te_6": 0.561, "te_7": 0.452, "te_8": 0.59, "te_9": 0.554, "tj_1": 0.527, "tj_2": 0.346, "tj_3": 0.538, "tj_4": 0.373, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={};
@@ -6208,9 +6208,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 
 // Spark Shower (Lv1 Super: deal 5, apply 2 Burn). Forge fire: orange, gold, white-hot.
@@ -6419,7 +6419,7 @@ scene.end=s2r(END);
 const A={bg:'img/bg_festival.webp',tetsu_cutin:'img/tetsu_cutin.webp',av_1:'img/av_1.webp',av_2:'img/av_2.webp'};
 for(let i=1;i<=9;i++) A['te_'+i]='img/te_'+i+'.webp'; for(let i=1;i<=4;i++) A['tj_'+i]='img/tj_'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp'; for(let i=1;i<=8;i++) for(const p of ['ss_','sw_','mi_','nv_','bu_','jt_']) A[p+i]='img/'+p+i+'.webp';
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.duelist=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"so_1": 0.388, "so_2": 0.445, "so_3": 0.344, "so_4": 0.334, "so_5": 0.438, "so_6": 0.357, "so_7": 0.507, "so_8": 0.396, "so_9": 0.37, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={};
@@ -6593,9 +6593,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 
 // An Eye for an Eye (Lv1 Super, no damage: +10 Guard, Feint 10, next 2 Attacks Pierce +6). Gold/crimson matador showman.
@@ -6773,7 +6773,7 @@ scene.end=s2r(END);
 const A={bg:'img/bg_road.webp',duelist_cutin2:'img/duelist_cutin2.webp'};
 for(let i=1;i<=9;i++) A['so_'+i]='img/so_'+i+'.webp'; 
 for(let i=1;i<=8;i++) for(const p of ['gw_','fe_','ey_']) A[p+i]='img/'+p+i+'.webp';
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.gogo=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"gg_1": 0.569, "gg_2": 0.274, "gg_3": 0.509, "gg_4": 0.51, "gg_5": 0.433, "gg_6": 0.515, "gg_7": 0.531, "gg_8": 0.557, "gg_9": 0.495, "gp_1": 0.529, "gp_2": 0.533, "gp_3": 0.537, "gp_4": 0.531, "gp_5": 0.529, "gp_6": 0.544, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={};
@@ -6947,9 +6947,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 
 // Hundred Points (Lv1 Super: Deal 6, extend every status on the rival by 1 turn). Teal meridian light + gold needles, purple robes.
@@ -7135,7 +7135,7 @@ const CUTIMG=CUT_EYE.gogo_cutin2!=null?'gogo_cutin2':'gogo_cutin';
 const A={bg:'img/bg_moon.webp',gogo_cutin2:'img/gogo_cutin2.webp'};
 for(let i=1;i<=9;i++) A['gg_'+i]='img/gg_'+i+'.webp'; for(let i=1;i<=6;i++) A['gp_'+i]='img/gp_'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp'; for(let i=1;i<=8;i++) for(const p of ['hf_','gn_','mi_','pi_']) A[p+i]='img/'+p+i+'.webp';
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.ito=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"io_1": 0.475, "io_2": 0.419, "io_3": 0.53, "io_4": 0.534, "io_5": 0.563, "io_6": 0.525, "io_7": 0.412, "io_8": 0.577, "io_9": 0.509, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={};
@@ -7309,9 +7309,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 
 // Strung Up (Lv1 Super: Tie 3 Strings, Deal 4 three times). Blood-red cursed marionette strings.
@@ -7496,7 +7496,7 @@ scene.end=s2r(END);
 const A={bg:'img/bg_moon.webp',ito_cutin:'img/ito_cutin.webp'};
 for(let i=1;i<=9;i++) A['io_'+i]='img/io_'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp'; for(let i=1;i<=8;i++) for(const p of ['tk_','rs_','ss_']) A[p+i]='img/'+p+i+'.webp';
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.wukong=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"wkp_1": 0.587, "wkp_2": 0.506, "wkp_3": 0.581, "wkp_4": 0.5, "wkp_5": 0.503, "wkp_6": 0.477, "wkp_7": 0.606, "wkp_8": 0.607, "wkp_9": 0.471, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={};
@@ -7670,9 +7670,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 
 // Grow, Ruyi! (Lv1 Super: Grow 3, then deal 10 plus Size). Gold metal: the staff grows into a sky-high pillar and crushes the rival.
@@ -7845,7 +7845,7 @@ scene.end=s2r(END);
 const A={bg:'img/bg_road.webp',wukong_cutin:'img/wukong_cutin.webp',wk_staff:'img/wk_staff.webp'};
 for(let i=1;i<=9;i++) A['wkp_'+i]='img/wkp_'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp'; for(let i=1;i<=8;i++) for(const p of ['nv_','mi_','ss_']) A[p+i]='img/'+p+i+'.webp';
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.kuro=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"kp_1": 0.5, "kp_2": 0.366, "kp_3": 0.472, "kp_4": 0.502, "kp_5": 0.5, "kp_6": 0.5, "kp_7": 0.494, "kp_8": 0.523, "kp_9": 0.474, "ka_1": 0.558, "ka_2": 0.509, "ka_3": 0.428, "ka_4": 0.5, "ka_5": 0.589, "ka_6": 0.468, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={};
@@ -8019,9 +8019,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 
 // Stray's Swipe (Lv1 Super: Deal 4 three times, apply 1 Bleed, gain 4 Guard). Inky black shadow with blue-violet edges. No red.
@@ -8185,7 +8185,7 @@ const CUTK=CUT_EYE.kuro_cutin2!=null?'kuro_cutin2':'kuro_cutin';
 const A={bg:'img/bg_moon.webp',kuro_cutin:'img/kuro_cutin.webp',kuro_cutin2:'img/kuro_cutin2.webp'};
 for(let i=1;i<=9;i++) A['kp_'+i]='img/kp_'+i+'.webp'; for(let i=1;i<=6;i++) A['ka_'+i]='img/ka_'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp'; for(let i=1;i<=8;i++) for(const p of ['kc_','kg_']) A[p+i]='img/'+p+i+'.webp';
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.lyra=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"lp_st": 0.5, "lp_1": 0.506, "lp_2": 0.55, "lp_3": 0.447, "lp_4": 0.559, "lp_5": 0.5, "lp_6": 0.557, "lp_7": 0.597, "lp_8": 0.59, "lp_9": 0.551, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={};
@@ -8359,9 +8359,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 
 // Mic Drop (Lv1 Super: Deal 8, gain 1 Tempo). Idol fighter: hot pink + cyan sound/electric. Hits 2+2+4.
@@ -8546,7 +8546,7 @@ const CUTK='lyra_cutin';
 const A={bg:'img/bg_festival.webp',lyra_cutin:'img/lyra_cutin.webp',lp_st:'img/lp_st.webp'};
 for(let i=1;i<=9;i++) A['lp_'+i]='img/lp_'+i+'.webp'; for(let i=1;i<=6;i++) A['lyra_fx'+i]='img/lyra_fx'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp'; for(let i=1;i<=8;i++) A['lb_'+i]='img/lb_'+i+'.webp';
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.uzume=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"uq_1": 0.42, "uq_2": 0.63, "uq_3": 0.411, "uq_4": 0.492, "uq_5": 0.5, "uq_6": 0.5, "uq_7": 0.416, "uq_8": 0.494, "uq_9": 0.53, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={};
@@ -8720,9 +8720,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 
 // Kaze no Mai (Lv1 Super, skill: completes a Kagura, gain 3 Petals). Power-up wind dance. Sakura pink + mint wind. No damage, no status text.
@@ -8900,7 +8900,7 @@ const CUTK='uzume_cutin2';
 const A={bg:'img/bg_moon.webp',uzume_cutin2:'img/uzume_cutin2.webp'};
 for(let i=1;i<=9;i++) A['uq_'+i]='img/uq_'+i+'.webp'; for(let i=1;i<=6;i++) A['uzume_fx'+i]='img/uzume_fx'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp';
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.shura=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"sp2_1": 0.554, "sp2_2": 0.32, "sp2_3": 0.62, "sp2_4": 0.578, "sp2_5": 0.544, "sp2_6": 0.523, "sp2_7": 0.439, "sp2_8": 0.417, "sp2_9": 0.442, "spa_1": 0.33, "spa_2": 0.475, "spa_3": 0.529, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={};
@@ -9074,9 +9074,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 
 // Fastball Special (Lv1 Super: Deal 8). Kanabo uppercut (3) + flaming home-run fastball (5). All fire. No status text.
@@ -9296,7 +9296,7 @@ const CUTK='shura_cutin2';
 const A={bg:'img/bg_road.webp',wall:'img/gz_wall.webp',crater:'img/gz_crater.webp',shura_cutin2:'img/shura_cutin2.webp'};
 for(let i=1;i<=9;i++) A['sp2_'+i]='img/sp2_'+i+'.webp'; for(let i=1;i<=3;i++) A['spa_'+i]='img/spa_'+i+'.webp'; for(let i=1;i<=8;i++) A['fb_'+i]='img/fb_'+i+'.webp'; for(let i=1;i<=6;i++) A['shura_fx'+i]='img/shura_fx'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp';
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.rasetsu=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"rp_1": 0.52, "rp_2": 0.548, "rp_3": 0.62, "rp_4": 0.327, "rp_5": 0.642, "rp_6": 0.479, "rp_7": 0.464, "rp_8": 0.378, "rp_9": 0.566, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={};
@@ -9470,9 +9470,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 
 // Quickdraw Gale (Lv1 Super: Deal 7). Iaido blink-draw through the rival, slow sheathe, CLICK - the cuts land (2+2+3). Crimson slashes. No status text.
@@ -9659,7 +9659,7 @@ const CUTK='rasetsu_cutin';
 const A={bg:'img/bg_moon.webp',ink3:'img/ink_bg3.webp',ink4:'img/ink_bg4.webp',br_long:'img/br_long.webp',br_short:'img/br_short.webp',rasetsu_cutin:'img/rasetsu_cutin.webp'};
 for(let i=1;i<=9;i++) A['rp_'+i]='img/rp_'+i+'.webp'; for(let i=1;i<=6;i++) A['rasetsu_fx'+i]='img/rasetsu_fx'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp';
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.maya=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"ma_1": 0.62, "ma_2": 0.5, "ma_3": 0.32, "mp_1": 0.3, "mp_2": 0.3, "mp_3": 0.3, "mp_4": 0.381, "mp_5": 0.325, "mp_6": 0.508, "mp_7": 0.33, "mp_8": 0.4, "mp_9": 0.43, "sh_idle": 0.449, "sh_hurt": 0.452, "sh_down": 0.466, "sh_hit": 0.486, "sh_hit_h": 0.489}, __AY={};
@@ -9833,9 +9833,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 
 // Icicle Bunt (Lv1 Super: Deal 6). Bunts two icicles (2+2), then swings the giant one (2): freeze, shatter. All ice. No status text.
@@ -10042,7 +10042,7 @@ const CUTK='maya_cutin3';
 const A={bg:'img/bg_festival.webp',mimp:'img/maya_impact.webp',maya_cutin3:'img/maya_cutin3.webp',mf_blast:'img/mf_blast.webp',mf_crack:'img/mf_crack.webp',mf_crater:'img/mf_crater.webp',mf_lines:'img/mf_lines.webp',mf_ring:'img/mf_ring.webp',mf_spikes:'img/mf_spikes.webp'};
 for(let i=1;i<=3;i++) A['ma_'+i]='img/ma_'+i+'.webp'; for(let i=1;i<=9;i++) A['mp_'+i]='img/mp_'+i+'.webp'; 
 for(const k of [1,2,3,4,5,6,7,10,12]) A['db_'+k]='img/db_'+k+'.webp';
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 LSQ_SC.kaiko=function(cv,__RIV,__TITLE,__SFX,__READY,__FIN,__ST,__LOAD,__OK,__FLIP){ const __AX={"kq_idle": 0.606, "kq_lag": 0.596, "kq_win": 0.578, "kq_spikes": 0.54, "kq_dnd": 0.561}, __AY={};
@@ -10216,9 +10216,9 @@ function fireLoop(x,y,w,t,a,o){ o=o||{}; const i=IM.fire_loop; if(!i||a<=0) retu
   cx.save(); cx.globalAlpha=a; cx.translate(x,y); if(o.flip) cx.scale(-1,1); if(o.front){ cx.beginPath(); cx.rect(-w/2,-h*(o.front),w,h*o.front+4); cx.clip(); }
   cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); if(o.glow){ cx.globalCompositeOperation='lighter'; cx.globalAlpha=a*o.glow; cx.drawImage(i,f*FW,0,FW,FH,-w/2,-h,w,h); } cx.restore(); }
 
-const vic=(p,x,y,o)=>{ const i=IM.riv; if(!i) return; o=o||{}; const h=300, s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
-  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
-  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); cx.drawImage(i,-w/2,-h,w,h); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
+const vic=(p,x,y,o)=>{ const KD=p==='down'&&IM.rivd, i=KD||IM.riv; if(!i) return; o=o||{}; const h=300*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1), s=h/i.height, w=i.width*s; let r=o.rot||0, dy=0, lit=0;
+  if(p==='hurt') r+=.1; else if(p==='hit'){ r+=.16; lit=.45; } else if(p==='hit_h') lit=.3; else if(p==='down'&&!KD){ r=1.5; dy=-w*.42; } if(o.tint) lit=Math.max(lit,.35);
+  cx.save(); cx.globalAlpha=o.a==null?1:o.a; cx.translate(x,y+dy); cx.rotate(r); cx.scale(-1,1); if(o.sq) cx.scale(1+o.sq,1-o.sq); (window.__lsPPDraw?window.__lsPPDraw(cx,i,-w/2,-h,w,h):cx.drawImage(i,-w/2,-h,w,h)); if(lit){ cx.globalCompositeOperation='lighter'; cx.globalAlpha*=lit; cx.drawImage(i,-w/2,-h,w,h); } cx.restore(); };
 
 
 CUT_EYE.kaiko_cutin=.57; CUT_EX.kaiko_cutin=.7;
@@ -10308,7 +10308,7 @@ const scene={end:0, reset(){ SM=[]; camSnap(W/2,H/2,1); },
 scene.end=s2r(END);
 const A={bg:'img/bg_moon.webp',kaiko_cutin:'img/kaiko_cutin.webp',kq_idle:'img/kq_idle.webp',kq_lag:'img/kq_lag.webp',kq_win:'img/kq_win.webp'};
 for(let i=1;i<=4;i++) A['kqm_'+i]='img/kqm_'+i+'.webp';
-for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; boot(scene,A);
+for(const k in A){ if(!__OK(A[k])) delete A[k]; } Object.assign(AXS,__AX); Object.assign(AYS,__AY); A.riv=__RIV; if(window.__LSQ_RIVD) A.rivd=window.__LSQ_RIVD; boot(scene,A);
 
 };
 window.LSQ=(function(){ const css=document.createElement('style'); css.textContent='.lsq{position:fixed;inset:0;z-index:2147483000;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;opacity:0;transition:opacity .16s}.lsq.on{opacity:1}.lsq.out{opacity:0;transition:opacity .65s ease-in-out}.lsq.out.fast{transition:opacity .22s}.lsq canvas{flex:none;width:min(199vh,max(100vw,min(177.78vh,112vw)));aspect-ratio:16/9;display:block;transition:transform .65s ease-in-out}.lsq.out canvas{transform:scale(1.035)}.lsq.out .lsq-skip{opacity:0}.lsq-skip{position:absolute;right:14px;bottom:12px;font:700 11px system-ui,sans-serif;letter-spacing:.14em;color:rgba(255,255,255,.45);text-transform:uppercase;pointer-events:none}'; document.head.appendChild(css);
