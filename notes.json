@@ -1,5 +1,16 @@
 [
  {
+  "version": "0.3.73",
+  "date": "Nov 26, 2026",
+  "title": "Rushdown dashes into the next map, smoother counters",
+  "items": [
+   "The Rushdown dash is now the transition: after the Rush hit, the attacker tears off-screen, a wipe in their colour sweeps over, and on 3D arenas the fight moves to the next map. The combo then plays out full screen right there, with no letterbox, and the fight carries on in the new map.",
+   "The VS loading screen now builds the fight's 3D arena and the map a Rushdown would dash into, so the arena comes up ready and the map swap is near instant.",
+   "A Rush hit that reaches Max Chain on a Poise Broken rival now starts a Rushdown too, not only on a rival you are juggling.",
+   "Counters run much smoother: the full-screen blur behind the counter choices, the pulsing fighter glows and other heavy filters were replaced with lighter versions that look the same."
+  ]
+ },
+ {
   "version": "0.3.72",
   "date": "Nov 26, 2026",
   "title": "Quick fighter swap in Training",

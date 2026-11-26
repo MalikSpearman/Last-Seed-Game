@@ -77,9 +77,10 @@ function deHaze(S) {
   S.traverse(o => { if (!o.isSprite) return; const m = o.material; if (!m || m.map || seen.has(m)) return; seen.add(m); m.map = PUFF; m.depthWrite = false; m.transparent = true;
     if (m.blending !== T.AdditiveBlending) { const L = .3 * m.color.r + .59 * m.color.g + .11 * m.color.b; if (L > .6) m.opacity *= .6; } m.needsUpdate = true; });
 }
-let modeled = null;
+let modeled = null, spare = null;   // spare: the Rushdown neighbour, built ahead under the loading screen so the swap is instant
 async function modeledCtx(name) {
   if (modeled && modeled.name === name) { use(modeled); await modeled.ready; return modeled; }
+  if (spare && spare.name === name) { const old = modeled; await spare.ready; modeled = spare; spare = null; use(modeled); if (old && old !== modeled) disposeCtx(old); return modeled; }
   const old = modeled, cx = modeled = blank(new T.Scene()); cx.name = name; cx.painted = false; cx.modeled = true;
   use(cx); cx.ready = MODELED[name]().then(async mod => { await mod.build(D, /2$/.test(name) ? 2 : 1, name); /* boss arenas: a name ending in 2 is the second-phase look */ deHaze(D.scene); cx.P = mod.PRESET; cx.fx = FX = new ArenaFX(D); D.renderer.toneMappingExposure = cx.P.exposure || 1.75; cx.look = look(name, cx.P); D.setFX(cx.look); try { D.envLight({ env: cx.look.env }); } catch (_) {} });
   if (old && old !== cx) disposeCtx(old);
@@ -535,6 +536,36 @@ export function chaseDraw(u, dt) {
   if (D.faceCam) { const c = cam.position; for (const m of D.billboards) m.rotation.y = Math.atan2(c.x - m.position.x, c.z - m.position.z) * D.faceCam; }
   if (D.backdropMesh) { const b = D.backdropMesh; b.position.x = b.userData.x0 + cam.position.x * b.userData.parallax; }
   D._render(); return cv;
+}
+// build the set a Rushdown would carry this fight into, while the VS / loading screen still covers the arena:
+// the spare is built as its own world (its scene, lights, effects, shaders compiled), then the current set is put back
+// on the VS / loading screen: build this fight's own 3D set (so the arena comes up already built) and then its Rushdown neighbour
+export function prewarm(bgUrl, k) {
+  const go = async () => {
+    ensure(); const n = nameOf(bgUrl), mk = k && MODELED[k] ? k : (!k && n && MODELED[BYBG[n] || n] && !window.__lsPainted ? (BYBG[n] || n) : null);
+    if (!mk) return null; const wasPaused = D.paused; D.paused = true;
+    try { await modeledCtx(mk); P = modeled.P; key = mk; } catch (e) { console.warn('ls3d prewarm', mk, e); D.paused = wasPaused; return null; }
+    D.paused = wasPaused; return mk;
+  };
+  return (lock = lock.then(go, go)).then(r => r ? prepare() : null);
+}
+export function prepare() {
+  const go = async () => {
+    const n = D && NEXT[key]; if (!n || !MODELED[n] || (modeled && modeled.name === n)) return null;
+    if (spare && spare.name === n) { await spare.ready; return n; }
+    if (spare) { disposeCtx(spare); spare = null; }
+    const back = cur, wasPaused = D.paused; D.paused = true;
+    const cx = spare = blank(new T.Scene()); cx.name = n; cx.painted = false; cx.modeled = true; let ok = false;
+    use(cx);
+    try { const mod = await MODELED[n](); await mod.build(D, /2$/.test(n) ? 2 : 1, n); deHaze(D.scene); cx.P = mod.PRESET; cx.fx = new ArenaFX(D); cx.look = look(n, cx.P); D.setFX(cx.look);
+      try { D.envLight({ env: cx.look.env }); } catch (_) {} try { D.renderer.compile(cx.scene, D.camera); } catch (_) {} ok = true; }
+    catch (e) { console.warn('ls3d prepare', n, e); }
+    cx.ready = Promise.resolve();
+    if (back) use(back); FX = back ? back.fx : FX; D.paused = wasPaused;
+    if (!ok) { if (spare === cx) spare = null; disposeCtx(cx); return null; }
+    return n;
+  };
+  return (lock = lock.then(go, go));
 }
 export function nextStage() { return (D && !D.paused && NEXT[key]) || null; }
 export function transition(host) { const n = nextStage(); if (!n || !host) return Promise.resolve(null); return start(host, n, null).then(() => n, () => null); }
