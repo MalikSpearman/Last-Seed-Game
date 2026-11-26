@@ -1,5 +1,14 @@
 [
  {
+  "version": "0.3.56",
+  "date": "Nov 25, 2026",
+  "title": "Health fixes",
+  "items": [
+   "Bruna, Orin and Mirei had far too much health in runs after the last balance pass: Bruna 256 → 166, Orin 180 → 141, Mirei 218 → 150",
+   "Versus health is unchanged (Bruna 162, Mirei 152, Orin 141), and the Versus, Training and online character select now shows each fighter's real Versus health instead of their run health"
+  ]
+ },
+ {
   "version": "0.3.55",
   "date": "Nov 25, 2026",
   "title": "Rushdown cinematic",
