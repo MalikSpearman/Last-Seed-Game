@@ -42,7 +42,7 @@ function disposeCtx(cx) {
   if (cx.moon && cx.moon.shadow && cx.moon.shadow.map) cx.moon.shadow.map.dispose();
 }
 async function bambooCtx() {
-  if (!bamboo) { bamboo = blank(D.scene0); bamboo.painted = false; use(bamboo); bamboo.ready = build(D).then(() => { bamboo.fx = FX = new ArenaFX(D); bamboo.look = {}; try { D.envLight(); } catch (_) {} }); }
+  if (!bamboo) { bamboo = blank(D.scene0); bamboo.painted = false; use(bamboo); bamboo.ready = build(D).then(() => { deHaze(D.scene); bamboo.fx = FX = new ArenaFX(D); bamboo.look = {}; try { D.envLight(); } catch (_) {} }); }
   use(bamboo); await bamboo.ready; return bamboo;
 }
 async function paintedCtx(name, url) {
@@ -68,11 +68,20 @@ const MODELED = { festival: () => import('./scene_festival.js'), blight: () => i
   reno: () => import('./scene_reno.js'), proctor: () => import('./scene_proctor.js'), proctor2: () => import('./scene_proctor.js'), oba: () => import('./scene_oba.js'), oba2: () => import('./scene_oba.js'),
   kuzuryu: () => import('./scene_kuzuryu.js'), kuzuryu2: () => import('./scene_kuzuryu.js'), holdline: () => import('./scene_holdline.js'), holdline2: () => import('./scene_holdline.js'),
   golfdad: () => import('./scene_golfdad.js'), golfdad2: () => import('./scene_golfdad.js'), road: () => import('./scene_road.js'), ring: () => import('./scene_ring.js') };
+// untextured puffs (steam, spray, smoke) draw as flat translucent squares, which read as white haze over the set:
+// give them a soft round shape and a lighter touch
+let PUFF = null;
+function deHaze(S) {
+  if (!PUFF) { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(.45, 'rgba(255,255,255,.45)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); PUFF = new T.CanvasTexture(c); }
+  const seen = new Set();
+  S.traverse(o => { if (!o.isSprite) return; const m = o.material; if (!m || m.map || seen.has(m)) return; seen.add(m); m.map = PUFF; m.depthWrite = false; m.transparent = true;
+    if (m.blending !== T.AdditiveBlending) { const L = .3 * m.color.r + .59 * m.color.g + .11 * m.color.b; if (L > .6) m.opacity *= .6; } m.needsUpdate = true; });
+}
 let modeled = null;
 async function modeledCtx(name) {
   if (modeled && modeled.name === name) { use(modeled); await modeled.ready; return modeled; }
   const old = modeled, cx = modeled = blank(new T.Scene()); cx.name = name; cx.painted = false; cx.modeled = true;
-  use(cx); cx.ready = MODELED[name]().then(async mod => { await mod.build(D, /2$/.test(name) ? 2 : 1, name); /* boss arenas: a name ending in 2 is the second-phase look */ cx.P = mod.PRESET; cx.fx = FX = new ArenaFX(D); D.renderer.toneMappingExposure = cx.P.exposure || 1.75; cx.look = look(name, cx.P); D.setFX(cx.look); try { D.envLight({ env: cx.look.env }); } catch (_) {} });
+  use(cx); cx.ready = MODELED[name]().then(async mod => { await mod.build(D, /2$/.test(name) ? 2 : 1, name); /* boss arenas: a name ending in 2 is the second-phase look */ deHaze(D.scene); cx.P = mod.PRESET; cx.fx = FX = new ArenaFX(D); D.renderer.toneMappingExposure = cx.P.exposure || 1.75; cx.look = look(name, cx.P); D.setFX(cx.look); try { D.envLight({ env: cx.look.env }); } catch (_) {} });
   if (old && old !== cx) disposeCtx(old);
   await cx.ready; return cx;
 }

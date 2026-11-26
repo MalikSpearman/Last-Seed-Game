@@ -1,5 +1,14 @@
 [
  {
+  "version": "0.3.71",
+  "date": "Nov 26, 2026",
+  "title": "Clearer 3D arenas",
+  "items": [
+   "Removed the white mist that drifted over the floor of every 3D arena and washed out the fighters' feet.",
+   "Steam, sea spray and smoke are soft puffs instead of pale squares, and the coast spray and Mountain Pass cloud sea are much fainter."
+  ]
+ },
+ {
   "version": "0.3.70",
   "date": "Nov 26, 2026",
   "title": "Rushdown combos, finishers and Rush card art for everyone",

@@ -589,10 +589,10 @@ export function sea(D, R, { z = -60, w = 300, d = 110, y = -.9, color = 0x1a1238
   return m;
 }
 export function breakers(D, R, spots, { y = -.6 } = {}) {   // white spray bursting off rocks on a cycle
-  const sm = new T.SpriteMaterial({ color: 0xf0f0ff, transparent: true, opacity: .6, depthWrite: false }), L = [];
+  const sm = new T.SpriteMaterial({ color: 0xc8d0f0, transparent: true, opacity: .3, depthWrite: false }), L = [];
   for (const [x, z, s] of spots) for (let k = 0; k < 5; k++) { const p = new T.Sprite(sm.clone()); D.scene.add(p); L.push([p, x + R.r(-1, 1) * s, z, s, R() * 6]); }
   D.updaters.push(t => { for (const [p, x, z, s, ph] of L) { const u = ((t * .35 + ph) % 1.6) / 1.6, burst = Math.sin(Math.min(1, u * 1.4) * Math.PI);
-    p.position.set(x, y + burst * 2.2 * s, z); p.scale.setScalar((.6 + u * 2.4) * s); p.material.opacity = Math.max(0, burst * .55); } });
+    p.position.set(x, y + burst * 2.2 * s, z); p.scale.setScalar((.5 + u * 1.8) * s); p.material.opacity = Math.max(0, burst * .26); } });   // a soft spray, not white blobs
 }
 // a wet wooden deck the fight stands on, with its posts, front rope and stone lanterns at the back corners
 export function deck(D, K, R, { w = 30, d = 9, z = 1.2, mat, post, stone, lanterns = true, rope = true } = {}) {

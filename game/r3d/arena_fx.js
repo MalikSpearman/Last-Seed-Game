@@ -83,7 +83,8 @@ export class ArenaFX {
       if (kind === 'dust') this.leaves[lk] = D.fireflies(40, c[0], c[2] - 2, 9, 4, { y0: .4, y1: 5, color: 0xffe2b0, size: 7 });
       if (kind === 'ember') this.leaves[lk] = D.fireflies(30, c[0], c[2] - 2, 10, 4, { y0: .3, y1: 4, color: /seacave|sunken/.test(n) ? 0x7ff0ff : 0xffa860, size: 9 });
     }
-    if (pp) { this.mistC = null; if (this.mist) this.mist.forEach(m => m.material.opacity = 0); return; }   // painted sets have their own air; the drifting mist is the bamboo road's
+    // no ground mist on any set: the pale puffs read as white haze over the floor and washed out the fighters' feet
+    this.mistC = null; if (this.mist) this.mist.forEach(m => m.material.opacity = 0); return;
     if (!this.mist) {
       const cv = document.createElement('canvas'); cv.width = cv.height = 128; const g = cv.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
       gr.addColorStop(0, 'rgba(200,215,255,.35)'); gr.addColorStop(1, 'rgba(200,215,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128);

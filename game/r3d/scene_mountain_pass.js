@@ -25,7 +25,7 @@ export async function build(D) {
     rope: new T.MeshStandardMaterial({ color: 0xb89060, roughness: 1 }), ice: new T.MeshStandardMaterial({ color: 0xd8f0ff, roughness: .15, metalness: .1, transparent: true, opacity: .85, emissive: 0x4080a0, emissiveIntensity: .2 }),
     ban: new T.MeshStandardMaterial({ map: ctex(bannerTex({ field: ['#a01a28', '#7a1020'], trim: '#e3b552', emblem: laurel, sd: 31 })), side: T.DoubleSide, alphaTest: .4, roughness: .9 }),
     pen: new T.MeshStandardMaterial({ color: 0xc02030, side: T.DoubleSide }), peak: new T.MeshStandardMaterial({ color: 0x8a90b8, roughness: 1, flatShading: true }), peakS: new T.MeshStandardMaterial({ color: 0xf8f4ff, roughness: .8, flatShading: true }),
-    cloud: new T.MeshBasicMaterial({ color: 0xf0e8f8, transparent: true, opacity: .55, depthWrite: false }),
+    cloud: new T.MeshBasicMaterial({ color: 0xb8a8d8, transparent: true, opacity: .22, depthWrite: false }),   // a low cloud sea, kept faint so it doesn't read as mist over the fight
   };
   // ── the ledge: snowfield, the flagstone path winding up-right to the cave ──
   box(40, 2, 14, M.snow, 0, -2, 1);
