@@ -1,5 +1,14 @@
 [
  {
+  "version": "0.3.76",
+  "date": "Nov 26, 2026",
+  "title": "Gashadokuro redrawn + lighting fix",
+  "items": [
+   "Gashadokuro's battle poses are redrawn to match his original art, and he now has full counter sprites (ready, evade, strike, swing, stagger, kneel).",
+   "Fixed large fighters looking washed out in 3D battles after the new dynamic lighting."
+  ]
+ },
+ {
   "version": "0.3.75",
   "date": "Nov 26, 2026",
   "title": "Rushdown chase is back",

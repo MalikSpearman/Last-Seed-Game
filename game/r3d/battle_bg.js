@@ -272,7 +272,7 @@ const CSS = `/* 3D sets with cast shadows: the flat drop-shadow behind each spri
   radial-gradient(ellipse 34% 22% at var(--d1x,30%) var(--d1y,35%),var(--l3d,rgba(40,52,110,.55)),transparent 70%),
   radial-gradient(ellipse 26% 18% at var(--d2x,70%) var(--d2y,62%),var(--l3d,rgba(40,52,110,.5)),transparent 70%),
   linear-gradient(180deg,var(--l3a,rgba(150,165,230,.9)) 0%,var(--l3b,rgba(205,212,245,.95)) 45%,var(--l3c,rgba(120,128,190,.95)) 100%)}
-.lit3d.live.tint{mix-blend-mode:multiply;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,var(--amb) 100%)}\n.lit3d.live.rim{mix-blend-mode:screen;background:linear-gradient(var(--rd,90deg),var(--rc) 0%,transparent 38%),radial-gradient(ellipse 80% 40% at 50% 0%,rgba(255,240,210,var(--top,0)),transparent 70%),linear-gradient(var(--rd,90deg),transparent 62%,var(--aw) 100%),linear-gradient(0deg,var(--tc) 0%,var(--tc) 100%)}\n.lit3d.warm{mix-blend-mode:screen;background:radial-gradient(ellipse 90% 70% at var(--wx,50%) 18%,var(--l3w,rgba(255,150,70,.32)),transparent 70%),linear-gradient(90deg,var(--rim,rgba(255,170,90,.0)) 0%,transparent 30%)}`;
+.lit3d.live.tint{mix-blend-mode:multiply;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,var(--lvamb) 100%)}\n.lit3d.live.rim{mix-blend-mode:screen;background:linear-gradient(var(--lvrd,90deg),var(--lvrc,transparent) 0%,transparent 38%),radial-gradient(ellipse 80% 40% at 50% 0%,rgba(255,240,210,var(--lvtop,0)),transparent 70%),linear-gradient(var(--lvrd,90deg),transparent 62%,var(--lvaw,transparent) 100%),linear-gradient(0deg,var(--lvtc,transparent) 0%,var(--lvtc,transparent) 100%)}\n.lit3d.warm{mix-blend-mode:screen;background:radial-gradient(ellipse 90% 70% at var(--wx,50%) 18%,var(--l3w,rgba(255,150,70,.32)),transparent 70%),linear-gradient(90deg,var(--rim,rgba(255,170,90,.0)) 0%,transparent 30%)}`;
 function lit(side, fd) {
   let L = lits[side];
   if (L && L.img && L.img !== fd.img) { L.a.remove(); L.b.remove(); L = null; delete lits[side]; }
@@ -310,19 +310,20 @@ function lightLive(F, t) {
     L.a.className = 'lit3d live tint'; L.b.className = 'lit3d live rim';
     const g = gapNow(), m = new T.Vector3(cx + (side === 'e' ? g : -g), cy + 1.1, cz);
     let sum = new T.Color(0, 0, 0), sl = 0, sr = 0, top = 0, tot = 0;
-    for (const l of Ls) { if (!(l.intensity > 0)) continue; const wp = l.getWorldPosition(new T.Vector3()), d = Math.max(.6, wp.distanceTo(m));
+    for (const l of Ls) { if (!(l.intensity > 0)) continue; const wp = l.getWorldPosition(new T.Vector3()); if (Math.hypot(wp.x - m.x, wp.z - m.z) < 1.6) continue;   // a fighter's own aura/boss light shouldn't paint them
+      const d = Math.max(1.2, wp.distanceTo(m));
       const fall = l.distance > 0 ? Math.pow(Math.max(0, 1 - Math.pow(d / l.distance, 4)), 2) : 1, w = l.intensity * fall / Math.pow(d, l.decay || 2);
       if (w <= 1e-4) continue; sum.add(l.color.clone().multiplyScalar(w)); tot += w; const sx = wp.clone().sub(m).dot(right); if (sx < 0) sl += w; else sr += w; if (wp.y - m.y > 1.2) top += w; }
     (LV.dbg = LV.dbg || {})[side] = { tot: +tot.toFixed(3), sl: +sl.toFixed(3), sr: +sr.toFixed(3), n: Ls.length };
     const fe = fd.f; let aw = null; if (fe.classList.contains('awk')) { aw = getComputedStyle(fe).getPropertyValue('--a1').trim() || null; }
-    const n = Math.min(1, tot * .6) * K.rim, hue = tot > 0 ? sum.multiplyScalar(1 / Math.max(sum.r, sum.g, sum.b, 1e-4)) : new T.Color(1, .8, .6);
+    const n = Math.min(.85, 1 - Math.exp(-tot * .7)) * K.rim, hue = tot > 0 ? sum.multiplyScalar(1 / Math.max(sum.r, sum.g, sum.b, 1e-4)) : new T.Color(1, .8, .6);
     // the enemy's sprite box is mirrored (.flip), so its inner/outer sides swap
     let fromLeft = sl >= sr; if (side === 'e') fromLeft = !fromLeft;
     const rc = `rgba(${hue.r * 255 | 0},${hue.g * 255 | 0},${hue.b * 255 | 0},${(.08 + .5 * n).toFixed(3)})`, tc = `rgba(${hue.r * 255 | 0},${hue.g * 255 | 0},${hue.b * 255 | 0},${(.04 + .16 * n * K.tint).toFixed(3)})`;
     const ac = `rgba(${amb.r * 255 | 0},${amb.g * 255 | 0},${amb.b * 255 | 0},${(K.amb * .45).toFixed(3)})`;
     const flick = .92 + .05 * Math.sin(t * 7.1 + (side === 'e' ? 1 : 0)) + .03 * Math.sin(t * 13.3);
-    L.a.style.cssText = `${box};${hid}--amb:${ac};--tc:${tc}`;
-    L.b.style.cssText = `${box};${hid === 'opacity:0;' ? hid : `opacity:${(flick * (+getComputedStyle(fd.img).opacity || 1)).toFixed(3)};`}--rc:${rc};--rx:${fromLeft ? '0%' : '100%'};--rd:${fromLeft ? '90deg' : '270deg'};--top:${Math.min(.35, top / Math.max(tot, 1e-4) * .35 * n).toFixed(3)};--aw:${aw || 'transparent'}`;
+    L.a.style.cssText = `${box};${hid}--lvamb:${ac}`;
+    L.b.style.cssText = `${box};${hid === 'opacity:0;' ? hid : `opacity:${(flick * (+getComputedStyle(fd.img).opacity || 1)).toFixed(3)};`}--lvtc:${tc};--lvrc:${rc};--lvrd:${fromLeft ? '90deg' : '270deg'};--lvtop:${Math.min(.35, top / Math.max(tot, 1e-4) * .35 * n).toFixed(3)};--lvaw:${aw || 'transparent'}`;
   }
 }
 function lightExtras(X, t) {
