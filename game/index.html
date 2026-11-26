@@ -11304,7 +11304,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     let ch=null; if(app.classList.contains('hd3d')&&!window.__RD2D){ try{ const m=await ls3dLoad(); const r=m&&m.chase&&m.chase(true,{hf:innerHeight>innerWidth?.34:.5}); if(r){ ch=r; ch.m=m; } }catch(e){} }
     const C=rdCine(att,tgt,col,c.name,ch); { const pool=rkGet(phxWho(att))?RD_SEQ.filter(q=>q.k!=='juggle'):RD_SEQ; C.seq=window.__RDSEQ!=null?RD_SEQ[window.__RDSEQ]:pool[(Math.random()*pool.length)|0]; }   /* grounded strike sheets: no air-juggle carry */ C.S.bars(false);
     $('.spr',F[att])&&($('.spr',F[att]).style.visibility='hidden'); $('.spr',F[tgt])&&($('.spr',F[tgt]).style.visibility='hidden');
-    wipe.open(); await rdPop(C,att);
+    wipe.open(); await rdChase(C,att);   // the chase plays on the new map once the wipe opens
     if(att!=='p') rdWait(NETB?RUSH.secs*1000:1000); }
   async function rushPickFx(ev){ if(RSD.wait){ RSD.wait.remove(); RSD.wait=null; } const att=ev.from; if(att==='p'||!ev.cards.length) return;
     const r=(ehand||F[att]).getBoundingClientRect(), t=sprC(ev.side);
