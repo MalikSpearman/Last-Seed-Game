@@ -1,5 +1,15 @@
 [
  {
+  "version": "0.3.60",
+  "date": "Nov 25, 2026",
+  "title": "Kaede's Rushdown finisher, Rushdown demo in Training",
+  "items": [
+   "Kaede's Rushdown now ends on her own finisher: a spin wind-up into a flaming spinning roundhouse, with a fire trail along the kick and a fireball on impact.",
+   "Training has a new ▶ Rushdown demo button: it plays your fighter's whole sequence (Launcher, a follow-up hit, the Rush card at Max Chain, 5 combo strikes and the finisher).",
+   "Fighters with the new strike art keep their Rushdown combos on the ground."
+  ]
+ },
+ {
   "version": "0.3.59",
   "date": "Nov 25, 2026",
   "title": "Rush cards for every fighter, Kaede's new Rushdown",

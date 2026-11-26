@@ -2932,7 +2932,7 @@ body.portrait .rm-hp{width:2.25rem}
 .trainbar{position:absolute;left:50%;top:22%;transform:translateX(-50%);z-index:12;display:flex;align-items:center;gap:.08rem;padding:.06rem .1rem;border-radius:.3rem;background:rgba(10,6,14,.72);border:.013rem solid rgba(255,90,74,.6);box-shadow:0 .03rem .12rem rgba(0,0,0,.6);white-space:nowrap}
 .trainbar .tb-t{font-family:'Anton';font-size:.18rem;letter-spacing:.12em;color:#ff5a4a;padding:0 .06rem}
 .trainbar .tb-st{font-size:.13rem;color:#e6dff0;opacity:.9;padding-right:.06rem}.trainbar .tb-st b{color:#ffd34d}
-.trainbar button{all:unset;cursor:pointer;font-size:.13rem;font-weight:700;letter-spacing:.06em;color:#fff;padding:.05rem .12rem;border-radius:.2rem;background:rgba(255,255,255,.1);border:.012rem solid rgba(255,255,255,.22)}
+.trainbar button{all:unset;cursor:pointer;font-size:.13rem;font-weight:700;letter-spacing:.06em;color:#fff;padding:.05rem .12rem;border-radius:.2rem;background:rgba(255,255,255,.1);border:.012rem solid rgba(255,255,255,.22)}.trainbar button.tb-rush{background:linear-gradient(90deg,#ff4d3d,#ff9a3d);border-color:#ffd08a;color:#1a0a06}
 .trainbar button:hover{background:rgba(255,90,74,.35)}
 .trainbar button[data-t=exit]{background:linear-gradient(90deg,#a40e22,#e0402a);border-color:#ff5a4a}
 .sacct{display:block;margin:.06rem 0 .1rem;font-size:.15rem;color:#ffd34d;min-height:.2rem}
@@ -10424,9 +10424,16 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
   const TRN={hp0:0,best:0};
   function trainTally(){ const d=Math.max(0,TRN.hp0-b.e.hp); TRN.best=Math.max(TRN.best,d); const t=sprC('e'); hitTag(t.x,t.top+t.h*.1,'TURN DAMAGE '+d,'crit'); const tb=$('.trainbar .tb-st',s); if(tb) tb.innerHTML=`Last turn <b>${d}</b> · Best <b>${TRN.best}</b>`; trainReset(false); }
   function trainReset(all){ const e=b.e; e.hp=e.maxHp; if(all){ for(const k of ['burn','poison','bleed','chill','exposed','soaked','shock','siphon','gust','strain','guard','power']) if(typeof e[k]==='number') e[k]=0; e.pbrk=0; e.stunned=0; if(e.air){ e.air=null; try{ if(AIR.e) airClear('e'); }catch(_){} } } TRN.hp0=e.hp; hud(b.snap()); }
-  if(TRAIN){ s.classList.add('training'); TRN.hp0=b.e.hp; const tb=h('div','trainbar',`<b class="tb-t">TRAINING</b><span class="tb-st">Hit the dummy. It never takes a turn.</span><button type="button" data-t="reset">Reset dummy</button><button type="button" data-t="spirit">Fill Spirit</button><button type="button" data-t="energy">+3 Energy</button><button type="button" data-t="exit">End training</button>`); s.appendChild(tb);
+  // training: the whole Rushdown, start to finish — Launcher, a follow-up hit, the Rush card at Max Chain, 5 combo strikes and the finisher
+  async function trainRush(){ if(done||b.over) return; if(busy){ toast('Wait for your turn, then try again'); return; } const id=HERO, ln='ln_'+id, ru='rush_'+id, C=CARDS, f=b.p; if(!C[ln]||!C[ru]){ toast('This fighter has no Launcher or Rush card yet'); return; }
+    const deck=FIGHTERS[id].deck||[], ok=k=>C[k]&&C[k].type==='attack'&&!C[k].ult&&k!==ln&&k!==ru, atk=deck.find(k=>ok(k)&&C[k].cb==='o')||deck.find(k=>ok(k)&&C[k].cb!=='f')||'ember_jab';
+    trainReset(true); handEls.forEach(el=>el.remove()); handEls=[]; f.cmb=null; f.energy=99; f.hand=[ln,atk,ru].concat(Array(6).fill(atk)); f.hand.forEach(k=>addCard(k)); layout(); hud(b.snap()); refresh(); window.__RDAUTO=6;
+    for(const k of [ln,atk,ru]){ if(done||b.over) return; const i=f.hand.indexOf(k), el=handEls[i]; if(!el) break; await tryPlay(el); await sleep(260); }
+    window.__RDAUTO=0; }
+  if(TRAIN){ s.classList.add('training'); TRN.hp0=b.e.hp; const tb=h('div','trainbar',`<b class="tb-t">TRAINING</b><span class="tb-st">Hit the dummy. It never takes a turn.</span><button type="button" data-t="rush" class="tb-rush">▶ Rushdown demo</button><button type="button" data-t="reset">Reset dummy</button><button type="button" data-t="spirit">Fill Spirit</button><button type="button" data-t="energy">+3 Energy</button><button type="button" data-t="exit">End training</button>`); s.appendChild(tb);
     tb.onclick=e=>{ const bt=e.target.closest('button'); if(!bt) return; e.stopPropagation(); Snd.sfx('click'); const t=bt.dataset.t;
       if(t==='exit'){ if(done) return; b.over='p'; finish(); return; } if(busy||done) return;
+      if(t==='rush'){ trainRush(); return; }
       if(t==='reset'){ trainReset(true); toast('Dummy reset'); } else if(t==='spirit'){ b.p.spirit=SPIRIT.max; b.emit({t:'spirit',side:'p'}); hud(b.snap()); refresh(); runEv(b.flush()); } else if(t==='energy'){ b.p.energy+=3; hud(b.snap()); refresh(); } }; }
   if(!TRAIN) { const ef=h('button','efast'+(store.eFast?' on':''),'<b>⏩</b> Rival turn ×2'); ef.title='Play the rival’s turns at double speed'; ef.onclick=e=>{ e.stopPropagation(); store.eFast=!store.eFast; save(); ef.classList.toggle('on',!!store.eFast); Snd.sfx('click'); }; s.appendChild(ef); }
   { const cf=COSTUMES[cosOf(HERO)][1]; if(cf){ const im=$('.spr img',F.p); if(im) im.style.filter=cf; } if(fmLv(HERO)>=5) HP.p.classList.add('mframe'); }
@@ -10910,7 +10917,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
   // ── RUSHDOWN CINEMATIC ──
   const RDC={S:null};
   // Rushdown strike sheets (new paper art): 5 strikes from the fighter's kit, mixed at random, plus the pose their finisher ends on
-  const RKD={"kaede": {"file": "img/rk_kaede.webp", "F": {"s1": [[0, 101, 412, 491, 196.0, 485.0]], "s2": [[418, 301, 551, 291, 132.2, 289.0]], "s3": [[975, 0, 279, 592, 110.0, 586.0]], "s4": [[1260, 91, 456, 501, 180.0, 495.0]], "s5": [[1722, 86, 433, 506, 232.0, 500.0]]}, "ref": 490, "fin": {"pose": "s4", "fx": "kaede"}}}, RKI={};
+  const RKD={"kaede": {"file": "img/rk_kaede.webp", "F": {"s1": [[0, 101, 412, 491, 196.0, 485.0]], "s2": [[418, 301, 551, 291, 132.2, 289.0]], "s3": [[975, 0, 279, 592, 110.0, 586.0]], "s4": [[1260, 91, 456, 501, 180.0, 495.0]], "s5": [[1722, 86, 433, 506, 232.0, 500.0]], "fin_w": [[2161, 105, 330, 487, 144.0, 484.0]], "fin": [[2497, 125, 484, 467, 114.5, 464.0]]}, "ref": 490, "fin": {"pose": "fin", "fx": "kaede", "tip": [0.96, 0.11], "hip": [0.32, 0.55]}, "combo": ["s1", "s2", "s3", "s4", "s5"]}}, RKI={};
   function rkGet(id){ const D=RKD[id]; if(!D) return null; let im=RKI[id]; if(!im){ im=RKI[id]=new Image(); im.src=A(D.file); } return im.naturalWidth?{D,im}:null; }
   function rdSheet(side){ const r_=rdSheet0(side), id=phxWho(side), rk=F[side]&&!F[side].classList.contains('awk')?rkGet(id):null; if(r_&&rk) r_.rk=rk; else if(rk) return {id,rk,im:rk.im,still:1}; return r_; }
   function rdSheet0(side){ const id=phxWho(side), H=poseSrc(id); if(H&&!F[side].classList.contains('awk')){ poseLoad(side); const im=POSE_IMG[H.file]; if(im&&im.naturalWidth) return {id,H,im}; }
@@ -10999,13 +11006,13 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
   // one hit of the auto-combo, chosen sequence, n of N
   async function rdHit(C,att,tgt,n,N,amount,c){ const W=C.W, Hh=C.Hh, A=C.at, R=C.rv, sh=rdSheet(att), last=n===N, Q=C.seq; C.slow=0; C.o.classList.remove('slow'); C.bgv=0;
     let m=last?Q.fin:(n===1&&Q.open?Q.open:Q.moves[(n-1)%Q.moves.length]); if(!rdHas(sh,m)) m=rdHas(sh,'phys')?'phys':m;
-    if(sh&&sh.rk){ const K=Object.keys(sh.rk.D.F); if(last&&sh.rk.D.fin) m=sh.rk.D.fin.pose; else { let q; do{ q=K[(Math.random()*K.length)|0]; }while(K.length>1&&q===C.lastM); m=q; } C.lastM=m; }
+    if(sh&&sh.rk){ const K=sh.rk.D.combo||Object.keys(sh.rk.D.F); if(last&&sh.rk.D.fin) m=sh.rk.D.fin.pose; else { let q; do{ q=K[(Math.random()*K.length)|0]; }while(K.length>1&&q===C.lastM); m=q; } C.lastM=m; }
     const wind=rdHas(sh,m+'_w')?m+'_w':(rdHas(sh,'phys_w')&&m==='phys'?'phys_w':null), D=last?240:110, gap=W*.13;
     // where the attacker stands for this hit
     if(Q.k==='phantom'&&!last){ const side=n%2?1:-1; A.face=side; A.x=R.x-gap*side; A.trail=.6; }
     else { A.face=1; A.x=R.x-gap; A.trail=Q.k==='carry'?.5:0; }
     if(Q.k==='juggle'&&n>1) A.y=R.y-Hh*.02;
-    if(wind){ A.f=wind; await rdS(last?120:45); }
+    if(wind){ A.f=wind; await rdS(last?(sh&&sh.rk?260:120):45); }
     A.f=m; R.f=last?'hit_h':(n%2?'hit':'hit_h'); R.flash=70; C.cam.tz=Math.min(1.6,C.cam.tz+.03);
     const hx=(C.dir>0?R.x:W-R.x)-C.dir*W*.01, hy=Hh*(C.S.port?.72:.86)-R.y-Hh*.25; C.spark(hx,hy,last?60:18,last?14:8); C.shk(last?34:12);
     if(amount) C.nums.push({t:'-'+amount,x:hx+(Math.random()-.5)*W*.05,y:hy-Hh*.12,l:1,big:last}); C.tot=(C.tot||0)+amount;
@@ -11016,7 +11023,11 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     if(!last){ R.x+=W*.008; await rdS(D); return; }
     // finisher
     C.S.blink(90,.7,'#fff'); impactFrame();
-    if(sh&&sh.rk&&sh.rk.D.fin&&window.LSFX){ const fx=sh.rk.D.fin.fx, cm=C.cam, z=cm.z, SX=x=>W/2-z*cm.x+z*x, SY=y=>Hh/2-z*cm.y+z*y, px=SX(hx), py=SY(hy), gyS=SY(Hh*(C.S.port?.72:.86)), S_=Hh*.42*z; try{ if(fx==='kaede'){ LSFX.play('flameFan',px-C.dir*S_*.35,py,{size:S_*.85,dir:C.dir,host:C.o}); LSFX.play('fireball',px,py,{size:S_*.75,delay:110,ground:gyS,host:C.o}); LSFX.play('emberRise',px,gyS,{size:S_*.6,delay:240,host:C.o}); } }catch(e){} }
+    if(sh&&sh.rk&&sh.rk.D.fin&&window.LSFX){ const FN=sh.rk.D.fin, fx=FN.fx, cm=C.cam, z=cm.z, SX=x=>W/2-z*cm.x+z*x, SY=y=>Hh/2-z*cm.y+z*y, gy=Hh*(C.S.port?.72:.86), hF=Hh*(C.S.port?.34:.5), fr=sh.rk.D.F[FN.pose]&&sh.rk.D.F[FN.pose][0];
+      // the toe and hip of the finishing pose, on screen (the cine camera zooms and pans)
+      const pt=(u,v)=>{ if(!fr) return [SX(hx),SY(hy)]; const k=hF/sh.rk.D.ref*.86, ax=(C.dir>0?A.x:W-A.x), [,,fw,fh,fax,fay]=fr; return [SX(ax+C.dir*(u*fw-fax)*k), SY(gy-(A.y||0)+(v*fh-fay)*k)]; };
+      const [tx,ty]=pt(...(FN.tip||[.9,.2])), [hx2,hy2]=pt(...(FN.hip||[.4,.55])), S_=hF*z;
+      try{ if(fx==='kaede'){ LSFX.play('flameFan',hx2,hy2,{size:S_*.5,dir:C.dir,host:C.o}); LSFX.play('impact',tx,ty,{size:S_*.35,col:'#ff7a2a',delay:60,host:C.o}); LSFX.play('fireball',tx+C.dir*S_*.08,ty,{size:S_*.42,delay:140,ground:SY(gy),host:C.o}); LSFX.play('emberRise',tx,SY(gy),{size:S_*.35,delay:260,host:C.o}); } }catch(e){} }
     if(Q.k==='flurry'){ R.f='air'; for(let i=0;i<22;i++){ R.y+=Hh*.035; R.rot-=.25; await rdS(16); } }
     else if(Q.k==='juggle'){ R.f='air'; for(let i=0;i<10;i++){ R.y=Math.max(0,R.y-Hh*.05); R.rot-=.4; await rdS(16); } R.f='down'; R.rot=0; R.y=0; C.shk(40); C.spark(hx,Hh*(C.S.port?.72:.86),50,12); try{ Snd.fx3&&Snd.fx3('bodyfall',1); }catch(e){} await rdS(260); }
     else { R.f='air'; C.lines=.7; C.bgv=W*2; for(let i=0;i<24;i++){ R.x+=W*.05; R.y+=Hh*.004; R.rot-=.3; await rdS(16); } C.lines=0; C.bgv=0; }
@@ -11032,7 +11043,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     { const A=sprC(att); rdCam(1.9,A.x,A.top+A.h*.32,W*(.5-d*.04),innerHeight*.42,300,'cubic-bezier(.55,0,.25,1)'); } if(fly) await fly.finished.catch(()=>{});
     // cut to the chase (give the backdrop a moment if it is still loading)
     if(!bgI.complete) await Promise.race([new Promise(r=>{ bgI.onload=r; bgI.onerror=r; }),sleep(500)]);
-    const C=rdCine(att,tgt,col,c.name); C.seq=RD_SEQ[window.__RDSEQ!=null?window.__RDSEQ:(Math.random()*RD_SEQ.length)|0]; C.S.blink(180,1,'#fff'); rdCamOff(1);
+    const C=rdCine(att,tgt,col,c.name); { const pool=rkGet(phxWho(att))?RD_SEQ.filter(q=>q.k!=='juggle'):RD_SEQ; C.seq=window.__RDSEQ!=null?RD_SEQ[window.__RDSEQ]:pool[(Math.random()*pool.length)|0]; }   // grounded strike sheets: no air-juggle carry C.S.blink(180,1,'#fff'); rdCamOff(1);
     $('.spr',F[att])&&($('.spr',F[att]).style.visibility='hidden'); $('.spr',F[tgt])&&($('.spr',F[tgt]).style.visibility='hidden');
     await rdChase(C,att);
     if(att!=='p') rdWait(NETB?RUSH.secs*1000:1000); }
@@ -11065,6 +11076,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     const tog=i=>{ if(fin) return; pick.has(i)?pick.delete(i):pick.add(i); btns[i].classList.toggle('on',pick.has(i)); try{ Snd.sfx('click'); }catch(e){} upd(); };
     const btns=ids.map((id,i)=>{ const C=CARDS[id]||{}, bt=h('button','rd-card t-'+(C.type||''),`<span class="rd-art" style="${cdArt(id)}"></span><b>${C.name||id}</b><em>${C.type==='curse'?'Curse':'Cost '+(C.x?'X':(C.cost|0))}</em><i>${b.rushDmg(id)}</i><kbd>${i+1}</kbd>`); bt.type='button'; bt.onclick=e=>{ e.stopPropagation(); tog(i); }; handEl.appendChild(bt); return bt; });
     if(!ids.length) handEl.appendChild(h('div','rd-none','No cards left to throw'));
+    if(window.__RDAUTO){ const n_=window.__RDAUTO; window.__RDAUTO=0; setTimeout(()=>{ for(let i=0;i<Math.min(n_,ids.length);i++) tog(i); setTimeout(()=>close(),550); },650); }
     const t0=performance.now(), tick=setInterval(()=>{ const left=Math.max(0,DUR-(performance.now()-t0))/1000; secEl.textContent=left.toFixed(1); root.classList.toggle('late',left<1.2); },100);
     $('.rd-tm u',root).animate([{transform:'scaleX(1)'},{transform:'scaleX(0)'}],{duration:DUR,easing:'linear',fill:'forwards'}); const hb=ctrHeart(DUR);
     const close=()=>{ if(fin) return; fin=true; clearInterval(tick); clearTimeout(to); try{ hb&&hb(); }catch(e){} removeEventListener('keydown',onKey,true); root.classList.add('out'); setTimeout(()=>root.remove(),260); done_([...pick].sort((a,c)=>a-c)); };
