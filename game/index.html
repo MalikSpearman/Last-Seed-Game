@@ -2566,6 +2566,7 @@ body.portrait .rm-hp{width:2.25rem}
 
 .gpack{position:absolute;inset:0;pointer-events:none}
 .gpk{position:absolute;width:0;height:0;pointer-events:none;transition:opacity .6s,filter .6s}
+.scr.battle.ctrsolo .gpk .gim,.scr.battle.ctrsolo .gpk .gbar,.scr.battle.ctrsolo .smn{opacity:0!important;pointer-events:none!important;transition:none!important}
 .gpk .gim{position:absolute;bottom:0;left:0;transform:translateX(-50%) scaleX(-1)} .gpk .gim img{display:block;height:var(--bh);transform-origin:50% 100%;pointer-events:auto;cursor:pointer;filter:brightness(.62) saturate(.8) drop-shadow(0 .03rem .08rem rgba(0,0,0,.7));transition:filter .2s;animation:idle 3.6s ease-in-out infinite}
 .gpk .gim img:hover{filter:brightness(1) drop-shadow(0 0 .08rem var(--c))}
 /* paper sprites: the back-line pack gets the same paper cut-out rim as the fighter in front (sized from its own height) */
@@ -7281,6 +7282,7 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
     im.src=`img/ctr/${phxWho(side)}_${pose}.webp`; ctrKH(im,phxWho(side),pose); fe.classList.add('ctrposed'); ctrMask(side); return true; }
   function ctrThreat(side,col){ for(const sd of ['p','e']) if(F[sd]) F[sd].classList.remove('ctrthreat'); if(side&&F[side]){ F[side].classList.add('ctrthreat'); F[side].style.setProperty('--tc',col||'#fff'); } }
   function ctrCam(on,def){ def=def||'p'; const att=def==='p'?'e':'p';
+    { const sc=stageEl&&stageEl.closest('.scr'); if(sc) sc.classList.toggle('ctrsolo',!!on); }   /* only the two fighters in the counter stay on screen: backup foes in group fights and summons step out until it's over */
     if(!on){ ctrPose('p',null); ctrPose('e',null); }
     if(camLv==='off'){ stageEl.classList.remove('ots','ots-p','ots-e'); return; }
     const W=stageEl.clientWidth, H=stageEl.clientHeight, big=camLv==='full', pr=portrait, P=F.p, E=F.e, D=F[def], A=F[att], sg=def==='p'?1:-1;

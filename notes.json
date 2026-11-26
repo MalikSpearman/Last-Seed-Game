@@ -1,5 +1,13 @@
 [
  {
+  "version": "0.3.68",
+  "date": "Nov 25, 2026",
+  "title": "Counters: just the two of you",
+  "items": [
+   "When a counter comes up, only the two fighters in the clash stay on screen: backup foes in group fights and summoned creatures vanish until it's over, then fade back in."
+  ]
+ },
+ {
   "version": "0.3.67",
   "date": "Nov 25, 2026",
   "title": "Punchier Rushdown, awakening rules",
