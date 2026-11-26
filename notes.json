@@ -1,5 +1,15 @@
 [
  {
+  "version": "0.3.84",
+  "date": "Nov 26, 2026",
+  "title": "Tougher rivals and bosses",
+  "items": [
+   "Bracket rivals fight with their own kit and opening passive, and their HP follows their own build.",
+   "Every rival, road foe, boss and general now shuffles random power-up cards into their deck and starts with a random edge that grows by round.",
+   "Enemies hit harder, and the AI plays smarter: it leans into power-ups, combos, poise breaks, finishers and counters."
+  ]
+ },
+ {
   "version": "0.3.83",
   "date": "Nov 26, 2026",
   "title": "Smoother cards and counters",
