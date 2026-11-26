@@ -1,5 +1,16 @@
 [
  {
+  "version": "0.3.62",
+  "date": "Nov 25, 2026",
+  "title": "Rasetsu's Rushdown",
+  "items": [
+   "Rasetsu's Rushdown combo has five new strikes: front kick, overhead slam, jumping slash (always lands from above the rival), spinning cleave and rising launch.",
+   "Her finisher is a single iai draw of her odachi, ending in a crimson cut across the screen.",
+   "Her art and odachi now match her design.",
+   "Rushdown finishers now also play the fighter's element burst, like other finishers."
+  ]
+ },
+ {
   "version": "0.3.61",
   "date": "Nov 25, 2026",
   "title": "Rushdown chase cutscene",

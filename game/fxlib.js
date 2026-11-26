@@ -177,6 +177,18 @@
       const S = o.size || 300, col = o.col || '#ff3d5a';
       add({ dur: 650, draw(c, t) { const e = ease(t), f = 1 - t; c.globalCompositeOperation = 'lighter'; c.beginPath(); c.ellipse(x, y, S * (.3 + e), S * (.3 + e) * .96, .2, 0, TAU); c.strokeStyle = hex(col, .3 * f); c.lineWidth = Math.max(4, S * .1 * f); c.stroke(); c.strokeStyle = hex(col, .9 * f); c.lineWidth = Math.max(1, S * .03 * f); c.stroke(); c.lineWidth = Math.max(.6, S * .008 * f); c.strokeStyle = `rgba(255,255,255,${f})`; c.stroke(); } }, o);
     },
+    // a screen-wide sword cut: a razor line opens across the screen from the hit, glows, and leaves a fading after-line
+    bladeLine(x, y, o) {
+      const col = o.col || '#e0203a', ang = o.ang || 0, L = Math.hypot(innerWidth, innerHeight), dx = Math.cos(ang), dy = Math.sin(ang);
+      add({ dur: 760, draw(c, t) { const g = ease(cl(t / .22)), f = t < .35 ? 1 : 1 - (t - .35) / .65, half = L * g * .6;
+        c.globalCompositeOperation = 'lighter'; c.lineCap = 'round';
+        const seg = (w, st) => { c.strokeStyle = st; c.lineWidth = w; c.beginPath(); c.moveTo(x - dx * half, y - dy * half); c.lineTo(x + dx * half, y + dy * half); c.stroke(); };
+        seg(26 * f + 2, hex(col, .18 * f)); seg(10 * f + 2, hex(col, .55 * f)); seg(3 * f + 1, `rgba(255,255,255,${f})`);
+        if (t < .3) glowDot(c, x, y, 120 * (1 - t / .3) + 20, `rgba(255,255,255,${.9 * (1 - t / .3)})`, hex(col, 0));
+        // flecks thrown off the cut
+        for (let i = 0; i < 24; i++) { const u = (i * .618) % 1, px = x + dx * (u - .5) * half * 2, py = y + dy * (u - .5) * half * 2 + (i % 2 ? 1 : -1) * t * 60 * (1 + (i % 5)); c.fillStyle = hex(col, f * .9); c.fillRect(px, py, 3, 3); }
+      } }, o);
+    },
     // embers and heat rising off a burning fighter or the ground
     emberRise(x, y, o) {
       const S = o.size || 160, hold = o.hold || 1;
