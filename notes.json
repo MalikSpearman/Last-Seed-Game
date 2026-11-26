@@ -1,5 +1,18 @@
 [
  {
+  "version": "0.3.70",
+  "date": "Nov 26, 2026",
+  "title": "Rushdown combos, finishers and Rush card art for everyone",
+  "items": [
+   "Every fighter now has their own Rushdown: five strikes from their real kit (kicks, slashes, slams, throws), played in a random combo, then their own finisher pose.",
+   "Each finisher ends with effects in the fighter's own element and colours.",
+   "Weapon swings leave a trail that follows the actual swing (hammers, swords, staffs, books, kicks).",
+   "All 32 Rush cards have their own card art in the bold paper-style look, showing the actual Rush attack.",
+   "Strike sprites have no baked-in white outline, so the paper effect shows only one outline.",
+   "Training's Rushdown demo works for every fighter."
+  ]
+ },
+ {
   "version": "0.3.69",
   "date": "Nov 26, 2026",
   "title": "3D arenas: eye-level camera, comic look, live lighting",
