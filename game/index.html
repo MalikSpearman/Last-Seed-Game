@@ -745,6 +745,14 @@ svg line.cut{stroke:rgba(90,60,40,.8)!important;stroke-dasharray:.03rem .09rem;s
 .portrait .rmoon{width:1.1rem;height:1.1rem;top:9%}
 .regban.moon b{color:#ffd0d0;text-shadow:0 .03rem 0 #000,0 0 .3rem rgba(255,30,50,.95)}
 .regban.split b{text-shadow:0 .03rem 0 #000,0 0 .3rem rgba(255,140,60,.9)}
+.regban.cal{top:auto;bottom:16%;z-index:12}.regban.cal small{color:#ff6a6a}.regban.cal b{color:#fff;text-shadow:0 .03rem 0 #000,0 0 .32rem rgba(255,30,50,.95)}
+.calfocus{position:absolute;inset:0;z-index:9;pointer-events:none;background:radial-gradient(circle at var(--x) var(--y),rgba(0,0,0,0) 0,rgba(0,0,0,0) 9%,rgba(14,2,6,.82) 34%);animation:calfin .5s ease-out both}
+.calfocus.out{animation:calfout .5s ease-in both}
+@keyframes calfin{from{opacity:0}to{opacity:1}}@keyframes calfout{from{opacity:1}to{opacity:0}}
+.calring{position:absolute;z-index:10;pointer-events:none;width:.9rem;height:.9rem;margin:-.45rem 0 0 -.45rem;border:.035rem solid #ff3b3b;border-radius:50%;box-shadow:0 0 .3rem #ff2a2a,inset 0 0 .25rem #ff2a2a;animation:calring 1s ease-out infinite}
+@keyframes calring{from{transform:scale(.4);opacity:1}to{transform:scale(2.6);opacity:0}}
+.rn.calnew{animation:calnode .5s ease-in-out 6;z-index:11}
+@keyframes calnode{50%{scale:1.25;filter:drop-shadow(0 0 .2rem #ff2a2a)}}
 .rn.hasriv::before{content:'!';position:absolute;right:-.06rem;top:-.06rem;width:.14rem;height:.14rem;border-radius:50%;background:#e3263e;color:#fff;font:900 .11rem/.14rem 'Anton';text-align:center;z-index:3;box-shadow:0 0 0 .014rem #fff;animation:rivpulse 1s ease-in-out infinite}
 
 .rn.exit i{border-color:#ffd34d;box-shadow:0 0 0 .02rem #000,0 0 .14rem rgba(255,211,77,.75)}
@@ -12522,6 +12530,16 @@ function festival(){ return new Promise(resolve=>{ const me=run, stage=run.stage
   { const nw=Object.keys(REGIONS).filter(r=>REGIONS[r].open===stage); if(nw.length&&!FZ&&!(store.regSeen||[]).includes(nw[0])){ busy=true; setTimeout(async()=>{ const RG=REGIONS[nw[0]]; s.querySelectorAll('.regban').forEach(x=>x.remove()); await regionIntro(nw[0]); (store.regSeen=store.regSeen||[]).push(nw[0]); save(); s.querySelectorAll('.rn.exit.x-'+RG.dir).forEach(n=>n.classList.add('newly')); busy=false; draw(); },rising?9200*speed:900*speed); } else if(nw.length&&!FZ) setTimeout(()=>{ bonusPop({kind:'Fast travel ready',t:REGIONS[nw[0]].name,d:'Use Fast travel to jump between open regions.',ic:REGIONS[nw[0]].icon,k:'#7fd4ff'}); const RG=REGIONS[nw[0]], bn=h('div','regban open',`<small>New lands open · ${RG.dirName}</small><b>${RG.name}</b><span>${RG.blurb}</span>`); s.appendChild(bn); Snd.sfx('power',true); s.querySelectorAll('.rn.exit.x-'+RG.dir).forEach(n=>n.classList.add('newly')); setTimeout(()=>{ bn.classList.add('out'); setTimeout(()=>bn.remove(),500); },3400*speed); },rising?7600*speed:900*speed); }
   if(rising){ busy=true; dkRise(s).then(()=>{ busy=false; }); }
   else if(dk.risen&&stage===3){ busy=true; hordeOmen(s,dk).then(()=>{ busy=false; }); }
+  /* a Calamity on the map: whichever region it is in, the map swings to it, the view closes in on its node and it is announced, once */
+  async function calAppear(p){ if(run!==me) return; const e=EV[p], prev=cur; busy=true; if(regOf(p)!==cur){ cur=regOf(p); sel=null; draw(); }
+    const map=$('.rmap',s), [x,y]=XYi(p); const nd=[...map.querySelectorAll('.rn')].find(n=>n.style.left===x+'%'&&n.style.top===y+'%'); if(!nd){ cur=prev; draw(); busy=false; return; }
+    const F=document.createElement('div'); F.className='calfocus'; F.style.setProperty('--x',x+'%'); F.style.setProperty('--y',y+'%'); const R=document.createElement('div'); R.className='calring'; R.style.left=x+'%'; R.style.top=y+'%';
+    map.appendChild(F); map.appendChild(R); nd.classList.add('calnew'); Snd.sfx('power',true); try{ Snd.fx3&&Snd.fx3('ultboom',.8); }catch(_){} map.style.transformOrigin=x+'% '+y+'%'; const zi=map.animate([{scale:1},{scale:1.55}],{duration:900*speed,fill:'forwards',easing:'cubic-bezier(.2,.8,.2,1)'});
+    const bn=h('div','regban cal',`<small>Calamity class · threat beyond the Demon King</small><b>${(e&&e.t||'Calamity').replace(/^Calamity · /,'')}</b><span>It has appeared at ${PLACES[p].name}${regOf(p)!==prev?' · '+REGIONS[regOf(p)].name:''}. You don't have to answer.</span>`); s.appendChild(bn); try{ Snd.sfx('deny',true); }catch(_){}
+    for(let i=0;i<3;i++) map.animate([{translate:'0 0'},{translate:`${(Math.random()-.5)*10}px ${(Math.random()-.5)*10}px`},{translate:'0 0'}],{duration:220,delay:i*260});
+    await sleep(3000*speed); F.classList.add('out'); bn.classList.add('out'); zi.reverse(); await sleep(520*speed); F.remove(); R.remove(); bn.remove(); nd.classList.remove('calnew'); zi.cancel(); map.style.transformOrigin='';
+    if(prev!==cur){ cur=prev; sel=null; } draw(); busy=false; }
+  setTimeout(async()=>{ try{ W.calSeen=W.calSeen||{}; for(const p of ids){ if(p==='town'||seen.has(p)||W.gen[p]||!EV[p]||!EV[p].cal||!regOpen(regOf(p))) continue; const key=stage+':'+p; if(W.calSeen[key]) continue; W.calSeen[key]=1; for(let i=0;i<120&&busy;i++) await sleep(250); if(run!==me||!s.isConnected) return; await calAppear(p); fsv(); } }catch(e){ console.warn('calAppear',e); busy=false; } },1200*speed);
 }); }
 
 // ── spoils: what you take from a win. Befriend is always offered; three more are dealt, and now and then a rare one. ──

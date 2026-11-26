@@ -1,5 +1,13 @@
 [
  {
+  "version": "0.3.87",
+  "date": "Nov 26, 2026",
+  "title": "Calamities announce themselves",
+  "items": [
+   "When a Calamity appears on the map, the map switches to its region, dims around it and zooms in with a warning banner, then returns you where you were."
+  ]
+ },
+ {
   "version": "0.3.86",
   "date": "Nov 26, 2026",
   "title": "Rushdown loads reliably",
