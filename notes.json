@@ -1,5 +1,13 @@
 [
  {
+  "version": "0.3.72",
+  "date": "Nov 26, 2026",
+  "title": "Quick fighter swap in Training",
+  "items": [
+   "Training has a new ⇄ Fighter button: pick any fighter and training restarts with them against the same dummy on the same stage, with no menus in between."
+  ]
+ },
+ {
   "version": "0.3.71",
   "date": "Nov 26, 2026",
   "title": "Clearer 3D arenas",
