@@ -4159,7 +4159,7 @@ const ULTS = {
 };
 // Three bars of 6. Super Art = 1 bar, Ultimate = 2, Awakening = all 3 (then it drains a bar at the start of each of your turns).
 // ── Counter rules (tuning knobs): triangle off => only cost matters; strike off => counters never hit back ──
-const RUSH = {base:2, perCost:3, secs:4.2};   // Rushdown: each thrown card hits for base + perCost x its cost; secs = real-time window to pick
+const RUSH = {secs:4.2};   // Rushdown: each thrown card is one hit for its cost in damage (0-cost cards hit for 1, X cards for 2); secs = real-time window to pick
 const COUNTER = {poiseStart:2, poiseMax:3, poiseGain:1, poiseCost:1, breakMult:1.25, breakTurns:2, triangle:true, strike:true, cut1:.3, cut2:.6, types:['attack','skill'], immune:/^(sup|ult|crit)_/, ai:[.55,.75,.85,.95], aiMax:1, aiOdds:{perfect:.45,good:.45}};
 const BEATS = {phys:'tech', tech:'spirit', spirit:'phys'};   // key beats value: Physical > Technique > Spirit > Physical
 const CT_TECH = ['pierce','exposed','shock','draw','guard','counter','feint','feintX','stun','dice','echo','charge','removeGuard','disarm','siphon','leech'];
@@ -4745,7 +4745,7 @@ class Battle {
   // a Rush starts a Rushdown when it is the hit that reaches Max Chain, or when the chain is already at Max
   rushOk(k,c){ return !!(k&&k.n>=2); }
   rushReady(side,i){ const f=this.S(side), id=f.hand[i], c=CARDS[id], d=this.O(side); return !!(c&&c.cb==='r'&&d&&d.air&&d.air.by===side&&d.hp>0&&!this.rush&&this.rushOk(f.cmb,c)&&this.canPlay(side,i)); }
-  rushDmg(id){ const c=CARDS[id]||{}; const k=c.type==='curse'?0:Math.max(0,Math.min(4,c.x?2:(c.cost|0))); return RUSH.base+RUSH.perCost*k; }
+  rushDmg(id){ const c=CARDS[id]||{}; return Math.max(1,c.x?2:(c.cost|0)); }
   aiRushPick(side){ const f=this.S(side), o=this.O(side), out=[]; let tot=0; f.hand.forEach((id,i)=>{ tot+=this.rushDmg(id); });
     if(tot>=o.hp||f.energy<=0) return f.hand.map((_,i)=>i);   // lethal, or nothing left to play: throw the lot
     f.hand.forEach((id,i)=>{ const c=CARDS[id]||{}; if(c.type==='curse'||c.unplayable||this.cost(side,id,i)>f.energy) out.push(i); }); return out; }
@@ -10944,14 +10944,14 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     {k:'juggle', name:'Juggle',  moves:['kick','cross','kick','jab'], fin:'phys', open:'upper'},
     {k:'phantom',name:'Phantom', moves:['kick','cross','kick','jab'], fin:'phys'},
     {k:'carry',  name:'Carry',   moves:['jab','kick','cross','kick'], fin:'kick'}];
-  function rdCine(att,tgt,col,cardName){ const S=u7Stage(att,'rdc'); const {o,W,Hh,fg,sg,scv,fcv}=S; S.cine(true); S.bars(true);
+  function rdCine(att,tgt,col,cardName,ch){ const S=u7Stage(att,'rdc'); const {o,W,Hh,fg,sg,scv,fcv}=S; S.cine(true); S.bars(true);
     const dir=att==='p'?1:-1, X=x=>dir>0?x:W-x, sr=scv.width/W, fr=fcv.width/W, A=rdSheetC(att), T=rdSheet(tgt), rnd=Math.random;
     const BG=rdBg();
-    const gy=Hh*(S.port?.72:.86), hF=Hh*(S.port?.34:.5);
+    const gy=ch?Hh*ch.gy:Hh*(S.port?.72:.86), hF=Hh*(S.port?.34:.5)*(ch?Math.min(1.25,ch.scale):1);
     o.insertAdjacentHTML('beforeend',`<div class="rdc-ttl"><b>RUSHDOWN</b><i>${cardName||''}</i></div><div class="rdc-tot"><b></b><i></i></div>`); o.style.setProperty('--c',col);
-    const C={S,o,W,Hh,dir,phase:'chase',t0:performance.now(),pt:0,bgx:0,bgv:W*9,lines:0,cam:{x:W/2,y:Hh/2,z:1,tz:1,tx:W/2,ty:Hh/2},shake:0,
+    const C={S,o,W,Hh,dir,phase:'chase',t0:performance.now(),pt:0,bgx:0,bgv:W*9,lines:0,cam:{x:W/2,y:Hh/2,z:1,tz:1,tx:W/2,ty:Hh/2},shake:0,ch:ch||null,u:0,uv:0,gy,hF,col,
       at:{x:W*.3,y:0,f:'run',face:1,trail:1},rv:{x:W*1.02,y:Hh*.24,rot:0,vr:-.012,f:'air',vx:0,vy:0,away:0},bits:[],nums:[],flash:0,slow:0,seq:null,hit:null,done:false};
-    C.dt=0; let last=performance.now();
+    C.u=ch?(dir>0?-1:1):0; C.dt=0; let last=performance.now();
     const shk=v=>{ C.shake=Math.max(C.shake,v); };
     const spark=(x,y,n,v)=>{ for(let i=0;i<n;i++){ const a=rnd()*Math.PI*2, s=(.3+rnd())*v; C.bits.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:1,r:2+rnd()*4,c:rnd()<.5?col:'#fff'}); } };
     C.spark=spark; C.shk=shk;
@@ -10963,7 +10963,10 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
       // world: the set's backdrop streaking past (motion-blurred), darkened, tinted toward the element
       C.bgx=(C.bgx+C.bgv*d/1000)%(W*4);
       sg.setTransform(sr*cm.z,0,0,sr*cm.z,sr*cx,sr*cy); sg.globalCompositeOperation='source-over'; sg.globalAlpha=1; sg.fillStyle='#07050f'; sg.fillRect(-W,-Hh,W*3,Hh*3);
-      if(BG.naturalWidth){ const ih=Hh*1.25, iw=ih*BG.naturalWidth/BG.naturalHeight, y0=gy-ih*.82, blur=Math.min(9,C.bgv/W*1.2)|0;
+      if(C.ch){ C.uv=C.bgv/W*.105; C.u=Math.max(-1,Math.min(1,C.u+dir*C.uv*d/1000)); let cv=null; try{ cv=C.ch.m.chaseDraw(C.u,d/1000); }catch(e){}
+        if(cv){ const ov=.04, sp=Math.min(1,C.uv/1.2), nb=sp>.04?5:0; sg.save(); sg.setTransform(sr*cm.z,0,0,sr*cm.z,sr*(W/2-cm.z*W/2+shx),sr*Math.min(0,Math.max(Hh-cm.z*Hh,cy))); sg.globalAlpha=1; sg.drawImage(cv,-W*ov,-Hh*ov,W*(1+2*ov),Hh*(1+2*ov));
+          for(let b=1;b<=nb;b++){ sg.globalAlpha=.32/b; sg.drawImage(cv,-W*ov+b*sp*W*.022*dir,-Hh*ov,W*(1+2*ov),Hh*(1+2*ov)); } sg.restore(); } }
+      else if(BG.naturalWidth){ const ih=Hh*1.25, iw=ih*BG.naturalWidth/BG.naturalHeight, y0=gy-ih*.82, blur=Math.min(9,C.bgv/W*1.2)|0;
         for(let b=0;b<=blur;b++){ sg.globalAlpha=1/(b+1); const off=-(C.bgx+b*C.bgv*.004)*dir; for(let xx=((off%iw)+iw)%iw-iw*2; xx<W*2; xx+=iw){ sg.save(); if(dir<0){ sg.translate(W,0); sg.scale(-1,1); } sg.drawImage(BG,xx,y0,iw,ih); sg.restore(); } }
         sg.globalAlpha=1; }
       sg.globalAlpha=1; sg.fillStyle=C.slow?'rgba(10,6,24,.55)':'rgba(10,6,24,.3)'; sg.fillRect(-W,-Hh,W*3,Hh*3);
@@ -10980,6 +10983,17 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
       if(C.at.trail&&!C.at.hide) for(let i=4;i>=1;i--){ rdFrame(fg,A,C.at.f,X(C.at.x-i*W*.035*C.at.trail),gy-C.at.y,hF,dir*(C.at.face),{a:.12+.05*(4-i),filter:'brightness(2) saturate(.2)',rot:(C.at.lean||0)*dir}); }
       if(!C.rv.hide) rdFrame(fg,T,C.rv.f,X(C.rv.x),gy-C.rv.y,hF,-dir,{rot:C.rv.rot*dir,filter:C.rv.flash>0?'brightness(3) saturate(0)':''});
       if(C.fly&&!C.at.hide&&C.at.y>2){ const gx=X(C.at.x), gyy=gy-C.at.y-hF*.35, r=hF*.55; const gg=fg.createRadialGradient(gx,gyy,0,gx,gyy,r); gg.addColorStop(0,C.fly.col+'66'); gg.addColorStop(1,C.fly.col+'00'); fg.save(); fg.globalCompositeOperation='lighter'; fg.fillStyle=gg; fg.fillRect(gx-r,gyy-r,r*2,r*2); fg.restore(); }
+      if(C.charge&&!C.at.hide){ const q=C.charge; q.t+=dt; const cx_=X(C.at.x), cy_=gy-C.at.y-hF*.5, p=Math.min(1,q.t/420), pl=.75+.25*Math.sin(q.t/45);
+        fg.save(); fg.globalCompositeOperation='lighter';
+        const r=hF*1.05, g3=fg.createRadialGradient(cx_,cy_,0,cx_,cy_,r); g3.addColorStop(0,col+'cc'); g3.addColorStop(.45,col+'55'); g3.addColorStop(1,col+'00'); fg.globalAlpha=p*pl; fg.fillStyle=g3; fg.fillRect(cx_-r,cy_-r,r*2,r*2);
+        // ground ring tightening on the feet
+        const gr=(q.t/600)%1; fg.globalAlpha=p*(1-gr)*.9; fg.strokeStyle=col; fg.lineWidth=hF*.018; fg.beginPath(); fg.ellipse(cx_,gy-C.at.y,hF*(1.1-gr*.8),hF*(.16-gr*.11),0,0,7); fg.stroke();
+        fg.lineCap='round'; for(let i=0;i<40;i++){ const an=i*2.399+1.1, f=(q.t/330+i*.0973)%1, rr=hF*(1.35-f*1.1), L=hF*(.22+.16*(1-f)); fg.globalAlpha=p*Math.min(1,f*3)*(i%4?1:.8); fg.strokeStyle=i%3?col:'#fff'; fg.lineWidth=Math.max(2,hF*.016*(1-f*.4));
+          fg.beginPath(); fg.moveTo(cx_+Math.cos(an)*rr,cy_+Math.sin(an)*rr*.85); fg.lineTo(cx_+Math.cos(an)*(rr+L),cy_+Math.sin(an)*(rr+L)*.85); fg.stroke(); }
+        if(q.burst){ q.b=(q.b||0)+dt; const u=Math.min(1,q.b/170); fg.globalAlpha=1-u; fg.strokeStyle='#fff'; fg.lineWidth=hF*.03*(1-u)+1; fg.beginPath(); fg.ellipse(cx_,cy_,hF*(.3+u*1.4),hF*(.3+u*1.1),0,0,7); fg.stroke(); fg.strokeStyle=col; fg.lineWidth=hF*.06*(1-u)+1; fg.beginPath(); fg.ellipse(cx_,cy_,hF*(.2+u*1.1),hF*(.2+u*.85),0,0,7); fg.stroke(); }
+        fg.restore();
+        // a halo of the element hugging the fighter's silhouette
+        const bl=Math.max(4,Math.round(hF*.025)); rdFrame(fg,A,C.at.f,X(C.at.x),gy-C.at.y,hF,dir*C.at.face,{noRim:1,a:p*pl,comp:'lighter',filter:`brightness(0) invert(1) drop-shadow(0 0 ${bl}px ${col}) drop-shadow(0 0 ${bl*2}px ${col}) blur(${Math.round(bl*.6)}px)`}); }
       if(!C.at.hide) rdFrame(fg,A,C.at.f,X(C.at.x),gy-C.at.y,hF,dir*C.at.face,{rot:(C.at.lean||0)*dir});
       if(C.rv.flash>0) C.rv.flash-=dt;
       // sparks + numbers
@@ -10993,7 +11007,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
       if(C.slow){ const g2=fg.createRadialGradient(W/2,Hh/2,Hh*.3,W/2,Hh/2,Hh*.95); g2.addColorStop(0,'rgba(0,0,0,0)'); g2.addColorStop(1,'rgba(40,0,10,.55)'); fg.fillStyle=g2; fg.fillRect(0,0,W,Hh); }
     };
     requestAnimationFrame(frame);
-    C.end=()=>{ C.done=true; S.end(); RDC.S=null; };
+    C.end=()=>{ C.done=true; if(C.ch) try{ C.ch.m.chase(false); }catch(e){} S.end(); RDC.S=null; };
     RDC.S=C; return C; }
   const rdS=ms=>sleep(ms);
   // the backdrop the chase streaks past: the set's own painting, loaded as soon as a Rushdown starts
@@ -11018,35 +11032,43 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     C.S.blink(140,.85,'#fff'); C.shk(18); try{ Snd.fx3&&Snd.fx3('sflash',.9); Snd.fx3&&Snd.fx3('hit_m',.6); }catch(e){}
     C.lines=0; C.bgv=0; C.at.trail=0; C.slow=1; C.o.classList.add('slow');
     C.cam.tz=1.28; const mx=(x1+R.x)/2; C.cam.tx=C.dir>0?mx:W-mx; C.cam.ty=C.Hh*.62; }
+  async function rdFinCharge(C,wind){ const A=C.at, W=C.W; if(wind) A.f=wind; A.trail=0;
+    C.slow=1; C.o.classList.add('slow'); const ax=C.dir>0?A.x:W-A.x;
+    C.cam.tz=Math.min(1.75,C.cam.tz+.3); C.cam.tx=ax+C.dir*C.hF*.25; C.cam.ty=C.gy-C.hF*.55;
+    C.charge={t:0}; try{ Snd.fx3&&Snd.fx3('charge',1); }catch(e){}
+    await rdS(window.__RDFIN||720);
+    C.charge.burst=1; C.S.blink(160,.45,C.col); C.shk(16); try{ Snd.fx3&&Snd.fx3('sflash',1); Snd.fx3&&Snd.fx3('whoosh_h',1); }catch(e){}
+    await rdS(170); C.slow=0; C.o.classList.remove('slow'); C.charge=null; C.cam.tz=Math.max(1.2,C.cam.tz-.25); }
   // one hit of the auto-combo, chosen sequence, n of N
   async function rdHit(C,att,tgt,n,N,amount,c){ const W=C.W, Hh=C.Hh, A=C.at, R=C.rv, sh=rdSheet(att), last=n===N, Q=C.seq; C.slow=0; C.o.classList.remove('slow'); C.bgv=0;
     let m=last?Q.fin:(n===1&&Q.open?Q.open:Q.moves[(n-1)%Q.moves.length]); if(!rdHas(sh,m)) m=rdHas(sh,'phys')?'phys':m;
     if(sh&&sh.rk){ const K=sh.rk.D.combo||Object.keys(sh.rk.D.F); if(last&&sh.rk.D.fin) m=sh.rk.D.fin.pose; else { let q; const FQ=window.__RKFORCE; if(FQ&&FQ.length) q=FQ.shift(); else do{ q=K[(Math.random()*K.length)|0]; }while(K.length>1&&q===C.lastM); m=q; } C.lastM=m; }
-    const wind=rdHas(sh,m+'_w')?m+'_w':(rdHas(sh,'phys_w')&&m==='phys'?'phys_w':null), D=last?240:110, gap=W*.13;
+    const wind=rdHas(sh,m+'_w')?m+'_w':(rdHas(sh,'phys_w')&&m==='phys'?'phys_w':null), D=last?240:(window.__RDGAP||300), gap=W*.13;
     // where the attacker stands for this hit
     if(Q.k==='phantom'&&!last){ const side=n%2?1:-1; A.face=side; A.x=R.x-gap*side; A.trail=.6; }
     else { A.face=1; A.x=R.x-gap; A.trail=Q.k==='carry'?.5:0; }
     if(Q.k==='juggle'&&n>1) A.y=R.y-Hh*.02;
     if(sh&&sh.rk){ if((sh.rk.D.air||[]).includes(m)){ A.x=R.x+W*.005; A.y=(R.y||0)+Hh*(C.S.port?.03:.05); A.face=1; A.trail=.4; C.cam.ty=Hh*(C.S.port?.5:.5); } else { if(Q.k!=='juggle') A.y=0; C.cam.ty=C.Hh*.62; } }   // aerial strikes always come down from above the rival
-    if(last&&sh&&sh.rk){ const gy_=Hh*(C.S.port?.72:.86), hF_=Hh*(C.S.port?.34:.5); C.cam.tz=Math.min(C.cam.tz,1.22); C.cam.ty=gy_-hF_*.62; C.cam.tx=(C.dir>0?A.x:W-A.x)+C.dir*hF_*.35; }   // frame the whole finisher: an airborne kick must not leave the top of the screen
-    if(wind){ A.f=wind; await rdS(last?(sh&&sh.rk?260:120):45); }
+    if(last&&sh&&sh.rk){ const gy_=C.gy, hF_=C.hF; C.cam.tz=Math.min(C.cam.tz,1.22); C.cam.ty=gy_-hF_*.62; C.cam.tx=(C.dir>0?A.x:W-A.x)+C.dir*hF_*.35; }   // frame the whole finisher: an airborne kick must not leave the top of the screen
+    if(last) await rdFinCharge(C,wind);
+    else if(wind){ A.f=wind; await rdS(140); }
     A.f=m; R.f=last?'hit_h':(n%2?'hit':'hit_h'); R.flash=70; C.cam.tz=Math.min(1.6,C.cam.tz+.03);
-    const hx=(C.dir>0?R.x:W-R.x)-C.dir*W*.01, hy=Hh*(C.S.port?.72:.86)-R.y-Hh*.25; C.spark(hx,hy,last?60:18,last?14:8); C.shk(last?34:12);
+    const hx=(C.dir>0?R.x:W-R.x)-C.dir*W*.01, hy=C.gy-R.y-C.hF*.5; C.spark(hx,hy,last?60:18,last?14:8); C.shk(last?34:12);
     if(amount) C.nums.push({t:'-'+amount,x:hx+(Math.random()-.5)*W*.05,y:hy-Hh*.12,l:1,big:last}); C.tot=(C.tot||0)+amount;
     const tot=C.o.querySelector('.rdc-tot'); tot.querySelector('b').textContent=n+' HIT'+(n>1?'S':''); tot.querySelector('i').textContent=C.tot; tot.classList.remove('pop'); void tot.offsetWidth; tot.classList.add('pop');
     try{ Snd.fx3&&Snd.fx3(last?'hit_c':(n%3?'hit_m':'hit_h'),last?1:.7); if(last){ Snd.fx3&&Snd.fx3('ultboom',.9); } }catch(e){}
     if(Q.k==='juggle'&&n===1){ R.f='air'; R.y=Hh*.22; }
     if(Q.k==='carry'&&!last){ R.x+=W*.045; C.cam.tx+=W*.045*C.dir; C.bgv=W*.6; setTimeout(()=>{ C.bgv=0; },150); }
-    if(!last){ R.x+=W*.008; await rdS(D); return; }
+    if(!last){ R.x+=W*.008; C.slow=1; await rdS(90); C.slow=0; await rdS(D); return; }
     // finisher
     C.S.blink(90,.7,'#fff'); impactFrame();
-    if(sh&&sh.rk&&sh.rk.D.fin&&window.LSFX){ const FN=sh.rk.D.fin, fx=FN.fx, cm=C.cam, z=cm.z, SX=x=>W/2-z*cm.x+z*x, SY=y=>Hh/2-z*cm.y+z*y, gy=Hh*(C.S.port?.72:.86), hF=Hh*(C.S.port?.34:.5), fr=sh.rk.D.F[FN.pose]&&sh.rk.D.F[FN.pose][0];
+    if(sh&&sh.rk&&sh.rk.D.fin&&window.LSFX){ const FN=sh.rk.D.fin, fx=FN.fx, cm=C.cam, z=cm.z, SX=x=>W/2-z*cm.x+z*x, SY=y=>Hh/2-z*cm.y+z*y, gy=C.gy, hF=C.hF, fr=sh.rk.D.F[FN.pose]&&sh.rk.D.F[FN.pose][0];
       // the toe and hip of the finishing pose, on screen (the cine camera zooms and pans)
       const pt=(u,v)=>{ if(!fr) return [SX(hx),SY(hy)]; const k=hF/sh.rk.D.ref*.86, ax=(C.dir>0?A.x:W-A.x), [,,fw,fh,fax,fay]=fr; return [SX(ax+C.dir*(u*fw-fax)*k), SY(gy-(A.y||0)+(v*fh-fay)*k)]; };
       const [tx,ty]=pt(...(FN.tip||[.9,.2])), [hx2,hy2]=pt(...(FN.hip||[.4,.55])), S_=hF*z;
       try{ if(fx==='rasetsu'){ const px=SX(hx), py=SY(hy); LSFX.play('bladeLine',px,py,{col:'#e0203a',ang:-.06*C.dir,host:C.o}); LSFX.play('impact',px,py,{size:S_*.4,col:'#e0203a',delay:90,host:C.o}); LSFX.play('ringWave',px,py,{size:S_*.8,col:'#c0102a',delay:140,host:C.o}); } else if(fx==='kaede'){ LSFX.play('flameFan',hx2,hy2,{size:S_*.5,dir:C.dir,host:C.o}); LSFX.play('impact',tx,ty,{size:S_*.35,col:'#ff7a2a',delay:60,host:C.o}); LSFX.play('fireball',tx+C.dir*S_*.08,ty,{size:S_*.42,delay:140,ground:SY(gy),host:C.o}); LSFX.play('emberRise',tx,SY(gy),{size:S_*.35,delay:260,host:C.o}); } /* the element finisher burst every finisher uses (Gemini sheet, fighter's own element) */ try{ const el=vfxEl(fighterEl(att)), ex=SX(hx), ey=SY(hy); sheetFx('vf_'+el,ex,ey,S_*1.7,{blend:'screen',dur:900,flipX:C.dir<0,rot:rnd(-8,8),z:5,parent:o}); }catch(_){ } }catch(e){} }
     if(Q.k==='flurry'){ R.f='air'; for(let i=0;i<22;i++){ R.y+=Hh*.035; R.rot-=.25; await rdS(16); } }
-    else if(Q.k==='juggle'){ R.f='air'; for(let i=0;i<10;i++){ R.y=Math.max(0,R.y-Hh*.05); R.rot-=.4; await rdS(16); } R.f='down'; R.rot=0; R.y=0; C.shk(40); C.spark(hx,Hh*(C.S.port?.72:.86),50,12); try{ Snd.fx3&&Snd.fx3('bodyfall',1); }catch(e){} await rdS(260); }
+    else if(Q.k==='juggle'){ R.f='air'; for(let i=0;i<10;i++){ R.y=Math.max(0,R.y-Hh*.05); R.rot-=.4; await rdS(16); } R.f='down'; R.rot=0; R.y=0; C.shk(40); C.spark(hx,C.gy,50,12); try{ Snd.fx3&&Snd.fx3('bodyfall',1); }catch(e){} await rdS(260); }
     else { R.f='air'; C.lines=.7; C.bgv=W*2; for(let i=0;i<24;i++){ R.x+=W*.05; R.y+=Hh*.004; R.rot-=.3; await rdS(16); } C.lines=0; C.bgv=0; }
     await rdS(300); }
   async function rushdownFx(ev){ try{ rkGet(phxWho(ev.from)); }catch(_){ } const tgt=ev.side, att=ev.from, d=rdDir(att), c=CARDS[ev.card]||{}; rdReset(); if(AIR[tgt]) airClear(tgt);
@@ -11060,7 +11082,8 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     { const A=sprC(att); rdCam(1.9,A.x,A.top+A.h*.32,W*(.5-d*.04),innerHeight*.42,300,'cubic-bezier(.55,0,.25,1)'); } if(fly) await fly.finished.catch(()=>{});
     // cut to the chase (give the backdrop a moment if it is still loading)
     if(!bgI.complete) await Promise.race([new Promise(r=>{ bgI.onload=r; bgI.onerror=r; }),sleep(500)]);
-    const C=rdCine(att,tgt,col,c.name); { const pool=rkGet(phxWho(att))?RD_SEQ.filter(q=>q.k!=='juggle'):RD_SEQ; C.seq=window.__RDSEQ!=null?RD_SEQ[window.__RDSEQ]:pool[(Math.random()*pool.length)|0]; }   /* grounded strike sheets: no air-juggle carry */ C.S.blink(180,1,'#fff'); rdCamOff(1);
+    let ch=null; if(app.classList.contains('hd3d')&&!window.__RD2D){ try{ const m=await ls3dLoad(); const r=m&&m.chase&&m.chase(true,{hf:innerHeight>innerWidth?.34:.5}); if(r){ ch=r; ch.m=m; } }catch(e){} }
+    const C=rdCine(att,tgt,col,c.name,ch); { const pool=rkGet(phxWho(att))?RD_SEQ.filter(q=>q.k!=='juggle'):RD_SEQ; C.seq=window.__RDSEQ!=null?RD_SEQ[window.__RDSEQ]:pool[(Math.random()*pool.length)|0]; }   /* grounded strike sheets: no air-juggle carry */ C.S.blink(180,1,'#fff'); rdCamOff(1);
     $('.spr',F[att])&&($('.spr',F[att]).style.visibility='hidden'); $('.spr',F[tgt])&&($('.spr',F[tgt]).style.visibility='hidden');
     await rdChase(C,att);
     if(att!=='p') rdWait(NETB?RUSH.secs*1000:1000); }
@@ -11073,10 +11096,10 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
   const RD_VA=['blood','fire','ice','life','metal','mind','shadow','sound','storm','venom','water','wind'];
   const RD_K=['jab','cross','kick','upper','jab','kick','cross','upper'];
   async function rushHitFx(ev){ const C=RDC.S, c=CARDS[ev.card]||{}; hud(ev.s); if(!C) return; if(RSD.wait){ RSD.wait.remove(); RSD.wait=null; }
-    await rdHit(C,ev.from,ev.side,ev.n,ev.of,ev.amount,c); }
+    await rdHit(C,ev.from,ev.side,ev.n,ev.of+1,ev.amount,c); }
   function gap0(){ return Math.abs(sprC('p').x-sprC('e').x)||innerWidth*.3; }
   async function rushEndFx(ev){ const tgt=ev.side, att=ev.from; s.classList.remove('rdslow'); if(RSD.wait){ RSD.wait.remove(); RSD.wait=null; }
-    const C=RDC.S; if(C){ if(!ev.n){ C.seq={k:'carry',moves:[],fin:'phys'}; await rdHit(C,att,tgt,1,1,0,CARDS[ev.card]||{}); }
+    const C=RDC.S; if(C){ if(!ev.n) C.seq={k:'carry',moves:[],fin:'phys'}; await rdHit(C,att,tgt,(ev.n||0)+1,(ev.n||0)+1,0,CARDS[ev.card]||{});
       C.o.querySelector('.rdc-tot').classList.add('fin'); await sleep(260); C.S.blink(420,1,'#fff'); await sleep(90);
       // the chase ends somewhere else: the 3D set swaps to the neighbouring one behind the white-out
       const host=window.__lsArena&&window.__lsArena.host; if(app.classList.contains('hd3d')&&host){ try{ const ch=ls3dGet('transition',host); const nk=await Promise.race([ch,new Promise(r=>setTimeout(r,1800))]); if(nk) try{ ls3dCall('impact',tgt,{fin:true}); }catch(e){} }catch(e){} }

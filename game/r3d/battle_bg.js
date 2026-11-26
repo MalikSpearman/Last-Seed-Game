@@ -442,6 +442,58 @@ const NEXT = { w_graves: 'w_mill', w_mill: 'w_village', w_village: 'road', road:
   nw_teahouse: 'nw_snack', nw_snack: 'nw_roof', nw_roof: 'nw_express', nw_express: 'harbor', harbor: 'e_dojo', e_dojo: 'e_light', e_light: 'e_whale', e_whale: 'e_light',
   nw_pachinko: 'nw_casino', nw_casino: 'nw_street', nw_web: 'nw_roof', marsh: 'sunken', sunken: 'seacave', seacave: 'harbor', blight: 'mountain_pass',
   mountain_pass: 'rooftops', rooftops: 'nw_roof', ring: 'festival', fox_shrine: 'festival', w_bamboo: 'w_graves' };
+// Rushdown chase: the camera tears through the set along its longest open run (a street, a path, a bridge), looking across at the
+// nearer wall of stalls/trees so it streams past; fighters are composited by the cutscene on the ground line this returns.
+// While a cutscene covers the screen the set's own loop is paused (D.skip), so chaseDraw() ticks the set, moves the camera and
+// renders; the caller copies the canvas in the same frame.
+const CH = { on: false };
+function vis(m) { for (let o = m; o; o = o.parent) if (!o.visible) return false; return true; }
+function freeDist(o, d, skip) {
+  const rc = new T.Raycaster(o, d, .2, 70); rc.camera = D.camera; let hs = []; try { hs = rc.intersectObjects(D.scene.children, true); } catch (_) { }
+  for (const h of hs) { const m = h.object; if (!m.isMesh || !vis(m) || skip.has(m) || !m.geometry || h.distance < .3) continue; const mt = Array.isArray(m.material) ? m.material[0] : m.material; if (!mt || mt.side === T.BackSide || (mt.transparent && mt.opacity < .5) || mt.colorWrite === false || mt.isShadowMaterial) continue; (CH.hits = CH.hits || []).push((m.name || m.type) + ':' + h.distance.toFixed(1)); return h.distance; }
+  return 70;
+}
+export function chase(on, o = {}) {
+  if (!on) { CH.on = false; if (CH.hid) { for (const m of CH.hid) m.visible = true; CH.hid = null; } return true; }
+  if (!D || D.paused || !P || P.painted) { CH.on = false; return false; }
+  const [cx, cy, cz] = P.c, cam = D.camera, skip = new Set(D.billboards || []); CH.hits = [];
+  for (const sd in casters) skip.add(casters[sd].m);
+  const up = new T.Vector3(0, 1, 0), c = new T.Vector3(cx, cy + 1.0, cz);
+  // the run follows the set's own depth (the street/path the battle camera looks down); the camera turns side-on to it
+  const ax = cam.getWorldDirection(new T.Vector3()).setY(0).normalize(), rt = new T.Vector3().crossVectors(ax, up).normalize();
+  const fwd = Math.min(32, freeDist(c, ax, skip) - 4), bck = Math.min(5, Math.max(0, freeDist(c, ax.clone().negate(), skip) - 1.5));
+  const x0 = -bck, x1 = Math.max(4, fwd);
+  // which side has a wall to stream past: sample both sides along the run
+  const L = [], R = []; for (let i = 0; i < 7; i++) { const p = c.clone().addScaledVector(ax, x0 + (x1 - x0) * i / 6); L.push(freeDist(p, rt.clone().negate(), skip)); R.push(freeDist(p, rt, skip)); }
+  const med = v => v.slice().sort((a, b) => a - b)[v.length >> 1], ml = med(L), mr = med(R);
+  let n = ml <= mr ? rt.clone().negate() : rt.clone(), wall = Math.min(ml, mr), back = Math.max(ml, mr);
+  if (wall > 30) wall = 14;   // open both sides: frame a middle distance and let the far scenery stream
+  const tanH = Math.tan(cam.fov * Math.PI / 360), hf = o.hf || .5, Df0 = 1.75 / (hf * 2 * tanH);
+  let Df = Df0, a = Math.max(0, Math.min(wall - 2.2, wall * .35)); if (Df - a > back - .6) Df = Math.max(2.5, back - .6 + a);
+  // u>0 must read as screen-right
+  const sr = new T.Vector3().crossVectors(n, up).normalize(), sg = sr.dot(ax) >= 0 ? 1 : -1;
+  CH.ax = ax.clone().multiplyScalar(sg); CH.n = n; CH.x0 = sg > 0 ? x0 : -x1; CH.x1 = sg > 0 ? x1 : -x0;
+  CH.mid = new T.Vector3(cx, cy, cz).addScaledVector(n, a); CH.Df = Df; CH.camH = 1.15;
+  // crowd cut-outs standing between the camera and the fighters would fill the frame: step them aside for the chase
+  CH.hid = []; for (const m of D.billboards || []) { if (m.visible && m.position.clone().sub(CH.mid).dot(n) < -.4) { m.visible = false; CH.hid.push(m); } }
+  CH.on = true; CH.dbg = { hits: (CH.hits || []).slice(0, 8), ml, mr, wall, back, a, Df, Df0, x0, x1, sg };
+  place(0); const g = CH.mid.clone().project(cam);
+  return { gy: (1 - g.y) / 2, scale: Df0 / Df, dbg: CH.dbg };
+}
+function place(x) { const cam = D.camera, f = CH.mid.clone().addScaledVector(CH.ax, x);
+  cam.position.copy(f).addScaledVector(CH.n, -CH.Df).add(new T.Vector3(0, CH.camH, 0));
+  cam.lookAt(f.clone().add(new T.Vector3(0, CH.camH * .82, 0))); cam.updateProjectionMatrix(); cam.updateMatrixWorld(); return f; }
+// u: -1..1 along the run (sign follows the attacker's direction), dt: seconds for the set's own animation
+export function chaseDraw(u, dt) {
+  if (!CH.on || !D || D.paused) return null;
+  dt = Math.min(dt || 0, .05); D.time += dt; for (const up of D.updaters) up(D.time, dt);
+  const cam = D.camera, f = place(u < 0 ? -u * CH.x0 : u * CH.x1);
+  D._lights(f); D.focus = { x: f.x, z: f.z }; D.followShadow(f);
+  for (const sd in casters) casters[sd].m.visible = false;
+  if (D.faceCam) { const c = cam.position; for (const m of D.billboards) m.rotation.y = Math.atan2(c.x - m.position.x, c.z - m.position.z) * D.faceCam; }
+  if (D.backdropMesh) { const b = D.backdropMesh; b.position.x = b.userData.x0 + cam.position.x * b.userData.parallax; }
+  D._render(); return cv;
+}
 export function nextStage() { return (D && !D.paused && NEXT[key]) || null; }
 export function transition(host) { const n = nextStage(); if (!n || !host) return Promise.resolve(null); return start(host, n, null).then(() => n, () => null); }
 // ── FIELD EFFECTS on the 3D ground (Rime Field first): frost creeping out over the floor around both fighters, a few

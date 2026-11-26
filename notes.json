@@ -1,5 +1,16 @@
 [
  {
+  "version": "0.3.63",
+  "date": "Nov 25, 2026",
+  "title": "Rushdown through the 3D set, finisher wind-up",
+  "items": [
+   "The Rushdown chase now runs through the actual 3D arena: the camera turns side-on and tears down the set's street, with stalls and lanterns streaming past at real scale. The combo and finisher play on that same street. Painted-only arenas keep the streaking backdrop.",
+   "Each card you throw is one hit, and it deals damage equal to its cost (0-cost cards deal 1). The finisher comes after them as its own extra hit.",
+   "Combo hits are slower and heavier: a wind-up, a short freeze on impact, then the next hit.",
+   "Finishers get a wind-up: time slows, the camera pushes in, element energy pulls in around your fighter with a glowing halo, then a flash and a ring burst into the finishing attack."
+  ]
+ },
+ {
   "version": "0.3.62",
   "date": "Nov 25, 2026",
   "title": "Rasetsu's Rushdown",
