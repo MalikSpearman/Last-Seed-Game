@@ -314,9 +314,10 @@ export class Diorama {
   }
   _render() {
     const r = this.renderer, fx = this.fx, off = this.fxOff, q = this._quad, U = this.post.uniforms;
+    const lite = !!this.lite; if (r.shadowMap.autoUpdate === lite) r.shadowMap.autoUpdate = !lite;
     r.setRenderTarget(this.rt); r.render(this.scene, this.camera);
     const blit = (mat, tgt) => { q.material = mat; r.setRenderTarget(tgt); r.render(this.postScene, this.postCam); };
-    const ao = !off && fx.ao > 0, bl = !off && fx.bloom > 0;
+    const ao = !off && !lite && fx.ao > 0, bl = !off && !lite && fx.bloom > 0;
     if (ao) { const A = this.aoMat.uniforms, cam = this.camera; A.proj.value.copy(cam.projectionMatrix); A.projInv.value.copy(cam.projectionMatrixInverse); A.R.value = fx.aoR;
       A.far.value = this.scene.fog ? this.scene.fog.far : 60; blit(this.aoMat, this.aoRT); }
     if (bl) { const B = this.brMat.uniforms; B.thr.value = fx.thr; B.knee.value = fx.knee; B.ex.value = r.toneMapping === THREE.NoToneMapping ? 1 : r.toneMappingExposure; B.px.value.set(.5 / this.rt.width, .5 / this.rt.height); blit(this.brMat, this.bl[0]);
