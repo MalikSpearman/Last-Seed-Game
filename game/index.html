@@ -6960,14 +6960,14 @@ function bracket(first,popKeys){ app.classList.add('dim'); RS_where='bracket'; R
 function rivalHpMul(opp){ const id=opp&&(opp.sprite||opp.id), H_=HEROES[id]; if(!H_||id==='kuro'||!H_.hp) return 1; return Math.max(.85,Math.min(1.2,Math.pow(H_.hp/68,.75))); }
 /* bracket rivals fight as themselves: their own kit (Rei's chain, Tetsu's forge...), their opening passive, random power-up cards shuffled into their deck, and a random edge that grows with the round */
 const RIVAL_BUFF_POOL=['roadwork','battle_cry','inner_focus','mind_reader','bide','parry','stare_down','double_or_nothing','clinch','iron_stance','sidestep','ring_generalship'];
-function rivalBuffCards(stage){ const n=[1,1,2,2][Math.min(3,stage)], p=RIVAL_BUFF_POOL.filter(k=>CARDS[k]), out=[]; for(let i=0;i<n&&p.length;i++) out.push(p.splice(Math.floor(Math.random()*p.length),1)[0]); return out; }
+function rivalBuffCards(stage){ const n=[1,1,2,2][Math.min(3,stage)], p=RIVAL_BUFF_POOL.filter(k=>CARDS[k]), out=[]; for(let i=0;i<n&&p.length;i++) { const k=p.splice(Math.floor(Math.random()*p.length),1)[0]; out.push(stage>=2&&CARDS[k+'+']?k+'+':k); } return out; }
 function rivalKit(opp){ const H_=HEROES[opp&&(opp.sprite||opp.id)]; if(!H_||!H_.kit) return {}; const k=Object.assign({},H_.kit); delete k.kuro; return k; }
 function rivalMods(opp,stage,list){ const H_=HEROES[opp&&(opp.sprite||opp.id)], st=Math.min(3,stage||0), o={};
   if(H_&&H_.mod&&H_.mod.p){ for(const k of ['power','guard','counter','keepGuard','spirit']) if(H_.mod.p[k]) o[k]=H_.mod.p[k]; }   // their opening passive, as it is for you
   const B=[{power:1},{guard:8},{counter:3},{guard:5,power:1}]; if(st>=2) B.push({maxEnergy:1}); const n=[0,1,1,2][st], got=[];
   for(let i=0;i<n;i++){ const b=B.splice(Math.floor(Math.random()*B.length),1)[0]; got.push(b); for(const k in b) o[k]=(o[k]||0)+b[k]; }
   list.push({e:o}); return o; }
-function rivalRound(stage){ const R=ROUNDS[Math.min(3,stage)]; return {name:R.name,hp:R.hp,power:R.power,honed:[0,2,4,6][Math.min(3,stage)]}; }
+function rivalRound(stage){ const R=ROUNDS[Math.min(3,stage)]; return {name:R.name,hp:R.hp,power:R.power,honed:[0,3,6,9][Math.min(3,stage)]}; }
 function rivalDeck(opp,stage){ const n=rivalRound(stage).honed, d=opp.deck.slice(); let done=0; for(let i=0;i<d.length&&done<n;i++){ const k=d[(i*7)%d.length]; const j=d.indexOf(k); if(j>=0&&!/\+$/.test(d[j])&&CARDS[d[j]+'+']){ d[j]=d[j]+'+'; done++; } } return d; }
 
 // ── the Demon King: one last fight after the Grand Final, shaped by which generals you cut down on the road ──
