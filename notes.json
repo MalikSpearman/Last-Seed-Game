@@ -1,5 +1,20 @@
 [
  {
+  "version": "0.3.80",
+  "date": "Nov 26, 2026",
+  "title": "Online fixes: coin flip, hands, rival mentors",
+  "items": [
+   "Online: a coin flip now decides who goes first.",
+   "Online: Player 2 no longer starts with 5 extra unplayable cards in hand, and hands are capped at 9 (extras are discarded).",
+   "Online: you can now see your rival is choosing a counter, with a countdown.",
+   "Online: End Turn and your cards stay locked during the rival's turn.",
+   "Online: the rival's screen plays their animations through the normal path, which should stop the black screen during Rushdown.",
+   "Online decks now lean on your fighter's own cards, with up to 3 copies of each.",
+   "Mentors now jump in for opponents too, in online matches and in offline versus.",
+   "Character select: clicking the fighter you are on locks them in."
+  ]
+ },
+ {
   "version": "0.3.79",
   "date": "Nov 26, 2026",
   "title": "Lighter counter camera swing on 3D arenas",
