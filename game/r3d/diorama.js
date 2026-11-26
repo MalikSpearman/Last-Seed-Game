@@ -257,15 +257,23 @@ export class Diorama {
     this.upMat.blending = THREE.AdditiveBlending; this.upMat.transparent = true;
     this.post = new THREE.ShaderMaterial({ depthTest: false, depthWrite: false,
       uniforms: { tD: { value: this.rt.texture }, tAO: { value: this.aoRT.texture }, tB: { value: this.bl[0].texture }, tDepth: { value: dt }, nf: { value: new THREE.Vector2(.5, 260) },
-        aoAmt: { value: 0 }, bAmt: { value: 0 }, bex: { value: 1 }, aoPx: { value: new THREE.Vector2() }, res: { value: new THREE.Vector2(4, 4) }, focus: { value: 0.52 }, band: { value: 0.2 }, amt: { value: 1 }, vig: { value: .42 }, flash: { value: 0 } },
+        aoAmt: { value: 0 }, bAmt: { value: 0 }, bex: { value: 1 }, aoPx: { value: new THREE.Vector2() }, res: { value: new THREE.Vector2(4, 4) }, focus: { value: 0.52 }, band: { value: 0.2 }, amt: { value: 1 }, vig: { value: .42 }, flash: { value: 0 }, ink: { value: 0 }, inkW: { value: 1.3 }, inkC: { value: new THREE.Color(0x1a1024) }, cel: { value: 0 }, sat: { value: 0 }, grade: { value: new THREE.Color(1, 1, 1) } },
       vertexShader: V,
-      fragmentShader: `uniform sampler2D tD,tAO,tB,tDepth; uniform vec2 res,nf,aoPx; uniform float focus,band,amt,vig,flash,aoAmt,bAmt,bex; varying vec2 vUv;
+      fragmentShader: `uniform sampler2D tD,tAO,tB,tDepth; uniform vec2 res,nf,aoPx; uniform float focus,band,amt,vig,flash,aoAmt,bAmt,bex,ink,inkW,cel,sat; uniform vec3 inkC,grade; varying vec2 vUv;
         float lin(float d){ float z=d*2.-1.; return 2.*nf.x*nf.y/(nf.y+nf.x-z*(nf.y-nf.x)); }
         void main(){ float d=abs(vUv.y-focus); float b=smoothstep(band,band+.32,d)*amt; vec2 px=1./res; vec4 c=texture2D(tD,vUv);
           if(b>.01){ vec4 s=c; float w=1.; const int N=12; for(int i=0;i<N;i++){ float a=float(i)*2.39996; float r=sqrt(float(i)+.5)/sqrt(float(N)); vec2 o=vec2(cos(a),sin(a))*r*b*7.*px*res.y/720.; s+=texture2D(tD,vUv+o*vec2(1.,1.)*1.6); w+=1.; } c=mix(c,s/w,clamp(b*1.4,0.,1.)); }
           if(aoAmt>0.){ float z0=lin(texture2D(tDepth,vUv).x), a=0., wt=0.;
             for(int y=-1;y<=1;y++) for(int x=-1;x<=1;x++){ vec4 q=texture2D(tAO,vUv+vec2(x,y)*aoPx); float k=1./(1.+abs(q.g-z0)*8./max(z0,.5)); a+=q.r*k; wt+=k; }
             c.rgb*=mix(1.,a/max(wt,1e-4),aoAmt); }
+          // the comic look: ink lines where depth or tone breaks (like the sprites' line art), soft cel bands, a print-like grade
+          if(ink>0.){ vec2 o=px*max(1.,res.y/720.)*inkW; float z0=lin(texture2D(tDepth,vUv).x); float e=0.;
+            e+=abs(lin(texture2D(tDepth,vUv+vec2(o.x,0.)).x)-z0); e+=abs(lin(texture2D(tDepth,vUv-vec2(o.x,0.)).x)-z0); e+=abs(lin(texture2D(tDepth,vUv+vec2(0.,o.y)).x)-z0); e+=abs(lin(texture2D(tDepth,vUv-vec2(0.,o.y)).x)-z0);
+            float ed=smoothstep(.06,.2,e/max(z0,.6)); vec3 L0=texture2D(tD,vUv).rgb; float lt=abs(dot(texture2D(tD,vUv+vec2(o.x,0.)).rgb-L0,vec3(.3,.59,.11)))+abs(dot(texture2D(tD,vUv+vec2(0.,o.y)).rgb-L0,vec3(.3,.59,.11)));
+            ed=max(ed,smoothstep(.3,.6,lt)*.3); ed*=1.-smoothstep(25.,55.,z0); c.rgb=mix(c.rgb,inkC*c.rgb*.35,ed*ink); }
+          if(cel>0.){ float L=max(dot(c.rgb,vec3(.299,.587,.114)),1e-4), N=4., f=L*N, q=(floor(f)+smoothstep(.3,.7,fract(f)))/N; c.rgb*=mix(1.,q/L,cel); }
+          if(sat!=0.){ float L=dot(c.rgb,vec3(.299,.587,.114)); c.rgb=max(mix(vec3(L),c.rgb,1.+sat),0.); }
+          c.rgb*=grade;
           if(bAmt>0.) c.rgb+=texture2D(tB,vUv).rgb*bAmt/max(bex,.01);
           vec2 q=vUv-.5; c.rgb*=1.-vig*dot(q,q)*1.6; c.rgb=mix(c.rgb,c.rgb*vec3(1.04,1.,1.08),.5); c.rgb+=flash; gl_FragColor=vec4(c.rgb,1.);
 #include <tonemapping_fragment>

@@ -1,5 +1,16 @@
 [
  {
+  "version": "0.3.69",
+  "date": "Nov 26, 2026",
+  "title": "3D arenas: eye-level camera, comic look, live lighting",
+  "items": [
+   "The 3D arenas use a near eye-level camera that matches how the fighters are drawn, so you see the set around you instead of mostly floor.",
+   "A new comic style pass gives the 3D sets ink outlines, soft cel shading and richer colour, with far less photographic blur, so they sit with the character art.",
+   "Fighters are lit by the arena's own lights: lanterns tint and rim-light them from the side they shine from, impact flashes light them up, and an awakened fighter's aura adds its own glow.",
+   "Painted 2D arenas keep their original framing."
+  ]
+ },
+ {
   "version": "0.3.68",
   "date": "Nov 25, 2026",
   "title": "Counters: just the two of you",

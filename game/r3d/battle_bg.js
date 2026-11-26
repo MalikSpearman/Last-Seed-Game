@@ -118,12 +118,14 @@ function groundAt(x, y, gy) {
 
 // ── camera fit: choose distance, lateral shift and aim so the clearing's two marks sit under the fighters' feet ──
 // sz: how much of the set one fighter-gap spans; under 1 brings the camera in so the set reads at the fighters' true size (no giants on a tiny bridge)
+// the comic look for the built sets: ink lines, soft cel bands, a little more colour, less photographic depth-of-field
+const STY = { pitch: .08, ink: 1, inkW: 1.8, cel: .25, sat: .2, amt: .25 };
 const SZ_DEF = .5;   // the built 3D sets are at real scale; .5 puts a fighter at about a person's height on them (painted sets keep their own framing)
 const szOf = () => window.__ls3dSz || P.sz || (P.painted ? 1 : SZ_DEF);
 const gapNow = () => szOf() * (P.cover ? P.gap * Math.min(1, D.camera.aspect / P.cover) * fz : P.gap);
 function solveFit(F) {
   // exact: with the camera's angle fixed, two marks at the same depth pin its position (depth from their spacing, offset from their midpoint)
-  const [cx, cy, cz] = P.c, cam = D.camera, ph = P.pitch;
+  const [cx, cy, cz] = P.c, cam = D.camera, ph = window.__ls3dPitch != null ? window.__ls3dPitch : (P.painted ? P.pitch : Math.min(P.pitch, STY.pitch));
   const want = F && F.p && F.e ? [ndc(F.p.x, F.p.y), ndc(F.e.x, F.e.y)] : [[-.5, -.52], [.5, -.52]];
   const t = Math.tan(cam.fov * Math.PI / 360), asp = cam.aspect;
   const sep = Math.max(.15, want[1][0] - want[0][0]), xm = (want[0][0] + want[1][0]) / 2, ym = (want[0][1] + want[1][1]) / 2;
@@ -260,7 +262,7 @@ const CSS = `/* 3D sets with cast shadows: the flat drop-shadow behind each spri
   radial-gradient(ellipse 34% 22% at var(--d1x,30%) var(--d1y,35%),var(--l3d,rgba(40,52,110,.55)),transparent 70%),
   radial-gradient(ellipse 26% 18% at var(--d2x,70%) var(--d2y,62%),var(--l3d,rgba(40,52,110,.5)),transparent 70%),
   linear-gradient(180deg,var(--l3a,rgba(150,165,230,.9)) 0%,var(--l3b,rgba(205,212,245,.95)) 45%,var(--l3c,rgba(120,128,190,.95)) 100%)}
-.lit3d.warm{mix-blend-mode:screen;background:radial-gradient(ellipse 90% 70% at var(--wx,50%) 18%,var(--l3w,rgba(255,150,70,.32)),transparent 70%),linear-gradient(90deg,var(--rim,rgba(255,170,90,.0)) 0%,transparent 30%)}`;
+.lit3d.live.tint{mix-blend-mode:multiply;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,var(--amb) 100%)}\n.lit3d.live.rim{mix-blend-mode:screen;background:linear-gradient(var(--rd,90deg),var(--rc) 0%,transparent 38%),radial-gradient(ellipse 80% 40% at 50% 0%,rgba(255,240,210,var(--top,0)),transparent 70%),linear-gradient(var(--rd,90deg),transparent 62%,var(--aw) 100%),linear-gradient(0deg,var(--tc) 0%,var(--tc) 100%)}\n.lit3d.warm{mix-blend-mode:screen;background:radial-gradient(ellipse 90% 70% at var(--wx,50%) 18%,var(--l3w,rgba(255,150,70,.32)),transparent 70%),linear-gradient(90deg,var(--rim,rgba(255,170,90,.0)) 0%,transparent 30%)}`;
 function lit(side, fd) {
   let L = lits[side];
   if (L && L.img && L.img !== fd.img) { L.a.remove(); L.b.remove(); L = null; delete lits[side]; }
@@ -275,12 +277,42 @@ function lit(side, fd) {
 }
 function lightSprites(F, t) {
   for (const side of ['p', 'e']) {
-    const fd = F[side]; if (!fd) continue; const { L, box, hid } = lit(side, fd);
+    const fd = F[side]; if (!fd) continue; const { L, box, hid } = lit(side, fd); L.a.className = 'lit3d shade'; L.b.className = 'lit3d warm';
     // shade blotches drift slowly like leaves moving over a lamp; the lantern is behind the middle, so its glow sits on the inner side
     const d1x = 30 + Math.sin(t * .23 + (side === 'e' ? 2 : 0)) * 14, d1y = 34 + Math.sin(t * .17) * 8, d2x = 66 + Math.sin(t * .19 + 1) * 12, d2y = 60 + Math.cos(t * .21) * 8;
     const flick = .85 + .1 * Math.sin(t * 7.1) + .05 * Math.sin(t * 13.3);
     L.a.style.cssText = `${box};${hid}--d1x:${d1x}%;--d1y:${d1y}%;--d2x:${d2x}%;--d2y:${d2y}%`;
     L.b.style.cssText = `${box};${hid}--wx:78%;${hid === 'opacity:0;' ? '' : `opacity:${flick * (+getComputedStyle(fd.img).opacity || 1)};`}`;   // .flip mirrors the enemy, so 78% is the inner side for both
+  }
+}
+// live sprite light (non-paper): the set's own lights fall on the fighters. Every point light near a fighter's mark (lanterns,
+// lamps, impact flashes) tints them and rims the side it shines from; the hemisphere/ambient colour settles in their shade;
+// an awakened fighter's aura adds its own rim. Rebuilt from the real scene lights each frame, so flicker and flashes carry over.
+const LV = { lights: [], t: -9, k: { tint: .5, rim: 1, amb: .55 } };
+function liveLights(t) { if (t - LV.t < 1) return LV.lights; LV.t = t; const out = [], amb = { c: new T.Color(0, 0, 0) };
+  D.scene.traverse(o => { if (!o.visible) return; if (o.isPointLight || o.isSpotLight) out.push(o); else if (o.isHemisphereLight) amb.c.add(o.color.clone().multiplyScalar(o.intensity * .5).add(o.groundColor.clone().multiplyScalar(o.intensity * .5))); else if (o.isAmbientLight) amb.c.add(o.color.clone().multiplyScalar(o.intensity)); });
+  LV.lights = out; LV.amb = amb.c; return out; }
+function lightLive(F, t) {
+  const Ls = liveLights(t), [cx, cy, cz] = P.c, cam = D.camera, right = new T.Vector3(1, 0, 0).applyQuaternion(cam.quaternion), K = Object.assign({}, LV.k, window.__ls3dLK || {});
+  const amb = (LV.amb || new T.Color(.5, .5, .6)).clone(); const am = Math.max(amb.r, amb.g, amb.b) || 1; amb.multiplyScalar(1 / am);   // the mood colour, not its strength
+  for (const side of ['p', 'e']) {
+    const fd = F[side]; if (!fd) continue; const { L, box, hid } = lit(side, fd);
+    L.a.className = 'lit3d live tint'; L.b.className = 'lit3d live rim';
+    const g = gapNow(), m = new T.Vector3(cx + (side === 'e' ? g : -g), cy + 1.1, cz);
+    let sum = new T.Color(0, 0, 0), sl = 0, sr = 0, top = 0, tot = 0;
+    for (const l of Ls) { if (!(l.intensity > 0)) continue; const wp = l.getWorldPosition(new T.Vector3()), d = Math.max(.6, wp.distanceTo(m));
+      const fall = l.distance > 0 ? Math.pow(Math.max(0, 1 - Math.pow(d / l.distance, 4)), 2) : 1, w = l.intensity * fall / Math.pow(d, l.decay || 2);
+      if (w <= 1e-4) continue; sum.add(l.color.clone().multiplyScalar(w)); tot += w; const sx = wp.clone().sub(m).dot(right); if (sx < 0) sl += w; else sr += w; if (wp.y - m.y > 1.2) top += w; }
+    (LV.dbg = LV.dbg || {})[side] = { tot: +tot.toFixed(3), sl: +sl.toFixed(3), sr: +sr.toFixed(3), n: Ls.length };
+    const fe = fd.f; let aw = null; if (fe.classList.contains('awk')) { aw = getComputedStyle(fe).getPropertyValue('--a1').trim() || null; }
+    const n = Math.min(1, tot * .6) * K.rim, hue = tot > 0 ? sum.multiplyScalar(1 / Math.max(sum.r, sum.g, sum.b, 1e-4)) : new T.Color(1, .8, .6);
+    // the enemy's sprite box is mirrored (.flip), so its inner/outer sides swap
+    let fromLeft = sl >= sr; if (side === 'e') fromLeft = !fromLeft;
+    const rc = `rgba(${hue.r * 255 | 0},${hue.g * 255 | 0},${hue.b * 255 | 0},${(.08 + .5 * n).toFixed(3)})`, tc = `rgba(${hue.r * 255 | 0},${hue.g * 255 | 0},${hue.b * 255 | 0},${(.04 + .16 * n * K.tint).toFixed(3)})`;
+    const ac = `rgba(${amb.r * 255 | 0},${amb.g * 255 | 0},${amb.b * 255 | 0},${(K.amb * .45).toFixed(3)})`;
+    const flick = .92 + .05 * Math.sin(t * 7.1 + (side === 'e' ? 1 : 0)) + .03 * Math.sin(t * 13.3);
+    L.a.style.cssText = `${box};${hid}--amb:${ac};--tc:${tc}`;
+    L.b.style.cssText = `${box};${hid === 'opacity:0;' ? hid : `opacity:${(flick * (+getComputedStyle(fd.img).opacity || 1)).toFixed(3)};`}--rc:${rc};--rx:${fromLeft ? '0%' : '100%'};--rd:${fromLeft ? '90deg' : '270deg'};--top:${Math.min(.35, top / Math.max(tot, 1e-4) * .35 * n).toFixed(3)};--aw:${aw || 'transparent'}`;
   }
 }
 function lightExtras(X, t) {
@@ -347,6 +379,7 @@ function ensure() {
     { const tq = Math.tan(Math.PI / 12) * (P.cover ? Math.min(1, P.cover / D.camera.aspect) : 1), fv = Math.atan(tq) * 360 / Math.PI; if (Math.abs(D.camera.fov - fv) > 1e-3) { D.camera.fov = fv; D.camera.updateProjectionMatrix(); } }
     const [cx, cy, cz] = P.c;
     window.__ls3dSet = !P.painted;
+    { const U = D.post.uniforms, S_ = Object.assign({}, STY, window.__ls3dSty || {}), on = !P.painted && window.__ls3dSty !== false; U.ink.value = on ? S_.ink : 0; U.inkW.value = S_.inkW; U.cel.value = on ? S_.cel : 0; U.sat.value = on ? S_.sat : 0; U.amt.value = on ? S_.amt : .6; }
     const F = fighters(); const live = OTS.on && !P.painted;
     if (live && !OTS.F0 && OTS.k === 0 && F.p && F.e) { OTS.F0 = F; OTS.R0 = {}; for (const sd of ['p', 'e']) { const el = F[sd].f, r = el.getBoundingClientRect(); OTS.R0[sd] = { left: r.left, top: r.top, k: el.offsetWidth ? r.width / el.offsetWidth : 1 }; } }
     if (OTS.F0) lastF = OTS.F0; else if (F.p || F.e) lastF = F;
@@ -372,7 +405,7 @@ function ensure() {
     litTick(t);
     groupPlace(lastF); const X = extras(); zoomFor(lastF, X); placeExtraCasters(X); lightExtras(X, t);
     // paper sprites: the set's light also falls over the paper cut-outs (dappled shade + warm lantern rim, masked to whatever image the fighter shows: idle, counter pose, kneel, awakened)
-    if (document.getElementById('app').classList.contains('paperon') && OTS.k <= 0) lightSprites(lastF, t); else for (const sd of ['p', 'e']) if (lits[sd]) { lits[sd].a.remove(); lits[sd].b.remove(); delete lits[sd]; }
+    if (document.getElementById('app').classList.contains('paperon') && OTS.k <= 0) lightSprites(lastF, t); else if (OTS.k <= 0 && !P.painted && window.__ls3dLive !== false) lightLive(lastF, t); else for (const sd of ['p', 'e']) if (lits[sd]) { lits[sd].a.remove(); lits[sd].b.remove(); delete lits[sd]; }
   });
   return built;
 }
@@ -568,3 +601,5 @@ export function otsLive() { return !!(D && !D.paused && P && !P.painted); }
 export const _debug = () => ({ depth: fit && fit.depth, key, P, casters: Object.fromEntries(Object.entries(casters).map(([k, c]) => [k, { vis: c.m.visible, src: c.src.slice(-30), pos: c.m.position.toArray().map(v => +v.toFixed(2)), sc: c.m.scale.toArray().map(v => +v.toFixed(2)) }])), shadows: D && D.renderer.shadowMap.enabled });
 export const _dbg2 = () => ({ cur: cur && (cur.name || 'bamboo'), kids: D.scene.children.map(o => o.type + (o.geometry ? ':' + (o.geometry.index ? o.geometry.index.count : 0) : '')).slice(0, 12), cam: D.camera.position.toArray().map(v => +v.toFixed(2)), dir: D.camera.getWorldDirection(new T.Vector3()).toArray().map(v => +v.toFixed(2)), box: (() => { const m = D.scene.children.find(o => o.isMesh && o.geometry.index && o.geometry.index.count > 1000); if (!m) return null; m.geometry.computeBoundingBox(); const b = m.geometry.boundingBox; return [b.min.toArray().map(v => +v.toFixed(1)), b.max.toArray().map(v => +v.toFixed(1)), !!(m.material.map && m.material.map.image)]; })(), P: P && { c: P.c, gap: P.gap, pitch: P.pitch } });
 export const _surf = () => P && P.surf;
+export const _D = () => D;
+export const _lv = () => LV.dbg;
