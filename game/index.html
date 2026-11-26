@@ -3167,7 +3167,14 @@ body.portrait .rm-hp{width:2.25rem}
 .ux7 .u7b.sz .u7b-t b.b{color:#ffd92b}
 .ux7.u8sz .k5-ttl{--c:#ffd92b;--c2:#9fd8ff}
 
-.ux7 .u7b.ra .u7b-in{background:linear-gradient(90deg,#0a0204,#3a0610 30%,#7a0c1c 55%,#3a0610 80%,#0a0204);box-shadow:0 0 0 .07rem #f3cf6a,0 0 .6rem rgba(255,40,60,.85)}
+.ux7 .u7b.br .u7b-in{background:linear-gradient(90deg,#0b0603,#3a1c06 30%,#7a3a0c 55%,#3a1c06 80%,#0b0603);box-shadow:0 0 0 .07rem #f3cf6a,0 0 .6rem rgba(255,150,40,.85)}
+.u7b.br .u7b-s{background:#ff9a2e;box-shadow:0 0 .25rem #ffb85a}
+.u7b.br .u7b-s.s3{background:#cfd6e0}
+.u7b.br .u7b-burst{background:repeating-conic-gradient(from 0deg,rgba(255,154,46,.5) 0 2deg,transparent 2deg 9deg)}
+.u7b.br .u7b-dim{background:radial-gradient(ellipse at 50% 50%,rgba(90,44,6,.72),rgba(10,5,1,.92) 75%)}
+.u7b.br .u7b-t b{-webkit-text-stroke-color:#2a1402;text-shadow:-.05rem 0 rgba(255,150,50,.7),.05rem 0 rgba(207,214,224,.8),0 .06rem 0 #120801,0 0 .35rem rgba(255,140,40,.95)}
+.u7b.br .u7b-t b.b{color:#f3cf6a}
+.u7b.ra .u7b-in{background:linear-gradient(90deg,#0a0204,#3a0610 30%,#7a0c1c 55%,#3a0610 80%,#0a0204);box-shadow:0 0 0 .07rem #f3cf6a,0 0 .6rem rgba(255,40,60,.85)}
 .ux7 .u7b.ra .u7b-s{background:#e0283a;box-shadow:0 0 .25rem #ff5a6a}.ux7 .u7b.ra .u7b-s.s3{background:#f3cf6a}
 .ux7 .u7b.ra .u7b-burst{background:repeating-conic-gradient(from 0deg,rgba(224,40,58,.5) 0 2deg,transparent 2deg 9deg)}
 .ux7 .u7b.ra .u7b-dim{background:radial-gradient(ellipse at 50% 50%,rgba(90,6,16,.72),rgba(10,1,3,.92) 75%)}
@@ -9035,6 +9042,135 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
         if(t<END) requestAnimationFrame(step); else finish(); };
       const finish=()=>{ try{ if(SPR){ SPR.getAnimations().forEach(a=>a.cancel()); SPR.style.opacity=''; } if(eSp){ eSp.getAnimations().forEach(a=>a.cancel()); eSp.style.transition=''; eSp.style.opacity=''; if(fired.fld){ eSp.style.transformOrigin='50% 100%'; eSp.animate([{rotate:`${dir*86}deg`,translate:`${dir*eSp.offsetHeight*.05}px ${-eSp.offsetHeight*.02}px`},{rotate:`${dir*20}deg`,translate:'0 0',offset:.6,easing:'cubic-bezier(.3,.9,.4,1)'},{rotate:'0deg',translate:'0 0'}],{duration:420*SP,easing:'cubic-bezier(.5,0,.3,1)'}).onfinish=()=>{ eSp.style.transformOrigin=''; }; } else eSp.style.transformOrigin=''; } }catch(e){} S.end(); res(true); };
       requestAnimationFrame(step); setTimeout(()=>{ if(o.isConnected) finish(); },(END+3000)*SP); }); }
+  // ════ Bruna · Ultimate Art: Bastion Fall ════
+  //  on the field she slams both shields into the floor (the arena cracks, the rival staggers) → banner (her eyes) →
+  //  RISE: low angle, a stone fortress erupts out of the ground behind her, towers and all → NAME: cut-in of her shouting it →
+  //  CHARGE: side-on, she shoulder-charges her own wall → TOPPLE: the whole bastion tips over and falls on the rival →
+  //  back on the field the rival is buried under the rubble, then shoves out of it as the damage lands
+  Object.assign(U7SRC,{breye:'img/u10_br_eye.webp',brslam:'img/u10_br_slam.webp',brhero:'img/u10_br_hero.webp',brwall:'img/u10_br_wall.webp',brsky:'img/u10_br_sky.webp',brname:'img/u10_br_name.webp',brchg:'img/u10_br_charge.webp',brrub:'img/u10_br_rubble.webp'});
+  const UBRNEED=['breye','brslam','brhero','brwall','brsky','brname','brchg','brrub','rasil'];
+  function kUltBru(side,id){ if(id!=='bruna'||!u7Ok(UBRNEED)) return Promise.resolve(false);
+    try{ Snd.need&&Snd.need('bruna'); }catch(e){} const SV=(k,f)=>{ try{ if(!Snd.voice('bruna',k,{pri:true})&&f) Snd.voice('bruna',f,{pri:true}); }catch(e){} };
+    const tgt=side==='p'?'e':'p', dir=side==='p'?1:-1, SP=speed||1, I={}; UBRNEED.forEach(k=>I[k]=u7img(k));
+    // beat sheet (ms after the banner)
+    const PRE=950, ST=1250, P0=-(PRE+ST), SLAM=P0+300, RISE=0, R1=1350, NC=1500, CH=2300, HIT=2950, TP=3350, IMP=4550, FLD=5150, POP=6200, END=7900;
+    return new Promise(res=>{ const S=u7Stage(side,'u10br'); const {o,W,Hh,port,fg,sg,cam}=S, rnd=Math.random, ph=u7ph, E3=u7E3, EI=u7EI;
+      o.style.setProperty('--c','#ff9a2e'); o.style.setProperty('--c2','#f3cf6a');
+      const T=h('div','u7met-t',`<div class="k5-ttl u7db u10br"><small>Ultimate Art</small><b>${[...'Bastion Fall'].map((c,i)=>`<span style="--i:${i}">${c===' '?'&nbsp;':c}</span>`).join('')}</b><i class="k5-line"></i></div>`); o.appendChild(T); const ttl=T.querySelector('.k5-ttl');
+      const SPR=F[side]&&$('.spr',F[side]), FT=F[tgt], eSp=FT&&$('.spr',FT);
+      const me=sprC(side), en=sprC(tgt), mx=me.x, ex=en.x, gy=en.top+en.h, eh=en.h, mgy=me.top+me.h;
+      const bits=[]; const burst=(g,x,y,n,sp,col,sz)=>{ for(let i=0;i<n;i++){ const a=rnd()*Math.PI*2, v=(.3+rnd())*sp; bits.push({g,x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-sp*.5,r:(sz||1)*(2+rnd()*5),l:1,col,rot:rnd()*6,vr:(rnd()-.5)*.4}); } };
+      const drawBits=(g,grav)=>{ for(const b of bits){ if(b.g!==g) continue; b.x+=b.vx; b.y+=b.vy; b.vy+=grav; b.l-=.014; b.rot+=b.vr; if(b.l>0){ g.save(); g.translate(b.x,b.y); g.rotate(b.rot); g.fillStyle=b.col.replace('A',b.l.toFixed(2)); g.fillRect(-b.r/2,-b.r/2,b.r,b.r*.8); g.restore(); } } };
+      // ground cracks radiating from a point (pre-built so they grow, not flicker)
+      const crack=(n,len)=>[...Array(n)].map((_,i)=>{ const a=(i/n)*Math.PI+(rnd()-.5)*.35, pts=[[0,0]]; let x=0,y=0; for(let k=0;k<6;k++){ const st=len*(.12+rnd()*.12); x+=Math.cos(a+(rnd()-.5)*.8)*st; y+=Math.sin(a+(rnd()-.5)*.8)*st*.28; pts.push([x,y]); } return pts; });
+      const CRK=crack(11,me.h*1.1), WCRK=crack(9,1);
+      const drawCracks=(g,cx,cy,set,p,sc,col,lw)=>{ g.save(); g.translate(cx,cy); g.strokeStyle=col; g.lineCap='round'; for(const c of set){ const n=Math.max(1,Math.round((c.length-1)*p)); g.lineWidth=lw; g.beginPath(); g.moveTo(c[0][0]*sc,c[0][1]*sc); for(let k=1;k<=n;k++) g.lineTo(c[k][0]*sc,(c[k][1])*sc*(set===WCRK?3.2:1)); g.stroke(); } g.restore(); };
+      const dust=[...Array(70)].map(()=>({x:rnd(),y:rnd(),v:.2+rnd()*.8,s:6+rnd()*26,a:.08+rnd()*.18}));
+      // ── sound ──
+      const SC=[[P0,'duck',{}],[SLAM,'odaiko',{v:1.2}],[SLAM,'sub',{f:80,f2:28,v:.9,d:1}],[SLAM+40,'clap',{v:.8}],
+        [RISE,'roll',{n:18,d:1.3,v:.5,f:55}],[RISE+60,'sub',{f:60,f2:30,v:.6,d:1.4}],[RISE+500,'taiko',{f:52,v:1.1,d:.45}],[RISE+900,'taiko',{f:56,v:1.15,d:.45}],[R1-60,'taiko',{f:44,v:1.35,d:.7}],
+        [NC,'taiko',{f:42,v:1.4,d:.8}],[NC,'clap',{v:1}],[CH+120,'taiko',{f:60,v:.85,d:.22}],[CH+300,'taiko',{f:62,v:.9,d:.22}],[CH+460,'taiko',{f:64,v:.95,d:.2}],[CH+580,'taiko',{f:66,v:1,d:.18}],
+        [HIT,'odaiko',{v:1.3}],[HIT,'clap',{v:1}],[HIT+20,'sub',{f:70,f2:30,v:.8,d:.9}],[TP+200,'swell',{d:1.1,v:.32,f:300,f2:1800}],[IMP,'odaiko',{v:1.4}],[IMP,'sub',{f:60,f2:22,v:1,d:1.6}],[IMP+60,'roll',{n:16,d:1.2,v:.55,f:50}],
+        [FLD+200,'taiko',{f:46,v:1.2,d:.6}],[POP,'taiko',{f:50,v:1.3,d:.6}],[POP,'clap',{v:1}],[END-700,'unduck',{tc:.6}]];
+      const startAudio=()=>{ try{ Snd.score([[0,'duck',{}],...[[0,'taiko',{f:60,v:1.2,d:.5}],[230,'taiko',{v:.8}],[420,'taiko',{f:66,v:1.05,d:.4}],[420,'clap',{v:.85}],[650,'taiko',{f:58,v:1.2,d:.5}],[650,'clap',{v:1}],[930,'roll',{v:.4,d:.25}]].map(e=>[e[0]+PRE,e[1],e[2]]),...SC.map(e=>[e[0]+ST+PRE,e[1],e[2]])].map(e=>[Math.max(0,e[0])*SP,e[1],e[2]])); }catch(e){}
+        kSfx([[P0,'3','whoosh_l',.6],[SLAM-20,'3','whoosh_h',.7],[SLAM,'2','smash',1],[SLAM+5,'2','earth',1],[SLAM+10,'2','break',.9],[SLAM+30,'3','hit_c',.9],[SLAM+200,'2','shatter',.5],
+          [RISE,'2','earth',1],[RISE+40,'2','break',.8],[RISE+300,'2','earth',.8],[RISE+520,'2','boom',.6],[RISE+700,'2','break',.7],[RISE+900,'2','earth',.9],[R1-80,'2','smash',.9],[R1-60,'2','boom',.8],
+          [NC,'3','hit_h',.8],[NC+10,'2','boom',.7],[CH,'3','dash',.9],[CH+20,'3','whoosh_h',.8],[CH+300,'2','wind',.6],[HIT-30,'3','whoosh_l',.7],[HIT,'3','hit_c',1],[HIT+5,'2','smash',1],[HIT+20,'2','break',1],[HIT+60,'2','shatter',.8],[HIT+300,'2','earth',.7],
+          [TP+100,'2','earth',.7],[TP+500,'2','break',.7],[TP+900,'2','earth',.8],[IMP-60,'3','whoosh_l',.8],[IMP,'2','smash',1],[IMP+10,'2','boom',1],[IMP+20,'2','earth',1],[IMP+60,'2','break',1],[IMP+250,'2','shatter',.8],[IMP+500,'2','earth',.8],[IMP+800,'2','break',.6],
+          [FLD+180,'2','earth',.8],[FLD+200,'2','break',.6],[POP-40,'2','break',.9],[POP,'3','hit_c',.9],[POP+10,'2','smash',.8],[POP+60,'2','shatter',.5]].map(e=>[Math.round((e[0]+ST+PRE)*SP),e[1],e[2],e[3]])
+          .concat([[0,'2','boom',.75],[30,'3','whoosh_l',.5],[420,'3','hit_h',.55],[650,'2','smash',.6],[655,'3','hit_m',.4],[1060,'3','whoosh_l',.55]].map(e=>[Math.round((e[0]+PRE)*SP),e[1],e[2],e[3]]))); };
+      let t0=null; const fired={}; const once=(k,f)=>{ if(!fired[k]){ fired[k]=1; try{ f(); }catch(e){ console.warn('u10br',k,e); } } };
+      try{ S.begin(); UBRNEED.forEach(k=>S.lay(I[k],{h:.2})); S.present(0); }catch(e){}
+      const step=now=>{ if(!o.isConnected) return; if(t0===null){ t0=now; startAudio(); } const t=window.__UT!=null?window.__UT:(now-t0)/SP-ST-PRE; fg.clearRect(0,0,W,Hh);
+        // ── 0. ON THE FIELD: she slams both shields into the floor; the arena cracks and the rival staggers ──
+        if(t<-ST){ once('f0',()=>{ S.cine(false); S.bars(false); if(SPR){ SPR.getAnimations().forEach(a=>a.cancel()); SPR.style.opacity='0'; } });
+          const sl=t>=SLAM, Sp=I.brslam, sh=me.h*(sl?.78:.9), sw=sh*Sp.width/Sp.height, hop=sl?0:-me.h*.12*Math.sin(Math.PI*ph(t,P0,SLAM)), sq=sl?1+.06*Math.exp(-(t-SLAM)/90):1;
+          if(sl) drawCracks(fg,mx+dir*sw*.18,mgy,CRK,E3(ph(t,SLAM,SLAM+260)),1,'rgba(40,24,12,.85)',3);
+          if(sl) drawCracks(fg,mx+dir*sw*.18,mgy,CRK,E3(ph(t,SLAM,SLAM+260)),1,'rgba(255,170,70,.55)',1.2);
+          fg.save(); fg.translate(mx,mgy+hop); if(dir<0) fg.scale(-1,1); fg.scale(1/sq,sq); fg.drawImage(Sp,-sw*.5,-sh,sw,sh); fg.restore();
+          if(sl) once('slam',()=>{ shake(30,500); try{ vib(70); }catch(e){} S.blink(70,.45,'#fff0d8'); burst(fg,mx+dir*sw*.2,mgy,40,me.h*.02,'rgba(120,90,60,A)',1.3); burst(fg,mx+dir*sw*.2,mgy,16,me.h*.03,'rgba(255,180,80,A)',.6); try{ fxs('dust',mx+dir*sw*.2,mgy,me.h*1.4,600,0,false); }catch(e){}
+            if(eSp){ eSp.getAnimations().forEach(a=>a.cancel()); eSp.style.transformOrigin='50% 100%'; eSp.animate([{translate:'0 0',rotate:'0deg'},{translate:`${dir*eh*.05}px ${-eh*.05}px`,rotate:`${dir*7}deg`,offset:.3},{translate:`${dir*eh*.03}px 0`,rotate:`${dir*3}deg`}],{duration:520*SP,easing:'cubic-bezier(.2,.7,.4,1)',fill:'forwards'}); } });
+          if(sl&&t<SLAM+380){ const p=ph(t,SLAM,SLAM+380), cx=mx+dir*sw*.2; fg.save(); fg.globalCompositeOperation='lighter'; fg.strokeStyle=`rgba(255,200,120,${1-p})`; fg.lineWidth=7*(1-p)+1; fg.beginPath(); fg.ellipse(cx,mgy,me.h*(.2+1.5*p),me.h*(.05+.28*p),0,0,7); fg.stroke(); fg.restore(); }
+          drawBits(fg,me.h*.0014); }
+        // ── banner (her eyes) ──
+        else if(t<0){ once('st',()=>{ S.blink(45,.4,'#ffe2c0'); shake(14,280); u7Banner(o,'a',S.mir,SP,shake,(a,b,c)=>S.blink(a,b,c),{eye:'img/u10_br_eye.webp',cls:'br'}); setTimeout(()=>SV('u10_art','_ult'),150*SP); });
+          const Sp=I.brslam, sh=me.h*.78, sw=sh*Sp.width/Sp.height; drawCracks(fg,mx+dir*sw*.18,mgy,CRK,1,'rgba(40,24,12,.85)',3); fg.save(); fg.translate(mx,mgy); if(dir<0) fg.scale(-1,1); fg.drawImage(Sp,-sw*.5,-sh,sw,sh); fg.restore(); drawBits(fg,me.h*.0014); }
+        else if(t<FLD){ once('cin',()=>{ o.querySelectorAll('.u7b').forEach(b=>b.remove()); S.cine(true); S.bars(true); if(SPR){ SPR.getAnimations().forEach(a=>a.cancel()); SPR.style.opacity='0'; } if(eSp){ eSp.getAnimations().forEach(a=>a.cancel()); eSp.style.opacity='0'; } }); S.begin(); cam.r=0;
+          // ── 1. RISE: low angle; the fortress erupts out of the ground behind her ──
+          if(t<NC){ const u=ph(t,RISE,R1), up=E3(u), rum=t<R1?Math.sin(t/23)*(1-u)*.012:0;
+            cam.x=rum; cam.y=-.02+.03*(1-up); cam.z=1.04+.1*ph(t,RISE,NC);
+            S.back(I.brsky,.15,.25,{y:.05});
+            // two far wings first, then the main wall, each shoving up through its own dust
+            const WI=I.brwall;
+            [[-.85,.5,.42,200],[1.35,.5,.42,350]].forEach(([x,d,hh,dl])=>{ const k=E3(ph(t,RISE+dl,R1+dl*.4)); S.lay(WI,{d,x,y:.75-.5*k+rum*3,h:hh,ay:1,a:.8,sx:x<0?-1:1}); });
+            const k=up; S.lay(WI,{d:.7,x:.3,y:1.15-.85*k,h:.78,ay:1});
+            // dust skirts at the wall foot
+            sg.save(); sg.globalCompositeOperation='screen'; for(const p of dust){ const yy=Hh*(.6+.35*p.y)-t*.02*p.v, xx=W*p.x+Math.sin(t/300+p.y*9)*20; sg.fillStyle=`rgba(210,160,110,${p.a*(t<R1?1:.6)})`; sg.beginPath(); sg.arc(xx,yy,p.s*(1+.6*(1-u)),0,7); sg.fill(); } sg.restore();
+            // her: low-angle hero shot in front, rising slightly with the camera
+            S.lay(I.brhero,{d:1.1,x:-.5,y:.42+.06*(1-E3(ph(t,RISE,RISE+600))),h:.8,ay:1});
+            S.fx={vig:.5,ca:.15+.4*(t<R1?(1-u):0),lift:.03,heat:.06};
+            if(t>=RISE+40) once('rise0',()=>{ shake(18,900); SV('u10_rise'); });
+            if(t>=R1-60) once('rise1',()=>{ shake(26,420); try{ vib(60); }catch(e){} S.blink(60,.3,'#ffe6c8'); });
+            S.present(t); }
+          // ── 2. NAME: cut-in of her shouting it ──
+          else if(t<CH){ const u=ph(t,NC,CH); cam.x=0; cam.y=0; cam.z=1.02+.08*u; S.back(I.brname,1,.12,{x:.03*u});
+            sg.save(); sg.globalCompositeOperation='lighter'; for(let n=0;n<22;n++){ const y=rnd()*Hh, l=W*(.15+.4*rnd()), x=rnd()*W; sg.strokeStyle=`rgba(255,190,120,${.1+.18*rnd()})`; sg.lineWidth=1+rnd()*2; sg.beginPath(); sg.moveTo(x,y); sg.lineTo(x-l*.9,y+l*.35); sg.stroke(); } sg.restore();
+            S.fx={vig:.45,ca:.2,lift:.02,imp:t<NC+70?1:0};
+            once('nc',()=>{ shake(22,400); if(!port){ ttl.style.left=S.mir?'36%':'64%'; ttl.style.top='82%'; ttl.style.fontSize='85%'; } SV('u10_name','_ult'); ttl.animate([{opacity:0,transform:'translate(-50%,-50%) scale(1.6)',filter:'blur(8px)'},{opacity:1,transform:'translate(-50%,-50%) scale(1)',filter:'blur(0)',offset:.15,easing:'cubic-bezier(.3,1.4,.5,1)'},{opacity:1,offset:.85},{opacity:0,transform:'translate(-50%,-50%) scale(1.05)'}],{duration:(CH-NC)*SP,fill:'both'}); ttl.querySelector('.k5-line').animate([{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:240*SP,delay:120*SP,easing:'cubic-bezier(.2,.9,.3,1)',fill:'both'}); });
+            S.present(t); }
+          // ── 3. CHARGE: side-on, she rams her own wall ──
+          else if(t<TP){ const hit=t>=HIT, kk=hit?Math.exp(-(t-HIT)/160):0, run=ph(t,CH,HIT);
+            cam.x=hit?(rnd()-.5)*.03*kk:0; cam.y=hit?(rnd()-.5)*.03*kk:0; cam.z=1+.06*run+.05*kk;
+            S.back(I.brsky,.2,.25,{x:-.15*run});
+            // the wall end-on to the right: we see its face, huge
+            S.lay(I.brwall,{d:.85,x:.72,y:.36,h:.82,ay:1});
+            if(hit) drawCracks(sg,W*.5+S.U*.05,Hh*.5-S.U*.12,WCRK,E3(ph(t,HIT,HIT+300)),S.U*.32,'rgba(30,18,10,.9)',4);
+            if(hit) drawCracks(sg,W*.5+S.U*.05,Hh*.5-S.U*.12,WCRK,E3(ph(t,HIT,HIT+300)),S.U*.32,'rgba(255,170,70,.5)',1.5);
+            // her, running in from the left and slamming into the face of the wall
+            const C=I.brchg, bx=hit?.06-.02*kk:-1.2+1.26*Math.pow(run,1.5), by=.4+(hit?0:.012*Math.abs(Math.sin(t/60)));
+            if(!hit){ for(let a=1;a<4;a++) S.lay(C,{d:1,x:bx-a*.16,y:by,h:.6,ay:1,ax:.95,a:.28-.07*a}); }
+            S.lay(C,{d:1,x:bx,y:by,h:.6,ay:1,ax:.95,sx:hit?.94+.06*(1-kk):1,sy:hit?1.04-.04*(1-kk):1});
+            sg.save(); sg.globalCompositeOperation='lighter'; for(let n=0;n<(hit?10:24);n++){ const y=rnd()*Hh, l=W*(.15+.45*rnd()), x=rnd()*W; sg.strokeStyle=`rgba(255,200,150,${.1+.15*rnd()})`; sg.lineWidth=1+rnd()*2; sg.beginPath(); sg.moveTo(x,y); sg.lineTo(x-l,y); sg.stroke(); } sg.restore();
+            if(hit&&t<HIT+260){ const p=ph(t,HIT,HIT+260), cx=W*.5+S.U*.06, cy=Hh*.5-S.U*.1; sg.save(); sg.globalCompositeOperation='lighter'; const rg=sg.createRadialGradient(cx,cy,0,cx,cy,S.U*.7); rg.addColorStop(0,`rgba(255,245,225,${.95*(1-p)})`); rg.addColorStop(.4,`rgba(255,160,60,${.6*(1-p)})`); rg.addColorStop(1,'rgba(255,120,40,0)'); sg.fillStyle=rg; sg.fillRect(cx-S.U*.7,cy-S.U*.7,S.U*1.4,S.U*1.4); sg.restore(); }
+            if(t>=CH) once('chg',()=>{ SV('u10_charge'); });
+            if(hit) once('hit',()=>{ shake(34,520); try{ vib(80); }catch(e){} S.blink(60,.5,'#fff2dc'); burst(sg,W*.5+S.U*.06,Hh*.5-S.U*.1,40,S.U*.02,'rgba(140,110,80,A)',1.4); });
+            drawBits(sg,S.U*.0012);
+            S.fx={vig:.5,ca:.15+.6*kk,lift:.02,imp:hit&&t<HIT+60?1:0};
+            S.present(t); }
+          // ── 4. TOPPLE: the bastion tips over and falls on the rival ──
+          else { const u=ph(t,TP,IMP), fall=EI(u), land=t>=IMP, kk=land?Math.exp(-(t-IMP)/220):0;
+            cam.x=-.08+(land?(rnd()-.5)*.05*kk:0); cam.y=(land?(rnd()-.5)*.05*kk:0)-.02*u; cam.z=1+.05*u;
+            S.back(I.brsky,.2,.25,{x:-.15});
+            // the rival, small and looking up, where the wall will land
+            // from behind the rival: the bastion tips toward us and swallows the frame
+            if(!land){ const g2=fall*fall, wy=.28+.75*g2, wh=.7*(1+2.6*g2); S.lay(I.brwall,{d:.8,x:.12,y:wy,h:wh,ay:1,sy:1-.25*Math.sin(fall*Math.PI/2)});
+              sg.save(); sg.globalAlpha=Math.min(.92,.15+.85*g2); const sh_=sg.createLinearGradient(0,0,0,Hh); sh_.addColorStop(0,'rgba(0,0,0,0)'); sh_.addColorStop(Math.max(.01,1-g2),'rgba(0,0,0,.2)'); sh_.addColorStop(1,'#000'); sg.fillStyle=sh_; sg.fillRect(0,0,W,Hh); sg.restore();
+              S.lay(I.rasil,{d:1.2,x:-.52,y:.58,h:.6,ay:1,fx:true}); }
+            else { const p=ph(t,IMP,IMP+400); if(t<IMP+70){ sg.fillStyle='#000'; sg.fillRect(0,0,W,Hh); } else S.lay(I.brrub,{d:1,x:.05,y:.36,h:.5*(1+.1*(1-p)),ay:1,sy:1-.12*kk}); }
+            // dust & debris
+            if(land&&t>=IMP+70){ sg.save(); sg.globalCompositeOperation='screen'; for(const p of dust){ const lp=ph(t,IMP,IMP+1100), xx=W*(.2+.75*p.x)+(p.x-.5)*W*.4*lp, yy=Hh*(.55+.2*p.y)-Hh*.25*lp*p.v; sg.fillStyle=`rgba(220,170,120,${p.a*1.6*(1-lp*.6)})`; sg.beginPath(); sg.arc(xx,yy,p.s*(1.5+3*lp),0,7); sg.fill(); } sg.restore(); }
+            if(land) once('imp',()=>{ shake(48,1300); try{ vib(140); }catch(e){} S.blink(90,.65,'#fff4e2'); burst(sg,W*.55,Hh*.68,60,S.U*.028,'rgba(120,95,70,A)',1.6); burst(sg,W*.55,Hh*.68,20,S.U*.03,'rgba(255,170,80,A)',.6); });
+            drawBits(sg,S.U*.0013);
+            S.fx={vig:.55,ca:.15+.7*kk,lift:.02,heat:.05,imp:land&&t<IMP+70?1:0,inv:land&&t>=IMP+40&&t<IMP+90?1:0};
+            S.present(t); } }
+        // ── 5. FIELD: the rival is buried under the rubble, then shoves out as the damage lands ──
+        else { const fz=t-FLD, pop=t>=POP; once('fld',()=>{ S.cine(false); S.bars(false); T.remove(); S.blink(80,.25,'#ffe8d0');
+            if(SPR){ SPR.getAnimations().forEach(a=>a.cancel()); SPR.style.opacity=''; SPR.style.transformOrigin='50% 100%'; SPR.animate([{scale:'1.12 .86'},{scale:'.97 1.04',offset:.6},{scale:'1 1'}],{duration:380*SP,easing:'cubic-bezier(.4,0,.6,1)'}).onfinish=()=>{ SPR.style.transformOrigin=''; }; }
+            if(eSp){ eSp.getAnimations().forEach(a=>a.cancel()); eSp.style.transition='none'; eSp.style.opacity='0'; } });
+          const hs=fired.hs||(fired.hs=(window.__ULTHITS&&window.__ULTHITS.length)?window.__ULTHITS.slice():(window.__FAKEHITS?[{amount:20,s:S.mir?'p':'e'}]:[]));
+          // the rubble pile over where the rival stood (drops in, settles, then bursts apart)
+          { const R=I.brrub, rw=eh*1.9, rh=rw*R.height/R.width, d=ph(fz,0,220), sett=fz<220?-Hh*.3*(1-d*d):0, bl=pop?ph(t,POP,POP+380):0;
+            if(bl<1){ fg.save(); fg.globalAlpha=1-bl; fg.translate(ex,gy+sett); if(dir<0) fg.scale(-1,1); fg.drawImage(R,-rw/2,-rh*.92,rw,rh); fg.restore(); } }
+          if(fz>=200) once('land',()=>{ shake(30,500); try{ vib(70); }catch(e){} try{ fxs('dust',ex,gy-eh*.02,eh*1.6,800,0,false); }catch(e){} burst(fg,ex,gy-eh*.1,30,eh*.022,'rgba(110,85,60,A)',1.2); });
+          if(pop) once('pop',()=>{ shake(24,380); S.blink(60,.3,'#fff0dc'); burst(fg,ex,gy-eh*.25,46,eh*.03,'rgba(120,95,70,A)',1.3);
+              if(eSp){ eSp.style.transition=''; eSp.style.opacity=''; eSp.style.transformOrigin='50% 100%'; eSp.animate([{translate:`0 ${eh*.15}px`,scale:'1 .7',filter:'brightness(.5) sepia(.6)'},{translate:'0 0',scale:'1 1.06',filter:'brightness(1)',offset:.5},{translate:'0 0',scale:'1 1'}],{duration:420*SP,easing:'cubic-bezier(.3,.9,.4,1)'}).onfinish=()=>{ eSp.style.transformOrigin=''; }; }
+              window.__ULTHITS=[]; hs.forEach((e,i)=>{ e._pre=true; setTimeout(()=>{ if(!o.isConnected) return; const n=h('div','num dmg big u7num','-'+e.amount); n.style.left=(ex+(i%2?1:-1)*eh*.14*Math.min(i,1))+'px'; n.style.top=(gy-eh*.62-i*Hh*.07)+'px'; n.style.animationDuration=(1.35*SP)+'s'; o.appendChild(n); setTimeout(()=>n.remove(),1450*SP); try{ hud(e.s); }catch(_){} if(!i) try{ const rv=(typeof vid==='function')?vid(tgt):null; if(rv&&Snd.has(rv,'_hitbig')) Snd.voice(rv,'_hitbig',{}); }catch(_){} },(60+i*140)*SP); }); });
+          drawBits(fg,eh*.0013);
+          if(t>POP+450) once('aft',()=>SV('u10_after','_sup')); }
+        if(t<END) requestAnimationFrame(step); else finish(); };
+      const finish=()=>{ try{ if(SPR){ SPR.getAnimations().forEach(a=>a.cancel()); SPR.style.opacity=''; } if(eSp){ eSp.getAnimations().forEach(a=>a.cancel()); eSp.style.transition=''; eSp.style.opacity=''; eSp.style.transformOrigin=''; } }catch(e){} S.end(); res(true); };
+      requestAnimationFrame(step); setTimeout(()=>{ if(o.isConnected&&window.__UT==null) finish(); },(END+3000)*SP); }); }
+  window.__ultPrev=(id,side)=>{ window.__FAKEHITS=1; const f={rasetsu:kUltRas,bruna:kUltBru}[id]; return f?f(side||'p',id).then(r=>{ window.__FAKEHITS=0; return r; }):Promise.resolve(false); };
 
   const U10VOX={"u10_art": [0.0, 1.327, "v_u10_nia"], "u10_art#2": [1.447, 1.392, "v_u10_nia"], "u10_wave": [2.959, 1.124, "v_u10_nia"], "u10_wave#2": [4.203, 1.147, "v_u10_nia"], "u10_name": [5.47, 3.066, "v_u10_nia"], "u10_name#2": [8.657, 3.098, "v_u10_nia"], "u10_after": [11.874, 5.448, "v_u10_nia"], "u10_after#2": [17.442, 5.46, "v_u10_nia"], "u10_rabbit": [23.143, 2.882, "v_u10_nia"], "u10_rabbit#2": [26.145, 3.031, "v_u10_nia"]};
   // ════ Nia · Ultimate Art: Chapter Final — Teacup Voyage ════
@@ -11427,7 +11563,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
       case 'spirit': hud(ev.s); break;
       case 'combo': { hud(ev.s); const t=sprC(side), FC=fireOf(LASTP[side]); Snd.sfx(FC?'fire':ev.at==='spirit'?'bolt':'gold'); fxs('combo_'+(FC?'phys':ev.at),t.x,t.y-t.h*.08,t.h*(.55+ev.n*.18),520+ev.n*80,0,false); Fx.burst(t.x,t.y,FC?'fire':ev.at==='spirit'?'ghost':'gold',6+ev.n*5,.8); num(t.x,t.top-4,ev.n>=3?'MAX CHAIN!':'Combo ×'+ev.n,'txt',FC?'#ff9a3c':ev.at==='spirit'?'#c9a0ff':'#ffb35a'); await sleep(190); break; }
       case 'finisher': { if(ev.at==='spirit'&&!fireOf(ev.card||LASTP[ev.side])){ await spFin(ev); break; } const t=sprC(ev.side==='p'?'e':'p'), sp=ev.at==='spirit', FF=fireOf(ev.card||LASTP[ev.side]); { const fe=finEl(ev,FF?'fire':null); finBan(ev,FF?'FIRE FINISHER':sp?'SPIRIT FINISHER':ev.at==='tech'?'TECH FINISHER':'FINISHER',fe.col,fe.name,fe.el); } Snd.sfx(FF?'fire':sp?'ghost':'impact',true); await sleep(330); { const fe=finEl(ev,FF?'fire':null); impactFX(t.x,t.y,fe.col,true); } await sleep(100); { const C=CARDS[ev.card||LASTP[ev.side]]||{}; vfFin(ev.side,FF?'fire':(C.el&&C.el!=='none'?C.el:(sp?fighterEl(ev.side):'tech')),t,t.h*(1.55+ev.n*.2),860+ev.n*40); } Fx.burst(t.x,t.y,FF?'fire':sp?'ghost':'gold',30+ev.n*16,1.6); if(ev.n>=3){ flash(); shake(18,380); } else shake(9,260); await sleep(60); break; }
-      case 'ult': ls3dCall('sweep'); hud(ev.s); if(ev.id==='ito'&&!(window.__ITV!=='off'&&window.__itU11&&__itU11())) await itoFx(side,'ult'); setTimeout(()=>annCall('ultimate'),1300*speed); if(ev.id==='shura'&&window.__SHV!=='off'&&typeof kUltShura==='function'){ try{ const L=window.__CUREVS||[], i0=L.indexOf(ev), hs=[]; for(let i=i0+1;i0>=0&&i<L.length;i++){ const e=L[i]; if(e.t==='hit'&&e.from===side&&/^ult_/.test(String(e.card||''))) hs.push(e); else if(e.t==='hit') break; } window.__ULTHITS=hs; }catch(_){ window.__ULTHITS=[]; } if(await kUltShura(side,ev.id,window.__SHV||'a')){ UXDONE[side]=1; break; } } if(ev.id==='ito'&&window.__ITV!=='off'){ window.__ULTHITS=itHits(ev,side,/^ult_/); if(await kUltIto(side,ev.id)){ UXDONE[side]=1; break; } } if(ev.id==='nia'&&window.__NIV!=='off'){ try{ const L=window.__CUREVS||[], i0=L.indexOf(ev), hs=[]; for(let i=i0+1;i0>=0&&i<L.length;i++){ const e=L[i]; if(e.t==='hit'&&e.from===side&&/^ult_/.test(String(e.card||''))) hs.push(e); else if(e.t==='hit') break; } window.__ULTHITS=hs; }catch(_){ window.__ULTHITS=[]; } if(await kUltNia(side,ev.id)){ UXDONE[side]=1; break; } } if(ev.id==='rasetsu'&&window.__RAV!=='off'){ try{ const L=window.__CUREVS||[], i0=L.indexOf(ev), hs=[]; for(let i=i0+1;i0>=0&&i<L.length;i++){ const e=L[i]; if(e.t==='hit'&&e.from===side&&/^ult_/.test(String(e.card||''))) hs.push(e); else if(e.t==='hit') break; } window.__ULTHITS=hs; }catch(_){ window.__ULTHITS=[]; } if(await kUltRas(side,ev.id)){ UXDONE[side]=1; break; } } if(ev.id==='suzu'&&window.__SZV!=='off'){ try{ const L=window.__CUREVS||[], i0=L.indexOf(ev), hs=[]; for(let i=i0+1;i0>=0&&i<L.length;i++){ const e=L[i]; if(e.t==='hit'&&e.from===side&&/^ult_/.test(String(e.card||''))) hs.push(e); else if(e.t==='hit') break; } window.__ULTHITS=hs; }catch(_){ window.__ULTHITS=[]; } if(await kUltSuzu(side,ev.id,window.__SZV||'c')){ UXDONE[side]=1; break; } } if(kSupCan('ult_'+ev.id,side)){ UXDONE[side]=0; { const UV=window.__ULTV||'kick'; if(UV==='ink'&&await kUltInk(side,ev.id)){ UXDONE[side]=1; break; } if(UV==='meteor'&&await kUltMeteor(side,ev.id)){ UXDONE[side]=1; break; } if(UV==='kick'){ try{ const L=window.__CUREVS||[], i0=L.indexOf(ev), hs=[]; for(let i=i0+1;i0>=0&&i<L.length;i++){ const e=L[i]; if(e.t==='hit'&&e.from===side&&/^ult_/.test(String(e.card||''))) hs.push(e); else if(e.t==='hit') break; } window.__ULTHITS=hs; }catch(_){ window.__ULTHITS=[]; } if(await kUltKick(side,ev.id)){ UXDONE[side]=1; break; } } } if(ULTX6[ev.id]&&await kUltX6(side,ev.id)){ UXDONE[side]=1; break; } if(ULTX5[ev.id]&&await kUltX5(side,ev.id)){ UXDONE[side]=1; break; } if(ULTX4[ev.id]&&await kUltX4(side,ev.id)){ UXDONE[side]=1; break; } if(ULTX[ev.id]&&await kUltX(side,ev.id)){ UXDONE[side]=1; break; } await secretOpen(side,ev.id); if(ULTX[ev.id]&&uxOk(ev.id)) await kWindX(side,ev.id); break; } { const A_=AWAKEN[ev.id]||{}; await superFlash(side,A_.c1); await cutin(side,{name:ULTS[ev.id].name,fx:'aura'},'Ultimate',side==='p'?'img/'+HERO+'.webp':sprOf(opp),side==='e'&&opp.tint,A_.c1||'#ffd34d','sig'); } await ultCine(side,ULTS[ev.id],side==='p'?'img/'+HERO+'.webp':sprOf(opp),side==='e'&&opp.tint); break;
+      case 'ult': ls3dCall('sweep'); hud(ev.s); if(ev.id==='ito'&&!(window.__ITV!=='off'&&window.__itU11&&__itU11())) await itoFx(side,'ult'); setTimeout(()=>annCall('ultimate'),1300*speed); if(ev.id==='shura'&&window.__SHV!=='off'&&typeof kUltShura==='function'){ try{ const L=window.__CUREVS||[], i0=L.indexOf(ev), hs=[]; for(let i=i0+1;i0>=0&&i<L.length;i++){ const e=L[i]; if(e.t==='hit'&&e.from===side&&/^ult_/.test(String(e.card||''))) hs.push(e); else if(e.t==='hit') break; } window.__ULTHITS=hs; }catch(_){ window.__ULTHITS=[]; } if(await kUltShura(side,ev.id,window.__SHV||'a')){ UXDONE[side]=1; break; } } if(ev.id==='ito'&&window.__ITV!=='off'){ window.__ULTHITS=itHits(ev,side,/^ult_/); if(await kUltIto(side,ev.id)){ UXDONE[side]=1; break; } } if(ev.id==='nia'&&window.__NIV!=='off'){ try{ const L=window.__CUREVS||[], i0=L.indexOf(ev), hs=[]; for(let i=i0+1;i0>=0&&i<L.length;i++){ const e=L[i]; if(e.t==='hit'&&e.from===side&&/^ult_/.test(String(e.card||''))) hs.push(e); else if(e.t==='hit') break; } window.__ULTHITS=hs; }catch(_){ window.__ULTHITS=[]; } if(await kUltNia(side,ev.id)){ UXDONE[side]=1; break; } } if(ev.id==='rasetsu'&&window.__RAV!=='off'){ try{ const L=window.__CUREVS||[], i0=L.indexOf(ev), hs=[]; for(let i=i0+1;i0>=0&&i<L.length;i++){ const e=L[i]; if(e.t==='hit'&&e.from===side&&/^ult_/.test(String(e.card||''))) hs.push(e); else if(e.t==='hit') break; } window.__ULTHITS=hs; }catch(_){ window.__ULTHITS=[]; } if(await kUltRas(side,ev.id)){ UXDONE[side]=1; break; } } if(ev.id==='bruna'&&window.__BRV!=='off'){ try{ const L=window.__CUREVS||[], i0=L.indexOf(ev), hs=[]; for(let i=i0+1;i0>=0&&i<L.length;i++){ const e=L[i]; if(e.t==='hit'&&e.from===side&&/^ult_/.test(String(e.card||''))) hs.push(e); else if(e.t==='hit') break; } window.__ULTHITS=hs; }catch(_){ window.__ULTHITS=[]; } if(await kUltBru(side,ev.id)){ UXDONE[side]=1; break; } } if(ev.id==='suzu'&&window.__SZV!=='off'){ try{ const L=window.__CUREVS||[], i0=L.indexOf(ev), hs=[]; for(let i=i0+1;i0>=0&&i<L.length;i++){ const e=L[i]; if(e.t==='hit'&&e.from===side&&/^ult_/.test(String(e.card||''))) hs.push(e); else if(e.t==='hit') break; } window.__ULTHITS=hs; }catch(_){ window.__ULTHITS=[]; } if(await kUltSuzu(side,ev.id,window.__SZV||'c')){ UXDONE[side]=1; break; } } if(kSupCan('ult_'+ev.id,side)){ UXDONE[side]=0; { const UV=window.__ULTV||'kick'; if(UV==='ink'&&await kUltInk(side,ev.id)){ UXDONE[side]=1; break; } if(UV==='meteor'&&await kUltMeteor(side,ev.id)){ UXDONE[side]=1; break; } if(UV==='kick'){ try{ const L=window.__CUREVS||[], i0=L.indexOf(ev), hs=[]; for(let i=i0+1;i0>=0&&i<L.length;i++){ const e=L[i]; if(e.t==='hit'&&e.from===side&&/^ult_/.test(String(e.card||''))) hs.push(e); else if(e.t==='hit') break; } window.__ULTHITS=hs; }catch(_){ window.__ULTHITS=[]; } if(await kUltKick(side,ev.id)){ UXDONE[side]=1; break; } } } if(ULTX6[ev.id]&&await kUltX6(side,ev.id)){ UXDONE[side]=1; break; } if(ULTX5[ev.id]&&await kUltX5(side,ev.id)){ UXDONE[side]=1; break; } if(ULTX4[ev.id]&&await kUltX4(side,ev.id)){ UXDONE[side]=1; break; } if(ULTX[ev.id]&&await kUltX(side,ev.id)){ UXDONE[side]=1; break; } await secretOpen(side,ev.id); if(ULTX[ev.id]&&uxOk(ev.id)) await kWindX(side,ev.id); break; } { const A_=AWAKEN[ev.id]||{}; await superFlash(side,A_.c1); await cutin(side,{name:ULTS[ev.id].name,fx:'aura'},'Ultimate',side==='p'?'img/'+HERO+'.webp':sprOf(opp),side==='e'&&opp.tint,A_.c1||'#ffd34d','sig'); } await ultCine(side,ULTS[ev.id],side==='p'?'img/'+HERO+'.webp':sprOf(opp),side==='e'&&opp.tint); break;
       case 'summon': hud(ev.s); await smSummon(ev); break;
       case 'smhit': await smStrike(ev); break;
       case 'smdmg': await smTake(ev); break;
