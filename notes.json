@@ -1,5 +1,17 @@
 [
  {
+  "version": "0.3.67",
+  "date": "Nov 25, 2026",
+  "title": "Punchier Rushdown, awakening rules",
+  "items": [
+   "The Rush hit knocks the rival straight off the screen: an impact frame, a split-second of hitstun, then the launch.",
+   "Combo strikes show one impact each in the element's colour, and weapon swings leave a blade trail. Each hit has an impact frame, the camera holds a little wider with no letterbox, and the fighters keep their real relative sizes.",
+   "Every finisher hits with a negative-contrast impact frame and a beat of slow motion. Rasetsu's finisher is now a single clean cut.",
+   "Awakened fighters can't be launched or Rushed down, and anyone airborne lands when they awaken.",
+   "If you're awakened when the rival uses a super, the cinematic shows you in your awakened form."
+  ]
+ },
+ {
   "version": "0.3.66",
   "date": "Nov 25, 2026",
   "title": "Supers follow the size chart",

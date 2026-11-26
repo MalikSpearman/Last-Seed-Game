@@ -944,6 +944,7 @@ svg line.lk{stroke:rgba(160,160,160,.35)!important;stroke-dasharray:.04rem .08re
 .portrait .ono-hit{font-size:.4rem}
 .speedburst{position:fixed;inset:0;z-index:64;pointer-events:none;background:repeating-conic-gradient(from 0deg at var(--x,50%) var(--y,50%),rgba(255,255,255,.75) 0 .6deg,transparent .6deg 4deg);mask:radial-gradient(circle at var(--x,50%) var(--y,50%),transparent 22%,#000 60%);animation:sburst .36s ease-out both}
 @keyframes sburst{0%{opacity:0}20%{opacity:.9}100%{opacity:0}}
+.rdneg{position:fixed;inset:0;z-index:99;pointer-events:none;backdrop-filter:invert(1) grayscale(1) contrast(3.2);-webkit-backdrop-filter:invert(1) grayscale(1) contrast(3.2)}
 .impactframe{position:fixed;inset:0;z-index:90;pointer-events:none;background:#fff;mix-blend-mode:difference;animation:impf .2s ease-out both}
 @keyframes impf{0%{opacity:.35}100%{opacity:0}}
 /* ── awakening clash: lightning across the seam ── */
@@ -4652,7 +4653,7 @@ class Battle {
     this._cb=0; this._at=c.at; f._cmb0=f.cmb; if(_cx) f.cmb=null; else if(c.type==='attack'){ const k=f.cmb; if(c.cb==='f'){ if(k&&k.n>0){ this._cb=k.n; } f.cmb=null; } else if(c.cb==='o'||c.cb==='r'){ if(c.cb==='r'&&this.rushOk(k,c)) this._rq=1; if(k&&k.n>0) f.cmb={t:c.at,n:Math.min(3,k.n+1)};   /* physical and spirit attacks chain together */ else f.cmb={t:c.at,n:1}; this.emit({t:'combo',side,n:f.cmb.n,at:c.at}); } else f.cmb=null; if(this._cb>0){ this.emit({t:'finisher',side,n:this._cb,at:c.at,card:id}); if(c.at==='spirit') this._sp(f,this._cb); } }
     if(!_cx&&side==='e'&&c.type==='attack'&&!(this.p.pbrk>0)&&(this.p.poise===undefined?COUNTER.poiseStart:this.p.poise)<=0&&(this._cb>0||(f.cmb&&f.cmb.n>=2)||COUNTER.immune.test(id))){ this.p.pbrk=COUNTER.breakTurns; this.emit({t:'poisebreak',side:'p',card:id,big:COUNTER.immune.test(id)?'super':(this._cb>0?'finisher':'combo')}); } if(!_cx&&side==='p'&&c.type==='attack'&&!(this.e.pbrk>0)&&(this.e.poise===undefined?COUNTER.poiseStart:this.e.poise)<=0&&(this._cb>0||(f.cmb&&f.cmb.n>=2)||COUNTER.immune.test(id))){ this.e.pbrk=COUNTER.breakTurns; this.emit({t:'poisebreak',side:'e',card:id,big:COUNTER.immune.test(id)?'super':(this._cb>0?'finisher':'combo')}); }   // POISE BREAK: hit by a combo/finisher/super at 0 Poise -> take 1.25x for this hit and the next enemy turn
     if(side===(this.catk||'e')&&this.cancel&&c.type==='attack'){ this.cancel=false; this.emit({t:'clashcancel',side,card:id}); } else this._resolve(side,c); { const dO=this.O(side); if(!this.over&&dO&&dO.air&&dO.air.by===side&&c.type==='attack'){ if(dO.air.fresh) dO.air.fresh=0; else if(c.cb==='f') this._land(side==='p'?'e':'p','slam'); else dO.air.n++; } }   // a finisher completes the juggle
-    if(c.cb==='r'){ const os=side==='p'?'e':'p', d=this.S(os); if(!_cx&&!this.over&&d&&d.hp>0){ if(this._rq&&d.air&&d.air.by===side){ d.air=null; f.cmb=null; this.rush={side,os,card:id}; this.emit({t:'rushdown',side:os,from:side,card:id}); if(!this.rushHold) this._rushAuto(); } else if(!d.air) this.emit({t:'knock',side:os,from:side,card:id}); } } this._rq=0;   // RUSH: the hit that reaches Max Chain on a rival you are juggling starts a Rushdown
+    if(c.cb==='r'){ const os=side==='p'?'e':'p', d=this.S(os); if(!_cx&&!this.over&&d&&d.hp>0){ if(this._rq&&d.air&&d.air.by===side&&!d.aw){ d.air=null; f.cmb=null; this.rush={side,os,card:id}; this.emit({t:'rushdown',side:os,from:side,card:id}); if(!this.rushHold) this._rushAuto(); } else if(!d.air) this.emit({t:'knock',side:os,from:side,card:id}); } } this._rq=0;   // RUSH: the hit that reaches Max Chain on a rival you are juggling starts a Rushdown
     if(side===(this.catk||'e')) this.cut=0; this._pc=false; this._na=0; this._tc=0; this._cb=0; this._smT=0; if(f.echoFirst&&!this.over){ f.echoFirst=0; this.emit({t:'echo',side,card:id}); this._resolve(side,c); } f.played++; if(side==='p'&&!this.over){ const o_=this.O(side); if(o_&&o_.gm&&o_.gm.pu&&f.played>3){ f.hp-=o_.gm.pu; this.emit({t:'gm',side:'p',k:'pu',amount:o_.gm.pu}); if(this._ko('p')) return true; } } this._ins(side,INSIGHT.perCard); this._sp(f,SPIRIT.perCard+(c.sig?SPIRIT.perSignature:0)+at); if(!this.quiet) this.emit({t:'spirit',side});
     if(f.wuk&&!this.over) this._wukPlay(side,id,c);
     if(f.uzu&&!this.over) this._uzuPlay(side,id,c);
@@ -4737,14 +4738,14 @@ class Battle {
   _camp(side,n){ const f=this.S(side); if(!f||!(n>0)) return; const a=Math.min(n,5-(f.camp||0)); if(a<=0) return; f.camp=(f.camp||0)+a; this.emit({t:'camp',side,amount:a,total:f.camp}); }
   _campOut(side,why){ const f=this.S(side); if(!f||!f.kk||!(f.camp>0)||f.kcG||(f.aw&&f.ult==='kaiko')) return; const n=f.camp; f.camp=0; this.emit({t:'camp',side,amount:-n,total:0,reset:why}); }
   _launch(side,c){ const os=side==='p'?'e':'p', d=this.S(os); if(this.over||!d||d.hp<=0||d.ward) return;
-    const fd=FOES[d.id]||Object.values(FOES).find(x=>x.id===d.id)||{}, im=(LAUNCH_IMMUNE.tier[d.tier||fd.tier]||LAUNCH_IMMUNE.kind[d.kind||fd.kind]||(d.noLaunch||fd.noLaunch?'IMMOVABLE':null)); if(im){ this.emit({t:'launchimmune',side:os,from:side,card:c.id,tag:im}); return; }
+    const fd=FOES[d.id]||Object.values(FOES).find(x=>x.id===d.id)||{}, im=(LAUNCH_IMMUNE.tier[d.tier||fd.tier]||LAUNCH_IMMUNE.kind[d.kind||fd.kind]||(d.noLaunch||fd.noLaunch?'IMMOVABLE':null))||(d.aw?'AWAKENED':null); if(im){ this.emit({t:'launchimmune',side:os,from:side,card:c.id,tag:im}); return; }
     if(d.air&&d.air.by===side) return;   // already airborne: this hit is just part of the juggle
     d.air={by:side,n:0,fresh:1}; this.emit({t:'launch',side:os,from:side,card:c.id}); if(d.kk) this._campOut(os,'launch'); }
   _land(os,how){ const d=this.S(os); if(!d||!d.air) return; d.air=null; this.emit({t:'land',side:os,how}); }
   // ── RUSHDOWN: the rival is knocked off-screen and chased down; the attacker throws away any cards in hand, one hit each, damage by cost ──
   // a Rush starts a Rushdown when it is the hit that reaches Max Chain, or when the chain is already at Max
   rushOk(k,c){ return !!(k&&k.n>=2); }
-  rushReady(side,i){ const f=this.S(side), id=f.hand[i], c=CARDS[id], d=this.O(side); return !!(c&&c.cb==='r'&&d&&d.air&&d.air.by===side&&d.hp>0&&!this.rush&&this.rushOk(f.cmb,c)&&this.canPlay(side,i)); }
+  rushReady(side,i){ const f=this.S(side), id=f.hand[i], c=CARDS[id], d=this.O(side); return !!(c&&c.cb==='r'&&d&&d.air&&d.air.by===side&&!d.aw&&d.hp>0&&!this.rush&&this.rushOk(f.cmb,c)&&this.canPlay(side,i)); }
   rushDmg(id){ const c=CARDS[id]||{}; return Math.max(1,c.x?2:(c.cost|0)); }
   aiRushPick(side){ const f=this.S(side), o=this.O(side), out=[]; let tot=0; f.hand.forEach((id,i)=>{ tot+=this.rushDmg(id); });
     if(tot>=o.hp||f.energy<=0) return f.hand.map((_,i)=>i);   // lethal, or nothing left to play: throw the lot
@@ -4767,7 +4768,7 @@ class Battle {
     this._gk=(this._gk||0)+1;
     if(k==='super'){ f.spirit-=SPIRIT.bar; this.emit({t:'super',side,id:f.ult}); this._resolve(side,CARDS['sup_'+f.ult]); chip('sup_'+f.ult); }
     else if(k==='ult'){ f.spirit-=SPIRIT.bar*2; this.emit({t:'ult',side,id:f.ult}); this._resolve(side,CARDS['ult_'+f.ult]); chip('ult_'+f.ult); }
-    else if(k==='awaken'){ f.aw=1; f.awSaved=false; if(f.ult==='varro'||f.ult==='tetsu'||f.ult==='maximo'||f.ult==='valka'||f.ult==='gozen'){ f.awPow=2; f.power+=2; } if(f.ult==='shura'){ f.awPow=3; f.power+=3; } if(f.ult==='nyx') f.free=1; if(f.kuro) f.awT=0; if(f.ult==='vex') f.echoFirst=1; if(f.ult==='jin') f.dbl=true;
+    else if(k==='awaken'){ f.aw=1; f.awSaved=false; if(f.air){ f.air=null; this.emit({t:'land',side,how:'awaken'}); }   // awakened fighters can't be juggled or rushed down if(f.ult==='varro'||f.ult==='tetsu'||f.ult==='maximo'||f.ult==='valka'||f.ult==='gozen'){ f.awPow=2; f.power+=2; } if(f.ult==='shura'){ f.awPow=3; f.power+=3; } if(f.ult==='nyx') f.free=1; if(f.kuro) f.awT=0; if(f.ult==='vex') f.echoFirst=1; if(f.ult==='jin') f.dbl=true;
       if(f.ult==='gogo') this._ia(side,IA.elixir,true); if(f.ult==='hana') f.deb=12; this.emit({t:'awaken',side,id:f.ult}); if(SOULSCAPE){ this.terrain={k:'domain',turns:99,owner:side,aw:1,id:f.ult}; this.emit({t:'terrain',k:'domain',owner:side,turns:99,id:f.ult}); if(o.aw) this.emit({t:'clash',side}); } }
     else if(k==='crit'){ const n=this.bars(side); this._cm=f.ult==='gogo'?1:([1,1,1.25,1.5][n]||1); if(f.ult==='gogo'&&!f.aw){ f.spirit=0; this.emit({t:'spirit',side}); } this.emit({t:'crit',side,id:f.ult,bars:n}); this._resolve(side,CARDS['crit_'+f.ult]); chip('crit_'+f.ult); this._cm=1; if(f.aw) this.endAwaken(side,'crit'); }
     return true; }
@@ -10879,7 +10880,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     else { fxs('dust',t.x,t.top+t.h*.97,t.h*.55,560,0,false); shake(5,160); }
     await sleep(slam?260:160); if(F[tgt]&&F[tgt].classList.contains('pbknee')){ setTimeout(()=>{ if(F[tgt].classList.contains('pbknee')&&!AIR[tgt]) ctrPose(tgt,'f_kneel',true); },(slam?560:460)*speed); } }
   async function launchImmune(ev){ const t=sprC(ev.side); pose(ev.side,[['hit_h',260]]); shockRing(t.x,t.top+t.h*.97,'#ffd27a',false); shake(6,200);
-    num(t.x,t.top+t.h*.16,{COLOSSAL:'TOO MASSIVE',CALAMITY:'UNMOVED',IMMOVABLE:'IMMOVABLE'}[ev.tag]||'IMMOVABLE','txt','#ffd27a'); try{ Snd.fx3&&Snd.fx3('block_h',.7); }catch(e){} await sleep(360); }
+    num(t.x,t.top+t.h*.16,{COLOSSAL:'TOO MASSIVE',CALAMITY:'UNMOVED',IMMOVABLE:'IMMOVABLE',AWAKENED:'AWAKENED'}[ev.tag]||'IMMOVABLE','txt','#ffd27a'); try{ Snd.fx3&&Snd.fx3('block_h',.7); }catch(e){} await sleep(360); }
   // ── RUSH / RUSHDOWN ── placeholder animation built from the poses every fighter already has (rush, run, jab/cross/kick/upper, launch/air/hurt/down);
   //    swap in the dedicated running / dashing and combo sprites once they are drawn.
   const RSD={anims:[],wait:null,cam:null,camAn:[],sl:null};
@@ -10939,7 +10940,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     if(o.rot){ g.translate(x,gy-hF*.5); g.rotate(o.rot); g.translate(-x,-(gy-hF*.5)); }
     g.translate(x,gy); if(face<0) g.scale(-1,1);
     const ci=!RKF&&sh.cut&&sh.cut[name];
-    if(RKF){ const [sx,sy,sw,shh,ax,ay]=RKF[0], k=hF/sh.rk.D.ref*.86; g.drawImage(sh.rk.im,sx,sy,sw,shh,-ax*k,-ay*k,sw*k,shh*k); }
+    if(RKF){ const [sx,sy,sw,shh,ax,ay]=RKF[0], k=hF/sh.rk.D.ref*.97; g.drawImage(sh.rk.im,sx,sy,sw,shh,-ax*k,-ay*k,sw*k,shh*k); }
     else if(ci){ const k=hF*.94/(sh.cut.run1||ci).naturalHeight; g.drawImage(ci,-ci.naturalWidth*k*.5,-ci.naturalHeight*k,ci.naturalWidth*k,ci.naturalHeight*k); }
     else if(sh.still){ const iw=sh.im.naturalWidth, ih=sh.im.naturalHeight, k=hF/ih*1.05; g.drawImage(sh.im,-iw*k/2,-ih*k,iw*k,ih*k); }
     else { const f=(sh.H.full[name]||sh.H.full.idle)[0], [sx,sy,sw,shh,ax,ay]=f, k=hF/sh.H.full.idle[0][3]*gFix(sh.id,sh.H.full[name]?name:'idle'); g.drawImage(sh.im,sx,sy,sw,shh,-ax*k,-ay*k,sw*k,shh*k); }
@@ -10992,7 +10993,7 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
       fg.fillStyle='rgba(0,0,0,.45)'; for(const q of [C.at,C.rv]){ if(q.hide) continue; const lift=Math.max(0,q.y), sc=Math.max(.3,1-lift/(Hh*.6)); fg.beginPath(); fg.ellipse(X(q.x),gy+2,hF*.22*sc,hF*.035*sc,0,0,7); fg.fill(); }
       // after-images
       if(C.at.trail&&!C.at.hide) for(let i=4;i>=1;i--){ rdFrame(fg,A,C.at.f,X(C.at.x-i*W*.035*C.at.trail),gy-C.at.y,hF,dir*(C.at.face),{a:.12+.05*(4-i),filter:'brightness(2) saturate(.2)',rot:(C.at.lean||0)*dir}); }
-      if(!C.rv.hide) rdFrame(fg,T,C.rv.f,X(C.rv.x),gy-C.rv.y,hF,-dir,{rot:C.rv.rot*dir,filter:C.rv.flash>0?'brightness(3) saturate(0)':''});
+      if(!C.rv.hide) rdFrame(fg,T,C.rv.f,X(C.rv.x),gy-C.rv.y,hF*(RSD.rel||1),-dir,{rot:C.rv.rot*dir,filter:C.rv.flash>0?'brightness(3) saturate(0)':''});
       if(C.fly&&!C.at.hide&&C.at.y>2){ const gx=X(C.at.x), gyy=gy-C.at.y-hF*.35, r=hF*.55; const gg=fg.createRadialGradient(gx,gyy,0,gx,gyy,r); gg.addColorStop(0,C.fly.col+'66'); gg.addColorStop(1,C.fly.col+'00'); fg.save(); fg.globalCompositeOperation='lighter'; fg.fillStyle=gg; fg.fillRect(gx-r,gyy-r,r*2,r*2); fg.restore(); }
       if(C.charge&&!C.at.hide){ const q=C.charge; q.t+=dt; const cx_=X(C.at.x), cy_=gy-C.at.y-hF*.5, p=Math.min(1,q.t/420), pl=.75+.25*Math.sin(q.t/45);
         fg.save(); fg.globalCompositeOperation='lighter';
@@ -11007,6 +11008,16 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
         const bl=Math.max(4,Math.round(hF*.025)); rdFrame(fg,A,C.at.f,X(C.at.x),gy-C.at.y,hF,dir*C.at.face,{noRim:1,a:p*pl,comp:'lighter',filter:`brightness(0) invert(1) drop-shadow(0 0 ${bl}px ${col}) drop-shadow(0 0 ${bl*2}px ${col}) blur(${Math.round(bl*.6)}px)`}); }
       if(!C.at.hide) rdFrame(fg,A,C.at.f,X(C.at.x),gy-C.at.y,hF,dir*C.at.face,{rot:(C.at.lean||0)*dir});
       if(C.rv.flash>0) C.rv.flash-=dt;
+      if(C.swoosh&&!C.at.hide){ const q=C.swoosh; q.t+=dt; const u=q.t/170; if(u>=1) C.swoosh=null; else { const fc=dir*q.face, cx_=X(C.at.x)+fc*hF*.1, cy_=gy-C.at.y-hF*.56, r=hF*.62,
+          a0=q.up?Math.PI*.42:-Math.PI*.62, a1=q.up?-Math.PI*.55:Math.PI*.32, sw=Math.min(1,u*2.2), fade=u<.45?1:1-(u-.45)/.55;
+          fg.save(); fg.translate(cx_,cy_); fg.scale(fc,1); fg.globalCompositeOperation='lighter'; fg.lineCap='round';
+          for(let k=0;k<7;k++){ const tail=k/7, e=a0+(a1-a0)*sw, b_=e-(a1-a0)*.55*sw*(1-tail*.15)*(k/6); fg.globalAlpha=fade*(1-tail)*.8; fg.strokeStyle=k<2?'#fff':col; fg.lineWidth=hF*(.05-tail*.045);
+            fg.beginPath(); if(q.up) fg.arc(0,0,r*(1-tail*.06),b_,e,true); else fg.arc(0,0,r*(1-tail*.06),b_,e,false); fg.stroke(); }
+          fg.restore(); } }
+      if(C.imp){ const q=C.imp; q.t+=dt; const u=q.t/200; if(u>=1) C.imp=null; else { const e=1-Math.pow(1-u,3), f=1-u, R0=hF*(.1+e*.2);
+          fg.save(); fg.globalCompositeOperation='lighter'; const g4=fg.createRadialGradient(q.x,q.y,0,q.x,q.y,R0*1.4); g4.addColorStop(0,`rgba(255,255,255,${f})`); g4.addColorStop(.4,col); g4.addColorStop(1,col+'00'); fg.globalAlpha=f; fg.fillStyle=g4; fg.fillRect(q.x-R0*1.4,q.y-R0*1.4,R0*2.8,R0*2.8);
+          fg.fillStyle='#fff'; for(let i=0;i<8;i++){ const an=i*Math.PI/4+.3, L=R0*(i%2?1.5:2.4), w_=R0*.12*f; fg.beginPath(); fg.moveTo(q.x+Math.cos(an+1.57)*w_,q.y+Math.sin(an+1.57)*w_); fg.lineTo(q.x+Math.cos(an)*L,q.y+Math.sin(an)*L); fg.lineTo(q.x-Math.cos(an+1.57)*w_,q.y-Math.sin(an+1.57)*w_); fg.fill(); }
+          fg.restore(); } }
       // sparks + numbers
       fg.globalCompositeOperation='lighter'; for(const b of C.bits){ b.x+=b.vx*dt/16; b.y+=b.vy*dt/16; b.vy+=.25*dt/16; b.l-=.022*dt/16; if(b.l>0){ fg.globalAlpha=b.l; fg.fillStyle=b.c; fg.fillRect(b.x,b.y,b.r,b.r); } } fg.globalAlpha=1; fg.globalCompositeOperation='source-over'; C.bits=C.bits.filter(b=>b.l>0);
       for(const nm of C.nums){ nm.l-=dt/900; nm.y-=dt*.04; fg.globalAlpha=Math.max(0,Math.min(1,nm.l*2)); fg.font=`${Math.round(Hh*(nm.big?.11:.075))}px Anton`; fg.textAlign='center'; fg.lineWidth=Hh*.012; fg.strokeStyle='#12091c'; fg.strokeText(nm.t,nm.x,nm.y); fg.fillStyle=nm.big?'#ffd36b':'#fff'; fg.fillText(nm.t,nm.x,nm.y); } fg.globalAlpha=1; C.nums=C.nums.filter(n=>n.l>0);
@@ -11043,6 +11054,11 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     C.S.blink(140,.85,'#fff'); C.shk(18); try{ Snd.fx3&&Snd.fx3('sflash',.9); Snd.fx3&&Snd.fx3('hit_m',.6); }catch(e){}
     C.lines=0; C.bgv=0; C.at.trail=0; C.slow=1; C.o.classList.add('slow');
     C.cam.tz=1.28; const mx=(x1+R.x)/2; C.cam.tx=C.dir>0?mx:W-mx; C.cam.ty=C.Hh*.62; }
+  // fighters whose strikes swing a weapon (blade trail); kicks never trail
+  function rdNeg(ms){ const o=h('div','rdneg'); overlay.appendChild(o); setTimeout(()=>o.remove(),ms*(speed||1)); }
+  const RD_SLASHFIN={rasetsu:1};   // finishers that land as a single clean cut, not an impact
+  const RD_BLADE={jin:1,rasetsu:{no:['s1']},akane:1,valka:1,varro:1,duelist:1,uzume:1,shura:1,maya:1,wukong:1,azami:1};
+  function rdBlade(id,m){ const b=RD_BLADE[id]; if(!b||!m) return false; if(/kick/.test(m)) return false; return !(b.no&&b.no.includes(m.replace(/_w$/,''))); }
   async function rdFinCharge(C,wind){ const A=C.at, W=C.W; if(wind) A.f=wind; A.trail=0;
     C.slow=1; C.o.classList.add('slow'); const ax=C.dir>0?A.x:W-A.x;
     C.cam.tz=Math.min(1.75,C.cam.tz+.3); C.cam.tx=ax+C.dir*C.hF*.25; C.cam.ty=C.gy-C.hF*.55;
@@ -11054,43 +11070,47 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
   async function rdHit(C,att,tgt,n,N,amount,c){ const W=C.W, Hh=C.Hh, A=C.at, R=C.rv, sh=rdSheet(att), last=n===N, Q=C.seq; C.slow=0; C.o.classList.remove('slow'); C.bgv=0;
     let m=last?Q.fin:(n===1&&Q.open?Q.open:Q.moves[(n-1)%Q.moves.length]); if(!rdHas(sh,m)) m=rdHas(sh,'phys')?'phys':m;
     if(sh&&sh.rk){ const K=sh.rk.D.combo||Object.keys(sh.rk.D.F); if(last&&sh.rk.D.fin) m=sh.rk.D.fin.pose; else { let q; const FQ=window.__RKFORCE; if(FQ&&FQ.length) q=FQ.shift(); else do{ q=K[(Math.random()*K.length)|0]; }while(K.length>1&&q===C.lastM); m=q; } C.lastM=m; }
-    const wind=rdHas(sh,m+'_w')?m+'_w':(rdHas(sh,'phys_w')&&m==='phys'?'phys_w':null), D=last?240:(window.__RDGAP||190), gap=W*.13;
+    const wind=rdHas(sh,m+'_w')?m+'_w':(rdHas(sh,'phys_w')&&m==='phys'?'phys_w':null), D=last?240:(window.__RDGAP||140), gap=W*.13;
     // where the attacker stands for this hit
-    if(Q.k==='phantom'&&!last){ const side=n%2?1:-1; A.face=side; A.x=R.x-gap*side; A.trail=.6; }
-    else { A.face=1; A.x=R.x-gap; A.trail=Q.k==='carry'?.5:0; }
+    if(Q.k==='phantom'&&!last){ const side=n%2?1:-1; A.face=side; A.x=R.x-gap*side; A.trail=0; }
+    else { A.face=1; A.x=R.x-gap; A.trail=0; }
     if(Q.k==='juggle'&&n>1) A.y=R.y-Hh*.02;
-    if(sh&&sh.rk){ if((sh.rk.D.air||[]).includes(m)){ A.x=R.x+W*.005; A.y=(R.y||0)+Hh*(C.S.port?.03:.05); A.face=1; A.trail=.4; C.cam.ty=Hh*(C.S.port?.5:.5); } else { if(Q.k!=='juggle') A.y=0; C.cam.ty=C.Hh*.62; } }   // aerial strikes always come down from above the rival
+    if(sh&&sh.rk){ if((sh.rk.D.air||[]).includes(m)){ A.x=R.x+W*.005; A.y=(R.y||0)+Hh*(C.S.port?.03:.05); A.face=1; A.trail=0; C.cam.ty=Hh*(C.S.port?.5:.5); } else { if(Q.k!=='juggle') A.y=0; C.cam.ty=C.Hh*.62; } }   // aerial strikes always come down from above the rival
     if(last&&sh&&sh.rk){ const gy_=C.gy, hF_=C.hF; C.cam.tz=Math.min(C.cam.tz,1.22); C.cam.ty=gy_-hF_*.62; C.cam.tx=(C.dir>0?A.x:W-A.x)+C.dir*hF_*.35; }   // frame the whole finisher: an airborne kick must not leave the top of the screen
     if(last) await rdFinCharge(C,wind);
-    else if(wind){ A.f=wind; await rdS(85); }
-    A.f=m; R.f=last?'hit_h':(n%2?'hit':'hit_h'); R.flash=70; C.cam.tz=Math.min(1.6,C.cam.tz+.03);
-    const hx=(C.dir>0?R.x:W-R.x)-C.dir*W*.01, hy=C.gy-R.y-C.hF*.5; C.spark(hx,hy,last?60:18,last?14:8); C.shk(last?34:12);
+    else if(wind){ A.f=wind; await rdS(65); }
+    A.f=m; R.f=last?'hit_h':(n%2?'hit':'hit_h'); if(last) R.flash=70; else { C.cam.tz=1.08; if(n===1) C.S.bars(false); impactFrame(); }
+    if(rdBlade(sh&&sh.id,m)) C.swoosh={t:0,up:/upper|s5|rise/.test(m),face:A.face};
+    const hx=(C.dir>0?R.x:W-R.x)-C.dir*W*.01, hy=C.gy-R.y-C.hF*.5; const slashFin=last&&RD_SLASHFIN[sh&&sh.id]; if(slashFin) C.swoosh={t:0,up:false,face:A.face}; else if(last) C.spark(hx,hy,60,14); else C.imp={x:hx,y:hy,t:0}; C.shk(last?34:9);
     if(amount) C.nums.push({t:'-'+amount,x:hx+(Math.random()-.5)*W*.05,y:hy-Hh*.12,l:1,big:last}); C.tot=(C.tot||0)+amount;
     const tot=C.o.querySelector('.rdc-tot'); tot.querySelector('b').textContent=n+' HIT'+(n>1?'S':''); tot.querySelector('i').textContent=C.tot; tot.classList.remove('pop'); void tot.offsetWidth; tot.classList.add('pop');
     try{ Snd.fx3&&Snd.fx3(last?'hit_c':(n%3?'hit_m':'hit_h'),last?1:.7); if(last){ Snd.fx3&&Snd.fx3('ultboom',.9); } }catch(e){}
     if(Q.k==='juggle'&&n===1){ R.f='air'; R.y=Hh*.22; }
     if(Q.k==='carry'&&!last){ R.x+=W*.045; C.cam.tx+=W*.045*C.dir; C.bgv=W*.6; setTimeout(()=>{ C.bgv=0; },150); }
-    if(!last){ R.x+=W*.008; C.slow=1; await rdS(50); C.slow=0; await rdS(D); return; }
+    if(!last){ R.x+=W*.008; C.slow=1; await rdS(35); C.slow=0; await rdS(D); return; }
     // finisher
-    C.S.blink(90,.7,'#fff'); impactFrame();
+    // the final hit connects: a negative-contrast frame, then the world drops into slow motion for a beat
+    rdNeg(140); C.slow=1; C.o.classList.add('slow'); if(slashFin){ try{ Snd.fx3&&Snd.fx3('slash_h',1); }catch(e){} }
     if(sh&&sh.rk&&sh.rk.D.fin&&window.LSFX){ const FN=sh.rk.D.fin, fx=FN.fx, cm=C.cam, z=cm.z, SX=x=>W/2-z*cm.x+z*x, SY=y=>Hh/2-z*cm.y+z*y, gy=C.gy, hF=C.hF, fr=sh.rk.D.F[FN.pose]&&sh.rk.D.F[FN.pose][0];
       // the toe and hip of the finishing pose, on screen (the cine camera zooms and pans)
-      const pt=(u,v)=>{ if(!fr) return [SX(hx),SY(hy)]; const k=hF/sh.rk.D.ref*.86, ax=(C.dir>0?A.x:W-A.x), [,,fw,fh,fax,fay]=fr; return [SX(ax+C.dir*(u*fw-fax)*k), SY(gy-(A.y||0)+(v*fh-fay)*k)]; };
+      const pt=(u,v)=>{ if(!fr) return [SX(hx),SY(hy)]; const k=hF/sh.rk.D.ref*.97, ax=(C.dir>0?A.x:W-A.x), [,,fw,fh,fax,fay]=fr; return [SX(ax+C.dir*(u*fw-fax)*k), SY(gy-(A.y||0)+(v*fh-fay)*k)]; };
       const [tx,ty]=pt(...(FN.tip||[.9,.2])), [hx2,hy2]=pt(...(FN.hip||[.4,.55])), S_=hF*z;
-      try{ if(fx==='rasetsu'){ const px=SX(hx), py=SY(hy); LSFX.play('bladeLine',px,py,{col:'#e0203a',ang:-.06*C.dir,host:C.o}); LSFX.play('impact',px,py,{size:S_*.4,col:'#e0203a',delay:90,host:C.o}); LSFX.play('ringWave',px,py,{size:S_*.8,col:'#c0102a',delay:140,host:C.o}); } else if(fx==='kaede'){ LSFX.play('flameFan',hx2,hy2,{size:S_*.5,dir:C.dir,host:C.o}); LSFX.play('impact',tx,ty,{size:S_*.35,col:'#ff7a2a',delay:60,host:C.o}); LSFX.play('fireball',tx+C.dir*S_*.08,ty,{size:S_*.42,delay:140,ground:SY(gy),host:C.o}); LSFX.play('emberRise',tx,SY(gy),{size:S_*.35,delay:260,host:C.o}); } /* the element finisher burst every finisher uses (Gemini sheet, fighter's own element) */ try{ const el=vfxEl(fighterEl(att)), ex=SX(hx), ey=SY(hy); sheetFx('vf_'+el,ex,ey,S_*1.7,{blend:'screen',dur:900,flipX:C.dir<0,rot:rnd(-8,8),z:5,parent:o}); }catch(_){ } }catch(e){} }
+      try{ if(fx==='rasetsu'){ const px=SX(hx), py=SY(hy); LSFX.play('bladeLine',px,py,{col:'#e0203a',ang:-.38*C.dir,host:C.o}); } else if(fx==='kaede'){ LSFX.play('flameFan',hx2,hy2,{size:S_*.5,dir:C.dir,host:C.o}); LSFX.play('impact',tx,ty,{size:S_*.35,col:'#ff7a2a',delay:60,host:C.o}); LSFX.play('fireball',tx+C.dir*S_*.08,ty,{size:S_*.42,delay:140,ground:SY(gy),host:C.o}); LSFX.play('emberRise',tx,SY(gy),{size:S_*.35,delay:260,host:C.o}); } /* the element finisher burst every finisher uses (Gemini sheet, fighter's own element); slash finishers stay a clean cut */ if(!slashFin) try{ const el=vfxEl(fighterEl(att)), ex=SX(hx), ey=SY(hy); sheetFx('vf_'+el,ex,ey,S_*1.7,{blend:'screen',dur:900,flipX:C.dir<0,rot:rnd(-8,8),z:5,parent:o}); }catch(_){ } }catch(e){} }
+    await rdS(420); C.slow=0; C.o.classList.remove('slow');
     if(Q.k==='flurry'){ R.f='air'; for(let i=0;i<22;i++){ R.y+=Hh*.035; R.rot-=.25; await rdS(16); } }
     else if(Q.k==='juggle'){ R.f='air'; for(let i=0;i<10;i++){ R.y=Math.max(0,R.y-Hh*.05); R.rot-=.4; await rdS(16); } R.f='down'; R.rot=0; R.y=0; C.shk(40); C.spark(hx,C.gy,50,12); try{ Snd.fx3&&Snd.fx3('bodyfall',1); }catch(e){} await rdS(260); }
     else { R.f='air'; C.lines=.7; C.bgv=W*2; for(let i=0;i<24;i++){ R.x+=W*.05; R.y+=Hh*.004; R.rot-=.3; await rdS(16); } C.lines=0; C.bgv=0; }
     await rdS(300); }
   async function rushdownFx(ev){ try{ rkGet(phxWho(ev.from)); }catch(_){ } const tgt=ev.side, att=ev.from, d=rdDir(att), c=CARDS[ev.card]||{}; rdReset(); if(AIR[tgt]) airClear(tgt);
-    const W=innerWidth, col=LCOL[elOf(c)]||'#ffffff'; RSD.gap=Math.abs(sprC('p').x-sprC('e').x); const bgI=rdBg(); poseLoad(att); poseLoad(tgt); rdCuts(phxWho(att));
+    const W=innerWidth, col=LCOL[elOf(c)]||'#ffffff'; RSD.gap=Math.abs(sprC('p').x-sprC('e').x); { const hh=sd=>{ const i=$('.spr img',F[sd]); return i?i.getBoundingClientRect().height:0; }, ha=hh(att), ht=hh(tgt); RSD.rel=ha>20&&ht>20?Math.max(.7,Math.min(1.45,ht/ha)):1; } const bgI=rdBg(); poseLoad(att); poseLoad(tgt); rdCuts(phxWho(att));
     // on the field: the Rush hit blasts the rival off the screen
     launchSplash(att,c,ev,'RUSHDOWN!'); if(!vsay(att,'_launch',1)) vsay(att,'_atk',1); try{ annCall('maxc',true); }catch(e){}
-    whiteHit(tgt); impactFrame(); await hitStop(160); shake(24,420); try{ Snd.fx3&&Snd.fx3('impact_h',1); Snd.fx3&&Snd.fx3('whoosh_h',1); }catch(e){}
+    whiteHit(tgt); impactFrame(); try{ Snd.fx3&&Snd.fx3('impact_h',1); }catch(e){} { const t=sprC(tgt); if(RSD.pend) hitTag(t.x,t.top+t.h*.3,'-'+RSD.pend,'crit'); RSD.pend=0; } await hitStop(60);
+    shake(24,360); try{ Snd.fx3&&Snd.fx3('whoosh_h',1); }catch(e){}
     { const t=sprC(tgt); shockRing(t.x,t.y,col,true); fxs('dust',t.x,t.top+t.h*.97,t.h*.9,700,0,d<0); }
-    pose(tgt,[['launch',160],['air',99999,{spin:-30*d}]]); smokeTrail(tgt,8,40);
-    const fly=rdGo(tgt,d*W*.95,-16,380,'cubic-bezier(.3,.6,.4,1)'); pose(att,[['rush',99999]]);
-    { const A=sprC(att); rdCam(1.9,A.x,A.top+A.h*.32,W*(.5-d*.04),innerHeight*.42,300,'cubic-bezier(.55,0,.25,1)'); } if(fly) await fly.finished.catch(()=>{});
+    pose(tgt,[['launch',80],['air',99999,{spin:-30*d}]]); smokeTrail(tgt,8,40);
+    const fly=rdGo(tgt,d*W*1.05,-18,230,'cubic-bezier(.12,.75,.3,1)'); pose(att,[['rush',99999]]);
+    { const A=sprC(att); rdCam(1.9,A.x,A.top+A.h*.32,W*(.5-d*.04),innerHeight*.42,240,'cubic-bezier(.55,0,.25,1)'); } if(fly) await fly.finished.catch(()=>{});
     // cut to the chase (give the backdrop a moment if it is still loading)
     if(!bgI.complete) await Promise.race([new Promise(r=>{ bgI.onload=r; bgI.onerror=r; }),sleep(500)]);
     let ch=null; if(app.classList.contains('hd3d')&&!window.__RD2D){ try{ const m=await ls3dLoad(); const r=m&&m.chase&&m.chase(true,{hf:innerHeight>innerWidth?.34:.5}); if(r){ ch=r; ch.m=m; } }catch(e){} }
@@ -11277,16 +11297,18 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
   async function netAsk(pid){ const c=CARDS[pid]; if(!c||c.type!=='attack'||COUNTER.immune.test(pid)) return null; NET.send({t:'atk',card:pid}); netWait('Rival is answering…','ctr'); const m=await NET.take(x=>x.t==='ctr'||x.t==='bye'||x.t==='leave',20000); netWait(null); if(m&&(m.t==='bye'||m.t==='leave')){ netForfeit('Your rival left the match.'); return null; } return m&&m.ac&&m.ac.pid?m.ac:null; }
   async function runEv(evs){ if(NETB&&NET.myTurn&&!NET.applying&&!NET.noFwd&&!done){ NET.send({t:'sync',ev:netSwap(evs||[]),st:netState()}); } const a0=ARTRUN; EVRUN++; try{ return await runEv0(evs); } finally{ EVRUN=Math.max(0,EVRUN-1); if(ARTRUN!==a0){ ARTRUN=0; setTimeout(fighterRestore,80); setTimeout(fighterRestore,900); } } }
   async function runEv0(evs){ if(b&&!b.rushHold) b.rushHold=true; try{ evs=evReorder(evs); }catch(e){} window.__CUREVS=evs; for(const ev of evs){ if(done) return; const side=ev.side; if(ev.t==='super'||ev.t==='ult'||ev.t==='crit'){ KOART={side,k:ev.t,evs}; ARTRUN++; ev._art=1; } if(ev.t==='turn') CTRSEQ=null; if(!b._mpre){ b._mpre=1; try{ [run.mentor,...(run.mx||[]),b.emt&&b.emt.M].forEach(M=>{ const k=M&&typeof MENTOR_RH!=='undefined'&&MENTOR_RH[M.sprite||M.id]; if(k) gImg(k.file); }); }catch(e){} }   /* warm the mentor kits so their first dash-in never misses */
+    if(RDC.S&&(ev.t==='status'||ev.t==='react'||ev.t==='chain')){ if(ev.s) hud(ev.s); continue; }
+    if((ev.t==='hit'||ev.t==='status'||ev.t==='react'||ev.t==='chain')&&!ev._ctrShown){ const ri=evs.findIndex(e=>e.t==='rushdown'), ii=evs.indexOf(ev); if(ri>ii&&evs[ri].side===ev.side){ if(ev.s) hud(ev.s); if(ev.t==='hit'&&ev.amount){ RSD.pend=(RSD.pend||0)+ev.amount; } continue; } }   // the Rushdown cutscene owns the screen: side effects of its hits (burn, reactions, chains) only update the bars
     if(ev.t==='mentor') LASTM=ev.side==='e'?null:((ev.x&&run.mx&&run.mx[ev.x-1])||run.mentor); if(ev.t==='turn'||(ev.t==='play'&&!ev.mentor)) mEndAll(true); if(ev.t==='play'&&CTRSEQ){ if(CTRSEQ.played||ev.card!==CTRSEQ.card||side!==CTRSEQ.att) CTRSEQ=null; else CTRSEQ.played=true; } if(ev.t==='play'){ LASTP[side]=ev.card; if(side==='p'&&!ev.mentor) try{ mastPlay(ev.card); }catch(_){} } tstat(ev); if(window.__SEQSKIP&&(ev.t==='turn'||ev.t==='ult'||ev.t==='crit'||ev.t==='awaken'||(ev.t==='play'&&ev.card!==window.__SEQSKIP))) window.__SEQSKIP=null; switch(ev.t){
       case 'turn': spriteSanity(); vfxPreload(); fgcReset('p'); fgcReset('e'); F.p.classList.toggle('myturn',side==='p'); F.e.classList.toggle('myturn',side==='e'); $('.tn',s).textContent='Turn '+ev.n; if(side==='p'){ Snd.sfx('turn'); await banner('Your turn','#e02b2b'); } else if(!TRAIN){ Snd.sfx('eturn'); await banner(opp.name.replace('Ghost of ','')+'’s turn',opp.color); } break;
       case 'guardoff': case 'energy': hud(ev.s); break;
-      case 'super': { hud(ev.s); const id=ev.id; if(id==='ito') await itoFx(side,'super'); const __lsq=window.LSQ&&LSQ.has(id)&&(()=>{ const m=OPT().cine||'full'; if(m==='off') return false; if(m==='first'&&run){ const cs=run.cineSeen=run.cineSeen||{}; if(cs[side+id]) return false; cs[side+id]=1; } return true; })(); if(!__lsq){ setTimeout(()=>annCall('super'),1300*speed); if(Snd.has(id,'_sup')) Snd.voice(id,'_sup',{pri:true}); } if(__lsq){ const vid=phxWho(side==='p'?'e':'p'), aid=phxWho(side), rp0=side==='p'?sprOf(opp):'img/'+HERO+'.webp', rp=(side==='e'||!opp.tint)?sprB(vid,rp0):rp0;   /* the rival in paper form when paper sprites are on */
-          { const S_=typeof SCALE!=='undefined'?SCALE:{}, k=(S_[vid]||1)/(S_[aid]||1); window.__LSQ_VK=Math.max(.55,Math.min(1.8,k)); }
+      case 'super': { hud(ev.s); const id=ev.id; if(id==='ito') await itoFx(side,'super'); const __lsq=window.LSQ&&LSQ.has(id)&&(()=>{ const m=OPT().cine||'full'; if(m==='off') return false; if(m==='first'&&run){ const cs=run.cineSeen=run.cineSeen||{}; if(cs[side+id]) return false; cs[side+id]=1; } return true; })(); if(!__lsq){ setTimeout(()=>annCall('super'),1300*speed); if(Snd.has(id,'_sup')) Snd.voice(id,'_sup',{pri:true}); } if(__lsq){ const vs_=side==='p'?'e':'p', vid=phxWho(vs_), aid=phxWho(side), vAw=!!(F[vs_]&&F[vs_].classList.contains('awk'))&&!!AWAKEN[idOf(vs_)], rp0=vAw?awImg(idOf(vs_)):side==='p'?sprOf(opp):'img/'+HERO+'.webp', rp=vAw?rp0:(side==='e'||!opp.tint)?sprB(vid,rp0):rp0;   /* an awakened rival stays in their awakened form */   /* the rival in paper form when paper sprites are on */
+          { const S_=typeof SCALE!=='undefined'?SCALE:{}, k=(S_[vid]||1)*(vAw?(AWSC[idOf(vs_)]||1.14):1)/(S_[aid]||1); window.__LSQ_VK=Math.max(.55,Math.min(1.8,k)); }
           window.__LSQ_AF=0;   /* the attacker's standing body height as the super actually draws it: measured from its first frame, so the rival is sized against the real figure, not a fixed 300 px */
           if(!window.__lsqAF){ const FF=new WeakMap(), frac=img=>{ let r=FF.get(img); if(r) return r; r=[0,1]; try{ const ih=img.naturalHeight||img.height, iw=img.naturalWidth||img.width, sc=Math.min(1,256/ih), c=document.createElement('canvas'); c.width=Math.max(1,Math.round(iw*sc)); c.height=Math.max(1,Math.round(ih*sc)); const g=c.getContext('2d'); g.drawImage(img,0,0,c.width,c.height); const d=g.getImageData(0,0,c.width,c.height).data; let t=-1,b=-1; for(let y=0;y<c.height;y++){ let on=false; for(let x=0;x<c.width;x++) if(d[(y*c.width+x)*4+3]>40){ on=true; break; } if(on){ if(t<0) t=y; b=y; } } if(t>=0) r=[t/c.height,(b+1)/c.height]; }catch(e){} FF.set(img,r); return r; };
             window.__lsqAF=(img,sc)=>{ if(window.__LSQ_AF) return; const f=frac(img), ih=img.naturalHeight||img.height; window.__LSQ_AF=(f[1]-f[0])*ih*sc; };
             window.__lsqVH=(img,KD)=>{ const AF=window.__LSQ_AF; if(!AF) return 0; const f=frac(img), fh=Math.max(.2,f[1]-f[0]), tgt=AF*(window.__LSQ_VK||1)*(KD?(window.__LSQ_KK||.9):1); return tgt/fh; }; }   /* the size chart: the rival stands at their real height next to the attacker */
-          window.__LSQ_RIVD=null; window.__LSQ_RIVB=0; try{ const R=(typeof ROAM_HEROES!=='undefined'&&ROAM_HEROES[vid])||(vid==='kaede'&&typeof ROAM_ATLAS!=='undefined'?ROAM_ATLAS:null), D=R&&R.full&&R.full.down&&R.full.down[0], I=R&&R.full&&R.full.idle&&R.full.idle[0];   /* knocked down: their own lying-down frame from the pose sheet instead of the standing sprite turned on its side */
+          window.__LSQ_RIVD=null; window.__LSQ_RIVB=0; if(!vAw) try{ const R=(typeof ROAM_HEROES!=='undefined'&&ROAM_HEROES[vid])||(vid==='kaede'&&typeof ROAM_ATLAS!=='undefined'?ROAM_ATLAS:null), D=R&&R.full&&R.full.down&&R.full.down[0], I=R&&R.full&&R.full.idle&&R.full.idle[0];   /* knocked down: their own lying-down frame from the pose sheet instead of the standing sprite turned on its side */
             if(D&&I){ const im=new Image(); im.src=A('img/'+(R.file||'roam_kaede.webp')); await Promise.race([(im.decode?im.decode():new Promise(r=>im.onload=r)).catch(()=>{}),sleep(1500)]); if(im.naturalWidth){ const c=document.createElement('canvas'); c.width=D[2]; c.height=D[3]; c.getContext('2d').drawImage(im,D[0],D[1],D[2],D[3],0,0,D[2],D[3]); const bl=await new Promise(r=>c.toBlob(r,'image/png')); if(bl){ window.__LSQ_RIVD=URL.createObjectURL(bl); window.__LSQ_RIVB=1; window.__LSQ_KK=D[3]/I[3]; } } }
             else if(typeof CTR_SPR!=='undefined'&&(CTR_SPR[vid]||[]).includes('f_kneel')){ /* no lying-down frame: they drop to their kneel instead */ const u=A('img/ctr/'+vid+'_f_kneel.webp'), im=new Image(); im.src=u; await Promise.race([(im.decode?im.decode():new Promise(r=>im.onload=r)).catch(()=>{}),sleep(1500)]); if(im.naturalWidth){ window.__LSQ_RIVD=u; window.__LSQ_KK=(typeof CTR_KSC!=='undefined'&&CTR_KSC[vid])||1; } } }catch(_){ window.__LSQ_RIVD=null; }
           window.__LSQ_BG=(OPT().cineArena!==false)?await lsqArenaBg():null; try{ await LSQ.run(id,PK[rp]||rp,CARDS['sup_'+id].name,CARDS['sup_'+id].fx,side); } finally { window.__LSQ_BG=null; const tok=window.__LSQ_TOK=(window.__LSQ_TOK||0)+1, rv=window.__LSQ_RIVD, rb=window.__LSQ_RIVB; setTimeout(()=>{ if(rv&&rb) try{ URL.revokeObjectURL(rv); }catch(_){ } if(window.__LSQ_TOK!==tok) return; window.__LSQ_VK=1; window.__LSQ_AF=0; window.__LSQ_RIVD=null; window.__LSQ_RIVB=0; },1500); }   /* the last frames can still draw after the sequence resolves: keep the rival's size and knockdown pose until they have */ window.__SEQSKIP='sup_'+id; } else { await superFlash(side,AWAKEN[id].c1); await cutin(side,CARDS['sup_'+id],'Super Art',side==='p'?'img/'+HERO+'.webp':sprOf(opp),side==='e'&&opp.tint,AWAKEN[id].c1,'super'); } break; }
