@@ -353,7 +353,7 @@ function zoomFor(F, X) {
   let tz = 1; for (const sd of ['p', 'e']) { const f = F[sd]; if (f && f.h > 4) { const raw = f.h / fz, room = innerHeight * (innerWidth < innerHeight ? .5 : .6); if (raw > room) tz = Math.min(tz, Math.max(.45, room / raw)); } }
   // heads must stay clear of the status chips / next-move bar under each HP bar: measure the real sprite against the real HUD and pull back to fit
   const appE = document.getElementById('app'), stg = document.getElementById('stage');
-  const nowZ = performance.now(); if (nowZ - (zoomFor.t || 0) > 400 && appE && !appE.classList.contains('cine') && !appE.classList.contains('airtime') && !(stg && /ots/.test(stg.className))) {
+  const nowZ = performance.now(); if (nowZ - (zoomFor.t || 0) > (zoomFor.calm > 3 ? 1200 : 400) && appE && !appE.classList.contains('cine') && !appE.classList.contains('airtime') && !(stg && /ots/.test(stg.className))) {
     let hzN = 1;
     // a sprite mid-flourish (lunge, launch, tumble, KO spin) is not standing: measuring it would pull the camera far out and shrink everyone
     const moving = [...document.querySelectorAll('.scr.battle .fighter .spr,.scr.battle .fighter')].some(e => e.getAnimations().some(q => !(typeof CSSAnimation !== 'undefined' && q instanceof CSSAnimation)));
@@ -363,7 +363,7 @@ function zoomFor(F, X) {
       let hb = 0; document.querySelectorAll('.scr.battle .hp.' + sd + ' .bar,.scr.battle .hp.' + sd + ' .sts,.scr.battle .intent.dock').forEach(el => { if (sd === 'p' && el.classList.contains('intent')) return; const b = el.getBoundingClientRect(); if (b.width && b.height) hb = Math.max(hb, b.bottom); });
       if (!hb) continue; hb += innerHeight * .02; const need = fz * (r.bottom - hb) / r.height; if (need < 1) hzN = Math.min(hzN, Math.max(.8, need));
     }
-    if (!moving) { if (hzN < (zoomFor.hz || 1) && Math.abs(hzN - (zoomFor.hc || 9)) > .03) { zoomFor.hc = hzN; } else { zoomFor.hz = hzN; zoomFor.hc = 9; } zoomFor.t = nowZ; }
+    if (!moving) { if (hzN < (zoomFor.hz || 1) && Math.abs(hzN - (zoomFor.hc || 9)) > .03) { zoomFor.hc = hzN; } else { zoomFor.hz = hzN; zoomFor.hc = 9; } zoomFor.t = nowZ; zoomFor.calm = (zoomFor.hz === zoomFor.hz0) ? (zoomFor.calm | 0) + 1 : 0; zoomFor.hz0 = zoomFor.hz; }
   }
   tz = Math.min(tz, zoomFor.hz || 1);
   const want = Math.min(gz, tz); fz += (want - fz) * .08; if (Math.abs(want - fz) < .002) fz = want;
@@ -476,8 +476,8 @@ function litSet(cx) {
 }
 let litLast = 0;
 function litTick(t) {
-  if (!litM) return; const nw = performance.now(); if (nw - litLast < 70) return; litLast = nw;   /* an SVG filter re-render on both sprites: ~14 Hz is plenty for a lantern flicker */ const f = .88 + .08 * Math.sin(t * 7.1) + .04 * Math.sin(t * 13.3), k = litK.wk * f, [sr, sg, sb] = litK.s, [wr, wg, wb] = litK.w, row = (s0, w0, i) => [0, 1, 2].map(j => ((j === i ? s0 : 0) + [.3, .59, .11][j] * w0 * k).toFixed(4)).join(' ') + ' 0 0';
-  litM.setAttribute('values', `${row(sr, wr, 0)} ${row(sg, wg, 1)} ${row(sb, wb, 2)} 0 0 0 1 0`);
+  if (!litM) return; const nw = performance.now(); if (nw - litLast < 140) return; litLast = nw;   /* an SVG filter re-render on both sprites: ~14 Hz is plenty for a lantern flicker */ const f = .88 + .08 * Math.sin(t * 7.1) + .04 * Math.sin(t * 13.3), k = litK.wk * f, [sr, sg, sb] = litK.s, [wr, wg, wb] = litK.w, row = (s0, w0, i) => [0, 1, 2].map(j => ((j === i ? s0 : 0) + [.3, .59, .11][j] * w0 * k).toFixed(4)).join(' ') + ' 0 0';
+  { const v = `${row(sr, wr, 0)} ${row(sg, wg, 1)} ${row(sb, wb, 2)} 0 0 0 1 0`; if (v !== litM._v) { litM._v = v; litM.setAttribute('values', v); } }
 }
 function weatherFor(cx) {
   if (window.__ls3dWeather) return window.__ls3dWeather;

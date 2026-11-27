@@ -346,7 +346,7 @@ export class Diorama {
       if (this.dead) return;
       requestAnimationFrame(loop);
       if (this.paused || (this.skip && this.skip())) { this.clock.getDelta(); return; }
-      const dt = Math.min(this.clock.getDelta(), 1 / 20); this.time += dt;
+      const _t0 = performance.now(); const dt = Math.min(this.clock.getDelta(), 1 / 20); this.time += dt;
       cb && cb(dt, this.time);
       if (this.dead) return;
       for (const u of this.updaters) u(this.time, dt);
@@ -355,7 +355,7 @@ export class Diorama {
       if (this.backdropMesh) { const b = this.backdropMesh; b.position.x = b.userData.x0 + this.camera.position.x * b.userData.parallax; }
       // the set redraws at its own rate (60 on a 120 Hz screen, less when the governor steps down); sprites and effects still run every screen frame
       { const iv = window.__ls3dIv || 0, n = performance.now(); if (iv && n - (this._lr || 0) < iv - 2) return; this._lr = n; }
-      this._render();
+      this._render(); window.__ls3dMs = (window.__ls3dMs || 0) * .9 + (performance.now() - _t0) * .1;
     };
     loop();
   }

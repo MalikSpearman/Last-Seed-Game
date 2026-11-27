@@ -1,5 +1,23 @@
 [
  {
+  "version": "0.3.98",
+  "date": "Nov 27, 2026",
+  "title": "Stuck sprite fix",
+  "items": [
+   "Fixed Kaede's sprite getting stuck at the top of the screen after Dynamic Blossom. Stuck launch poses are cleared when the ultimate ends, and a safety check puts any fighter stranded off its spot back in place."
+  ]
+ },
+ {
+  "version": "0.3.97",
+  "date": "Nov 27, 2026",
+  "title": "Idle frame rate",
+  "items": [
+   "Less work while a fight sits idle: the camera check and lantern light update run less often and skip redundant updates.",
+   "The automatic performance mode now waits 6 seconds after a fight starts and needs a longer slowdown before lowering quality, so a loading hitch can't trigger it.",
+   "Show FPS now also shows the 3D render time, quality step and detected refresh rate during fights."
+  ]
+ },
+ {
   "version": "0.3.96",
   "date": "Nov 26, 2026",
   "title": "High refresh rate performance",

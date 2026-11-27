@@ -5530,14 +5530,14 @@ const OPT=()=>(store.opt=store.opt||{rm:false,vib:true,ts:1});
 const vib=p=>{ if(OPT().vib===false) return; try{ navigator.vibrate&&navigator.vibrate(p); }catch(e){} };
 window.FXQ=()=>Math.min(({low:.3,med:.65}[OPT().fxq]||1),[1,.65,.3][window.__lsQ|0]);
 /* adaptive quality governor: if a fight holds under ~34 fps for a few seconds, drop quality one step (shadows, resolution, particles). Never steps back up mid-session. */
-(function(){ window.__lsQ=0; let last=0,n=0,t0=0,bad=0,cool=0; window.__lsHz=60;
+(function(){ window.__lsQ=0; let last=0,n=0,t0=0,bad=0,cool=0,warm=0; window.__lsHz=60;
   { const ds=[]; let pt=0; const m=t=>{ if(pt&&!document.hidden) ds.push(t-pt); pt=t; if(ds.length<90) requestAnimationFrame(m); else { ds.sort((a,b)=>a-b); const md=ds[ds.length>>1]||16.7; window.__lsHz=Math.round(1000/md/5)*5||60; setIv(); } }; requestAnimationFrame(m); }
   function setIv(){ const q=window.__lsQ|0, base=window.__lsHz>80?60:0, tgt=[base,45,30][q]; window.__ls3dIv=tgt?1000/tgt:0; }
   window.addEventListener('ls-quality',setIv);
-  const tick=t=>{ requestAnimationFrame(tick); if(document.hidden||!document.querySelector('.scr.battle')){ t0=0; bad=0; return; } if(!t0){ t0=t; n=0; return; } n++; if(t-t0<1000) return; const fps=n*1000/(t-t0); t0=t; n=0;
+  const tick=t=>{ requestAnimationFrame(tick); if(document.hidden||!document.querySelector('.scr.battle')){ t0=0; bad=0; warm=0; return; } if(!warm) warm=t+6000; if(!t0){ t0=t; n=0; return; } n++; if(t-t0<1000) return; const fps=n*1000/(t-t0); t0=t; n=0;
     let capv=0; try{ capv=+(JSON.parse(localStorage.getItem('ls_disp')||'{}').fps)||0; }catch(e){} if(capv&&capv<=40){ bad=0; return; }
-    if(t<cool) return; if(fps<Math.max(34,window.__lsHz*.5)) bad++; else bad=0;
-    if(bad>=3&&window.__lsQ<2){ bad=0; window.__lsQ++; cool=t+6000; try{ (window.__lsDio||[]).forEach(d=>d.perf(window.__lsQ)); }catch(e){} try{ window.dispatchEvent(new Event('ls-quality')); }catch(e){} } };
+    if(t<cool||t<warm) return; if(fps<Math.max(34,window.__lsHz*.45)) bad++; else bad=0;
+    if(bad>=4&&window.__lsQ<2){ bad=0; window.__lsQ++; cool=t+6000; try{ (window.__lsDio||[]).forEach(d=>d.perf(window.__lsQ)); }catch(e){} try{ window.dispatchEvent(new Event('ls-quality')); }catch(e){} } };
   requestAnimationFrame(tick); })();
 function applyOpt(){ const o=OPT(); document.body.classList.toggle('rm',!!o.rm); document.body.classList.toggle('nof',!!o.nof); document.body.classList.toggle('bigtxt',!!o.big); document.body.classList.toggle('cbsafe',!!o.cb); window.__fxq=o.fxq||'high'; }
 addEventListener('pointerdown',e=>{ const t=e.target.closest&&e.target.closest('button,.btn,.ubtn,.card.ok'); if(t){ vib(6); t.classList.remove('prs'); void t.offsetWidth; t.classList.add('prs'); } },true);
@@ -7460,6 +7460,11 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
     if(now<HSH.until){ if(end>HSH.until){ HSH.until=end; clearTimeout(HSH.t); HSH.t=setTimeout(hsRelease,end-now); } return new Promise(r=>setTimeout(r,Math.max(0,HSH.until-now))); }
     try{ const roots=[F.p,F.e].filter(Boolean); roots.forEach(f=>f.getAnimations({subtree:true}).forEach(a=>{ if(a.playState==='running'&&(!a.effect||!a.effect.getTiming||a.effect.getTiming().iterations!==Infinity)){ try{ a.pause(); HSH.an.add(a); }catch(_){} } })); }catch(_){ }
     HSH.until=end; clearTimeout(HSH.t); HSH.t=setTimeout(hsRelease,ms); return new Promise(r=>setTimeout(r,ms)); }
+  // safety net: a sprite left parked off its spot (e.g. a held launch pose after an ultimate) is put back. Only touches held/paused animations on a fighter that is not mid-air, KO'd or in a cinematic.
+  function fixStuckSprites(){ try{ const app=document.getElementById('app'); if(!app||app.classList.contains('cine')||app.classList.contains('airtime')) return; for(const sd of ['p','e']){ const f=F[sd]; if(!f||!f.isConnected||/dead|ko|air/.test(f.className)) continue; const sp=f.querySelector('.spr'); if(!sp) continue; const im=sp.querySelector('img')||sp, r=im.getBoundingClientRect(); if(!r.height||r.bottom>innerHeight*.28) continue;
+      let fixed=false; f.getAnimations({subtree:true}).forEach(a=>{ const t=a.effect&&a.effect.getComputedTiming&&a.effect.getComputedTiming(); if(t&&t.iterations===Infinity) return; if(a.playState==='paused'||t&&(t.fill==='forwards'||t.fill==='both')){ try{ a.cancel(); fixed=true; }catch(_){} } });
+      if(sp.style.translate){ sp.style.translate=''; fixed=true; } if(sp.style.transform&&/translateY\(-/.test(sp.style.transform)){ sp.style.transform=''; fixed=true; } } }catch(_){ } }
+  { let seen=false; const iv=setInterval(()=>{ const ok=F&&F.p&&F.p.isConnected; if(ok) seen=true; else if(seen){ clearInterval(iv); return; } if(ok) fixStuckSprites(); },900); }
   function hsRelease(){ HSH.until=0; HSH.an.forEach(a=>{ try{ if(a.playState==='paused') a.play(); }catch(_){} }); HSH.an.clear(); }
   const OO=()=>overlay.getBoundingClientRect();
   function ctrSkid(side,dir){ const im=$('.spr img',F[side]); if(!im) return; const r=im.getBoundingClientRect(), O=OO(); for(let i=0;i<2;i++){ const k=h('i','ctrskid'); k.style.cssText=`left:${r.left-O.left+r.width*(.34+i*.28)}px;top:${r.bottom-O.top-r.height*.015-i*3}px;--d:${dir};--w:${(r.width*(.5+i*.2)).toFixed(0)}px`; overlay.appendChild(k); setTimeout(()=>k.remove(),950*speed); } }
@@ -8841,7 +8846,7 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
           const sm=ph(fz,850,1700); if(sm>0&&sm<1){ fg.save(); for(let i=0;i<14;i++){ const q=(i/14+sm*.6)%1, x=gx+Math.sin(i*2.1+sm*3)*eh*.4, y=gy-eh*(.2+2*q)-sm*eh*.5, r=eh*(.18+.25*q); const rg=fg.createRadialGradient(x,y,0,x,y,r); rg.addColorStop(0,`rgba(40,30,30,${.35*(1-q)*(1-sm)})`); rg.addColorStop(1,'rgba(40,30,30,0)'); fg.fillStyle=rg; fg.fillRect(x-r,y-r,r*2,r*2); } fg.globalCompositeOperation='lighter'; for(let i=0;i<24;i++){ const q=(i*.041+sm*1.5)%1; fg.fillStyle=`rgba(255,170,70,${(1-q)*(1-sm)})`; fg.beginPath(); fg.arc(gx+Math.sin(i*1.7+q*4)*eh*.5,gy-eh*1.8*q,1.5+2*(1-q),0,7); fg.fill(); } fg.restore(); }
         }
         if(t<END) requestAnimationFrame(step); else finish(); };
-      const finish=()=>{ if(SPR){ SPR.getAnimations().forEach(a=>a.cancel()); SPR.style.transformOrigin=''; SPR.style.translate=''; } if(FT){ const sp=$('.spr',FT); if(sp){ sp.style.transition=''; sp.style.opacity=''; if(fired.fld){ sp.style.transformOrigin='50% 100%'; sp.animate([{rotate:`${dir*86}deg`,translate:`${dir*sp.offsetHeight*.05}px ${-sp.offsetHeight*.02}px`},{rotate:`${dir*20}deg`,translate:'0 0',offset:.6,easing:'cubic-bezier(.3,.9,.4,1)'},{rotate:'0deg',translate:'0 0'}],{duration:420*SP,easing:'cubic-bezier(.5,0,.3,1)'}).onfinish=()=>{ sp.style.transformOrigin=''; }; } } } S.end(); res(true); };
+      const finish=()=>{ if(SPR){ SPR.getAnimations({subtree:true}).forEach(a=>a.cancel()); SPR.style.transformOrigin=''; SPR.style.translate=''; SPR.style.transform=''; } if(FT){ const sp=$('.spr',FT); if(sp){ sp.style.transition=''; sp.style.opacity=''; if(fired.fld){ sp.style.transformOrigin='50% 100%'; sp.animate([{rotate:`${dir*86}deg`,translate:`${dir*sp.offsetHeight*.05}px ${-sp.offsetHeight*.02}px`},{rotate:`${dir*20}deg`,translate:'0 0',offset:.6,easing:'cubic-bezier(.3,.9,.4,1)'},{rotate:'0deg',translate:'0 0'}],{duration:420*SP,easing:'cubic-bezier(.5,0,.3,1)'}).onfinish=()=>{ sp.style.transformOrigin=''; }; } } } S.end(); res(true); };
       requestAnimationFrame(step); setTimeout(()=>{ if(o.isConnected) finish(); },(END+3000)*SP); }); }
 
   // ════ Suzu · Ultimate Art: Heaven's Drumroll — three takes on the same five-beat ult (preview switch window.__SZV = 'a' | 'b' | 'c') ════
@@ -13271,7 +13276,7 @@ const dispSave=d=>{ try{ localStorage.setItem('ls_disp',JSON.stringify(d)); }cat
 const RES=[[1280,720,'HD'],[1366,768,''],[1600,900,'HD+'],[1920,1080,'Full HD'],[2560,1080,'Ultrawide'],[2560,1440,'QHD'],[3440,1440,'Ultrawide QHD'],[3840,2160,'4K UHD']];
 function fpsMeter(on){ let el=document.getElementById('fpsm'); if(!on){ if(el) el.remove(); return; } if(el) return;
   el=document.createElement('div'); el.id='fpsm'; document.body.appendChild(el); let n=0, t0=performance.now();
-  const tick=t=>{ if(!el.isConnected) return; n++; if(t-t0>=500){ el.textContent=Math.round(n*1000/(t-t0))+' FPS'; n=0; t0=t; } requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
+  const tick=t=>{ if(!el.isConnected) return; n++; if(t-t0>=500){ el.textContent=Math.round(n*1000/(t-t0))+' FPS'+(document.querySelector('.scr.battle')?' · 3D '+(window.__ls3dMs||0).toFixed(1)+'ms · Q'+(window.__lsQ|0)+' · '+(window.__lsHz||0)+'Hz':''); n=0; t0=t; } requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
 fpsMeter(DISP().showFps);
 window.__lsSettings=(t)=>openSettings(null,t);
 // Esc opens settings when nothing else is open; desktop gets a Quit button on the title screen
