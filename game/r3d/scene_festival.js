@@ -78,8 +78,8 @@ const person = k => cvs(64, 160, (g) => { g.fillStyle = '#140c1e'; g.beginPath()
 
 export async function build(D) {
   const S = D.scene;
-  S.fog = new T.Fog(0x2c1a48, 26, 120); S.background = new T.Color(0x16102e);
-  D.moonlight({ color: 0xd0c0ff, intensity: 2.1, dir: [.35, 1, .3], ambient: 0x5a4a88, ambientI: 2, sky: 0x9478d0, ground: 0x3c2840 });
+  S.fog = new T.Fog(0x3a2660, 30, 150); S.background = new T.Color(0x16102e);
+  D.moonlight({ color: 0xd0c0ff, intensity: 2.1, dir: [.35, 1, .3], ambient: 0x7a68a8, ambientI: 2.9, sky: 0x9478d0, ground: 0x3c2840 });
 
   const M = {
     wood: pbr('japanese_cedar_planks', [.5, 1], { color: 0x8a5a48, rough: .9 }),

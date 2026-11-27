@@ -1,5 +1,17 @@
 [
  {
+  "version": "0.3.88",
+  "date": "Nov 26, 2026",
+  "title": "A livelier, clearer map",
+  "items": [
+   "Map nodes show a threat rating and the fight's real HP; the map no longer shows base HP.",
+   "Calamities pulse red on the map and on region exits; cleared places get a seal; your token walks between places; the map shifts toward night as days run out.",
+   "Nia's summons get the paper cut-out look and stand in front of the fighters.",
+   "A ghost's blue tint now covers its Rushdown, kit supers and phoenix dash.",
+   "Fog in 3D fights is a light mist instead of a wall, tournament levels are brighter, and the road map is brighter."
+  ]
+ },
+ {
   "version": "0.3.87",
   "date": "Nov 26, 2026",
   "title": "Calamities announce themselves",

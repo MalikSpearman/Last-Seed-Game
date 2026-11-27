@@ -53,9 +53,9 @@ export class ArenaFX {
     const f = D.scene.fog, base = this.fog0 || (this.fog0 = { near: f.near, far: f.far, col: f.color.clone() });
     f.near = base.near; f.far = base.far; f.color.copy(base.col); D.scene.background.copy(base.col); D.wind = 1;
     if (D.moon) { this.moon0 = this.moon0 ?? D.moon.intensity; D.moon.intensity = this.moon0; }
-    if (kind === 'fog') { f.near = 6; f.far = 34; f.color.set(0x2a3352); D.scene.background.set(0x2a3352); }
-    if (kind === 'rain') { f.far = base.far * .7; f.color.set(0x0a1024); D.scene.background.set(0x0a1024); D.wind = 1.8; if (D.moon) D.moon.intensity = this.moon0 * .7; }
-    if (kind === 'snow') { f.color.set(0x1c2442); D.scene.background.set(0x1c2442); }
+    if (kind === 'fog') { f.near = Math.max(10, base.near * .6); f.far = Math.max(60, base.far * .75); const fc = base.col.clone().lerp(new T.Color(0x6a7aa0), .4); f.color.copy(fc); D.scene.background.copy(fc); }   // a light mist you can still see the set through, not a wall
+    if (kind === 'rain') { f.far = base.far * .7; f.color.set(0x141c38); D.scene.background.set(0x141c38); D.wind = 1.8; if (D.moon) D.moon.intensity = this.moon0 * .7; }
+    if (kind === 'snow') { f.color.set(0x2a3458); D.scene.background.set(0x2a3458); }
     if (kind === 'rain' || kind === 'snow') {
       const n = kind === 'rain' ? 2400 : 1400, g = new T.BufferGeometry(), p = new Float32Array(n * 3), s = new Float32Array(n);
       for (let i = 0; i < n; i++) { p[i * 3] = (Math.random() * 2 - 1) * 22; p[i * 3 + 1] = Math.random() * 16; p[i * 3 + 2] = (Math.random() * 2 - 1) * 12; s[i] = Math.random() * 100; }

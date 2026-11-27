@@ -471,7 +471,7 @@ function weatherFor(cx) {
 function setWeather(cx, kind) {
   if (!cx.fx) return; cx.fx.weather(kind, cx.P.c);
   if (cx.painted && cx.P.surf) { cx.P.surf.rainK = kind === 'rain' ? 1 : 0; cx.P.surf.snowK = kind === 'snow' ? 1 : 0; if (kind !== 'snow') cx.P.surf.snow.value = 0; }
-  if (cx.painted) { const f = D.scene.fog, base = new T.Color(`rgb(${cx.P.fog.join(',')})`); f.color.copy(base); f.near = kind === 'fog' ? 16 : 60; f.far = kind === 'fog' ? 110 : kind === 'rain' ? 260 : 400; D.scene.background.copy(base); }
+  if (cx.painted) { const f = D.scene.fog, base = new T.Color(`rgb(${cx.P.fog.join(',')})`); f.color.copy(base); f.near = kind === 'fog' ? 40 : 60; f.far = kind === 'fog' ? 190 : kind === 'rain' ? 260 : 400; D.scene.background.copy(base); }
 }
 // k: a roam fight's bamboo spot (road / shrine / bridge); bgUrl: the fight's backdrop, matched to its painted 3D set
 let gen = 0;
