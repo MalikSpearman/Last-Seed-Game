@@ -1,5 +1,16 @@
 [
  {
+  "version": "0.3.90",
+  "date": "Nov 26, 2026",
+  "title": "Fight-day call, steadier camera",
+  "items": [
+   "On fight day a pop-up announces your match with an Accept button (or Not yet to keep shopping).",
+   "The 3D camera no longer zooms out and shrinks fighters during big moves or when status chips appear.",
+   "Lighter 3D shadows for smoother frame rates during attacks.",
+   "After a main foe is knocked out in a group fight, its sprite can no longer linger over the next minion."
+  ]
+ },
+ {
   "version": "0.3.89",
   "date": "Nov 26, 2026",
   "title": "Heads clear the HUD, smoother counters",
