@@ -1,5 +1,19 @@
 [
  {
+  "version": "0.3.93",
+  "date": "Nov 26, 2026",
+  "title": "Quality, accessibility and backups",
+  "items": [
+   "New Effects quality setting (High, Medium, Low) in Graphics for smoother fights on slower devices.",
+   "Accessibility: Reduce flashing, Larger text and Colour-blind status marks.",
+   "Export and import your save, with an automatic backup kept before each update.",
+   "Practice fight button in the Tutorial, and a polished fight-day pop-up with the rival's known moves.",
+   "Save your run summary as an image.",
+   "Rushdown combos now play their strikes in a fixed order.",
+   "The save select screen matches the menu style."
+  ]
+ },
+ {
   "version": "0.3.92",
   "date": "Nov 26, 2026",
   "title": "Cleaner, smoother hits",
