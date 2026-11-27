@@ -5436,6 +5436,54 @@ function roamRegionPick(){ const g=h('div','rregion'); if(!document.getElementBy
 function roamPick(){ const ids=['kaede',...Object.keys(ROAM_HEROES).filter(id=>id!=='kaede'&&FIGHTERS[id]&&FIGHTERS[id].deck)];
   const g=h('div','rpick'); ids.forEach(id=>{ const b=h('button','rp',`<i style="background-image:url(img/p_${id}.webp)"></i><b>${FIGHTERS[id].name}</b>`); b.onclick=()=>{ Snd.sfx('click'); modal.last&&modal.last._close(id); }; g.appendChild(b); });
   return modal('Free roam test','Pick who to play as',g,[['Cancel','alt',null]]); }
+
+/* ── Tutorial guide: every mechanic, in chapters. Opens from the menu, the ? button and Settings; the first-run coach tips use the same wording ── */
+const TUT_CH=[
+ {t:'The basics',s:'Turns, Energy and cards',p:[
+  ['Your hand','You draw <b>5 cards</b> each turn. <b>Tap a card</b> to read it, tap it again to play it. Keys: 1–9 play, E ends the turn.'],
+  ['Energy','You get <b>3 Energy</b> every turn and the number in a card’s corner is its cost. Energy does not carry over, so spend it.'],
+  ['End turn','When you are out of moves press <b>End turn</b>. Unplayed cards are discarded, your rival acts, then you draw a fresh hand.'],
+  ['Winning','Take your rival’s HP to zero. Lose all of yours and the run ends.']]},
+ {t:'Rival intent & Guard',s:'Read the next move',p:[
+  ['Intent badge','The badge by your rival shows what they will do next turn: how hard they hit, and whether they will guard.'],
+  ['Guard','<b>Guard</b> soaks damage before your HP. Play Guard cards when a big hit is coming. It fades at the start of your next turn.'],
+  ['Poise','Poise builds as you trade blows. A full <b>Poise</b> bar is what makes a counter possible.']]},
+ {t:'Combos & Finishers',s:'Chains and big damage',p:[
+  ['Chain','Play attacks back to back (physical or spirit) and the <b>combo counter</b> climbs on the screen edge.'],
+  ['Finishers','A <b>Finisher</b> cashes the whole chain in for big damage. Build first, finish last.'],
+  ['Planning','A turn with no attack drops the chain, so plan your hand around it.']]},
+ {t:'Counters',s:'Answer an attack',p:[
+  ['The window','When a rival swings, a <b>Counter window</b> opens. The clock runs in real time, so decide fast.'],
+  ['Answering','Spend a card from your <b>next hand</b> to answer. Perfect timing is a <b>Perfect counter</b> and hits back much harder.'],
+  ['Why','Counters turn a rival’s best move into your opening.']]},
+ {t:'Spirit & Supers',s:'Super, Ultimate, Awaken',p:[
+  ['Spirit bar','Dealing and taking damage fills your <b>Spirit</b>. When one bar is full, <b>tap your portrait</b> for a Super Art.'],
+  ['Ultimate','Fill two bars for your <b>Ultimate</b>, the biggest move your fighter has.'],
+  ['Awakening','Fill three bars to <b>Awaken</b>: a stronger form for a few turns. <b>Critical Arts</b> can only be used while Awakened.']]},
+ {t:'Status effects',s:'Burn, Chill, Bleed and more',p:[
+  ['Stacks','Statuses sit under the HP bar as <b>icons with a number</b>. Hover or tap one to read exactly what it does.'],
+  ['Over time','<b>Burn</b>, <b>Bleed</b> and <b>Poison</b> hurt every turn. <b>Chill</b> and <b>Shock</b> slow or disrupt. <b>Exposed</b> makes hits land harder.'],
+  ['Elements','Cards carry an element. Trails and effects follow it, so you can read a fight at a glance.']]},
+ {t:'Insight & Mentor',s:'Free help each fight',p:[
+  ['Insight','When the Insight gauge is full, tap it to use an <b>Innate</b>: draw, search or cycle cards.'],
+  ['Mentor','Your <b>mentor</b> steps in <b>once per fight</b> and plays their card for free. Use the gold button above your Energy.']]},
+ {t:'The festival map',s:'Between fights',p:[
+  ['Days','Before each round you have a few <b>days</b>. Each road you walk costs one. When they run out you face your rival.'],
+  ['Places','Tap a place to see what is there: fights, shops, training, shrines, rivals and events. The <b>threat badge</b> shows how dangerous it is and the fight’s real HP.'],
+  ['Stalls & deck','<b>Stalls</b> sell techniques and charms. <b>My deck</b> shows every card you own. Charms and conditions are used up by your next tournament fight.'],
+  ['Calamities','Calamities and the Demon King’s horde spread along the roads. Cleared places get a seal, and the red pulse shows where trouble is.']]},
+ {t:'Bracket & the torch',s:'Rounds and legacy',p:[
+  ['The bracket','Win fights to climb the bracket. <b>Scout rival</b> shows their deck before you fight.'],
+  ['Stealing techniques','Beat a rival and you <b>steal one of their techniques</b>. It joins your deck for the rest of the run.'],
+  ['Passing the torch','When a run ends, win or lose, your fighter returns as a <b>mentor</b> and their ghost joins the next bracket. Seals you earn unlock more.']]}
+];
+function tutorialScreen(){ if(document.querySelector('.tutg')) return; const kw=Object.keys(KW).map(k=>`<span class="tg-kw" data-tip="<b>${k}</b> — ${KW[k]}"><b>${k}</b></span>`).join('');
+  const o=h('div','tutg',`<div class="tg-bk"></div><div class="tg-box"><div class="tg-hd"><small>Last Seed</small><b>Tutorial</b></div><div class="tg-body"><nav class="tg-nav"></nav><div class="tg-pg"></div></div><div class="tg-ft"><button class="btn alt sm" data-g="replay">Replay guided tips</button><button class="btn sm" data-g="close">Close</button></div></div>`);
+  const nav=$('.tg-nav',o), pg=$('.tg-pg',o); let cur=0;
+  const show=i=>{ cur=i; nav.querySelectorAll('button').forEach((b,j)=>b.classList.toggle('on',j===i)); const C=TUT_CH[i]; pg.innerHTML=`<h3>${C.t}<small>${C.s}</small></h3>`+C.p.map((q,j)=>`<div class="tg-st"><i>${j+1}</i><div><b>${q[0]}</b><span>${q[1]}</span></div></div>`).join('')+(i===TUT_CH.length-1?`<div class="tg-kws"><b>Keywords</b>${kw}</div>`:'')+`<div class="tg-pn"><button class="btn alt sm" data-g="prev"${i?'':' disabled'}>Back</button><span>${i+1} / ${TUT_CH.length}</span><button class="btn sm" data-g="next">${i<TUT_CH.length-1?'Next':'Done'}</button></div>`; pg.scrollTop=0; };
+  TUT_CH.forEach((C,i)=>{ const b=h('button','tg-n',`<i>${i+1}</i><span><b>${C.t}</b><small>${C.s}</small></span>`); b.onclick=()=>{ Snd.sfx('click'); show(i); }; nav.appendChild(b); });
+  o.addEventListener('click',ev=>{ const g=ev.target.closest('[data-g]'); if(!g||g.disabled) return; Snd.sfx('click'); const k=g.dataset.g; if(k==='close'||(k==='next'&&cur>=TUT_CH.length-1)) o.remove(); else if(k==='next') show(cur+1); else if(k==='prev') show(cur-1); else if(k==='replay'){ store.tutDone=0; store.tips={}; save(); g.textContent='Tips will show again'; g.disabled=true; } });
+  document.body.appendChild(o); show(0); }
 function howModal(){ const kw=Object.keys(KW).map(k=>`<span data-tip="<b>${k}</b> — ${KW[k]}"><b>${k}</b></span>`).join('');
   return modal('How to play','Win three fights to take the bracket. Every fighter you beat teaches you something.',
   `<div class="how"><div><i>1</i><span>You get <b>3 Energy</b> and draw <b>5 cards</b> each turn. Play cards, then press <b>End turn</b>. Unplayed cards are discarded.</span></div>
@@ -5481,7 +5529,7 @@ function utilBar(){ applyOpt(); const u=h('div'); u.id='util'; const b=(ic,tip,f
   b('<b style="font:700 .13rem/1 \'Barlow Condensed\';letter-spacing:.06em">SKIP</b>','Developer: win this fight now',()=>{ if(devSkip){ Snd.sfx('click'); devSkip(); } }).classList.add('dev');
   b('<b style="font:700 .12rem/1 \'Barlow Condensed\';letter-spacing:.04em">SP\u2191</b>','Developer: fill your Spirit gauge (test supers, ults, awakenings and crits)',()=>{ if(devFill){ Snd.sfx('power'); devFill(); } else toast('Only works during a fight'); }).classList.add('dev');
   b('<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h11l3 3v15H5zm2 2v5h9V5zm5 9a2.500 2.500 0 100 5 2.500 2.500 0 000-5z"/></svg>','Save game (it also autosaves every turn)',()=>{ Snd.sfx('click'); if(!run||run.quick||cur&&cur.classList.contains('title')){ toast('Nothing to save here. Saves are for tournament runs.'); return; } autoSaveIfIdle(); toast(manualSave()?'Game saved · load it from the title screen':'Couldn\u2019t save right now'); });
-  b(I.help,'How to play',()=>{ Snd.sfx('click'); howModal(); });
+  b(I.help,'Tutorial',()=>{ Snd.sfx('click'); tutorialScreen(); });
   b('<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 3l5 6H9v9H5V9H2zm10 18l-5-6h3V6h4v9h3z"/></svg>','Run status: every buff and debuff on this run',()=>{ Snd.sfx('click'); if(document.querySelector('.modal .rs')) return; runStatus(); });
   { const fb=b(I.ff,'Fast animations',x=>{ speed=speed===1?0.55:1; OPT().ff=speed!==1; save(); x.classList.toggle('off',speed===1); Snd.sfx('click'); }); fb.classList.add('ff'); if(OPT().ff) speed=0.55; else fb.classList.add('off'); }
   b(I.son,'Settings (Esc): display, graphics, sound, controls',x=>openSettings(x)).classList.add('snd');
@@ -6038,11 +6086,11 @@ window.codexModal=()=>enemyCodex();   // the hub's Codex tile opens this
 function titleOld(){ app.classList.remove('dim'); const s=h('div','scr title');
   s.innerHTML=`<div class="kanji" style="right:3%;top:6%;font-size:2.6rem">決勝</div><img class="rival" src="img/varro.webp" alt=""><img class="hero" src="img/kaede.webp" alt="">
   <div class="tw"><div class="logo">Last<br>Seed</div><div class="tag">Steal every technique · Inherit every fall</div>
-  <div class="menu">${rsMenu()}<button class="btn${rsGet(RSV)?' alt':''}" data-a="start">${rsGet(RSV)?'New run':'Enter the bracket'}</button><button class="btn alt" data-a="quick">Versus mode</button><button class="btn alt sm" data-a="roam">Free roam · 3D</button><div class="row">${rsLoadBtn()}<button class="btn alt sm" data-a="dojo">Dojo</button><button class="btn alt sm" data-a="mast">Mastery</button><button class="btn alt sm" data-a="daily">Daily run</button><button class="btn alt sm" data-a="legacy">Legacy hall</button><button class="btn alt sm" data-a="hist">History</button><button class="btn alt sm" data-a="troph">Trophies</button><button class="btn alt sm" data-a="file">File ${SLOT} ▸</button><button class="btn alt sm" data-a="codex">Enemy codex</button><button class="btn alt sm" data-a="cards">Cards</button><button class="btn alt sm" data-a="how">How to play</button></div></div></div>
+  <div class="menu">${rsMenu()}<button class="btn${rsGet(RSV)?' alt':''}" data-a="start">${rsGet(RSV)?'New run':'Enter the bracket'}</button><button class="btn alt" data-a="quick">Versus mode</button><button class="btn alt sm" data-a="roam">Free roam · 3D</button><div class="row">${rsLoadBtn()}<button class="btn alt sm" data-a="dojo">Dojo</button><button class="btn alt sm" data-a="mast">Mastery</button><button class="btn alt sm" data-a="daily">Daily run</button><button class="btn alt sm" data-a="legacy">Legacy hall</button><button class="btn alt sm" data-a="hist">History</button><button class="btn alt sm" data-a="troph">Trophies</button><button class="btn alt sm" data-a="file">File ${SLOT} ▸</button><button class="btn alt sm" data-a="codex">Enemy codex</button><button class="btn alt sm" data-a="cards">Cards</button><button class="btn alt sm" data-a="how">Tutorial</button></div></div></div>
   <div class="foot">Prototype · Run #${store.runs+1} · ghosts and mentors are saved on this device</div>`;
   s.addEventListener('click',e=>{ const a=e.target.closest('[data-a]'); if(!a) return; Snd.init(); Snd.sfx('click'); const k=a.dataset.a; if(k==='troph'){ trophyModal(); return; }
     if(k==='start'){ if(rsGet(RSV)){ modal('Start a new run?','Your autosaved run will be replaced.','<p style="font-size:.17rem;opacity:.8">Your manual save is kept.</p>',[['Back','alt'],['New run','red','go']]).then(v=>{ if(v==='go'){ rsClear(); Snd.voice('ann','title',{pri:true}); startRun(); } }); } else { Snd.voice('ann','title',{pri:true}); startRun(); } }
-    if(k==='cont') resumeRun(rsGet(RSV)); if(k==='load') resumeRun(rsGet(MSV)); if(k==='quick') quickBattle(); if(k==='train') trainingMode(); if(k==='online') onlineMenu(); if(k==='roam') roamPick().then(async id=>{ if(!id) return; const start=await roamRegionPick(); if(start) free3d({hero:id,start}); }); if(k==='how') howModal(); if(k==='cards') cardsModal('Card gallery',Object.keys(CARDS).filter(k=>!CARDS[k].ult&&!CARDS[k].plus).length+' techniques: every fighter, road enemies and bosses, journey discoveries, curses and the ringside pool. Starred cards are signatures.',Object.keys(CARDS).filter(k=>!CARDS[k].ult&&!CARDS[k].plus)); if(k==='legacy') legacyHall(); if(k==='daily') startDaily(); if(k==='hist') histModal(); if(k==='dojo') dojoModal(); if(k==='mast') masteryModal(); if(k==='file') slotSelect(); if(k==='codex') enemyCodex(); });
+    if(k==='cont') resumeRun(rsGet(RSV)); if(k==='load') resumeRun(rsGet(MSV)); if(k==='quick') quickBattle(); if(k==='train') trainingMode(); if(k==='online') onlineMenu(); if(k==='roam') roamPick().then(async id=>{ if(!id) return; const start=await roamRegionPick(); if(start) free3d({hero:id,start}); }); if(k==='how') tutorialScreen(); if(k==='cards') cardsModal('Card gallery',Object.keys(CARDS).filter(k=>!CARDS[k].ult&&!CARDS[k].plus).length+' techniques: every fighter, road enemies and bosses, journey discoveries, curses and the ringside pool. Starred cards are signatures.',Object.keys(CARDS).filter(k=>!CARDS[k].ult&&!CARDS[k].plus)); if(k==='legacy') legacyHall(); if(k==='daily') startDaily(); if(k==='hist') histModal(); if(k==='dojo') dojoModal(); if(k==='mast') masteryModal(); if(k==='file') slotSelect(); if(k==='codex') enemyCodex(); });
   show(s,Snd.hasMusic('menu')?'menu':'title'); }
 // ── Main menu hub (replaces the old title-screen button list): big slanted art tiles, character cut-outs breaking out of the frames ──
 function title(){ app.classList.remove('dim'); const s=h('div','scr title hubm');
@@ -6070,7 +6118,7 @@ function title(){ app.classList.remove('dim'); const s=h('div','scr title hubm')
   <div class="hb-hint"><span>Arrows · move</span><span>Enter · select</span></div>`;
   const go=k=>{ if(k==='troph'){ trophyModal(); return; } if(k==='codex'){ if(typeof window.codexModal==='function') window.codexModal(); else trophyModal(); return; }
     if(k==='start'){ if(rsGet(RSV)){ modal('Start a new run?','Your autosaved run will be replaced.','<p style="font-size:.17rem;opacity:.8">Your manual save is kept.</p>',[['Back','alt'],['New run','red','go']]).then(v=>{ if(v==='go'){ rsClear(); Snd.voice('ann','title',{pri:true}); startRun(); } }); } else { Snd.voice('ann','title',{pri:true}); startRun(); } }
-    if(k==='cont') resumeRun(rsGet(RSV)); if(k==='load') resumeRun(rsGet(MSV)); if(k==='quick') quickBattle(); if(k==='train') trainingMode(); if(k==='online') onlineMenu(); if(k==='roam') roamPick().then(async id=>{ if(!id) return; const start=await roamRegionPick(); if(start) free3d({hero:id,start}); }); if(k==='how') howModal(); if(k==='cards') cardsModal('Card gallery',nCards+' techniques: every fighter, road enemies and bosses, journey discoveries, curses and the ringside pool. Starred cards are signatures.',Object.keys(CARDS).filter(k=>!CARDS[k].ult&&!CARDS[k].plus)); if(k==='legacy') legacyHall(); if(k==='daily') startDaily(); if(k==='hist') histModal(); if(k==='dojo') dojoModal(); if(k==='mast') masteryModal(); if(k==='file') slotSelect(); };
+    if(k==='cont') resumeRun(rsGet(RSV)); if(k==='load') resumeRun(rsGet(MSV)); if(k==='quick') quickBattle(); if(k==='train') trainingMode(); if(k==='online') onlineMenu(); if(k==='roam') roamPick().then(async id=>{ if(!id) return; const start=await roamRegionPick(); if(start) free3d({hero:id,start}); }); if(k==='how') tutorialScreen(); if(k==='cards') cardsModal('Card gallery',nCards+' techniques: every fighter, road enemies and bosses, journey discoveries, curses and the ringside pool. Starred cards are signatures.',Object.keys(CARDS).filter(k=>!CARDS[k].ult&&!CARDS[k].plus)); if(k==='legacy') legacyHall(); if(k==='daily') startDaily(); if(k==='hist') histModal(); if(k==='dojo') dojoModal(); if(k==='mast') masteryModal(); if(k==='file') slotSelect(); };
   s.addEventListener('click',e=>{ const a=e.target.closest('[data-a]'); if(!a) return; e.stopPropagation(); Snd.init(); Snd.sfx('click'); go(a.dataset.a); });
   // hover/focus lights a tile; arrow keys move between tiles by position
   const tiles=()=>[...s.querySelectorAll('.hb')];
@@ -6983,7 +7031,7 @@ function bracket(first,popKeys){ app.classList.add('dim'); RS_where='bracket'; R
     if(k==='deck') cardsModal('Your deck',`${run.deck.length} cards · mentor: ${run.mentor.name} (${CARDS[run.mentor.card].name})`,run.deck.slice().sort(),true);
     if(k==='scout') cardsModal(opp.name+' · '+opp.title,`${Math.round(RD.hp*rivalHpMul(opp)*EDIFF.rh[Math.min(3,run.stage)])} HP${RD.power?' · starts with '+RD.power+' Power':''}${run.stage?` · level ${run.stage+1}: ${RD.honed} techniques sharpened`:''} · signature: ${CARDS[opp.sig].name}. Beat them to steal one technique.`,rivalDeck(opp,run.stage).slice().sort(),true);
     if(k==='fight'){ onFit=null; fight(); } });
-  show(s,Snd.hasMusic('bracket')?'bracket':'title');
+  show(s,Snd.hasMusic('bracket')?'bracket':'title'); if(!store.tutDone&&!run.quick&&!(store.tips||{}).b_br) setTimeout(()=>{ const f=s.querySelector('[data-a=fight]'); if(f&&s.isConnected) coach('b_br',f,'This is the <b>bracket</b>. <b>Fight</b> starts your next match and <b>Scout rival</b> shows their deck first. Beat a rival and you steal one of their techniques.'); },900);
 }
 // rivals level up as the bracket goes on: more HP, and some of their techniques arrive honed
 /* a bracket rival's health follows their own build: the round sets the base, the fighter's own HP scales it (Maximo's bulk, Nia's glass), Kuro's nine lives stay as they are */
@@ -10619,6 +10667,8 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     ['end',()=>!handEls.some((_,i)=>b.canPlay('p',i))&&endBtn,'Out of moves. <b>End your turn</b>: your rival acts, then you draw a fresh hand.'],
     ['spirit',()=>b.artReady('p','super')&&$('.ava',HP.p),'Your Spirit bar is full. <b>Tap your portrait</b> for a Super Art. Fill two bars for your Ultimate and three to Awaken.'],
     ['insight',()=>innEl.classList.contains('ready')&&innEl,'<b>Insight</b> is full. Tap the gauge to use an Innate: draw, search or cycle cards.'],
+    ['status',()=>{ const e=$('.hp.e .sts'); return e&&e.children.length&&e; },'A <b>status effect</b> landed. The icon and number sit under the HP bar. <b>Hover or tap it</b> to read what it does: Burn and Bleed hurt every turn, Chill slows, Exposed makes hits land harder.'],
+    ['guard',()=>b.p&&b.p.guard>0&&$('.hp.p'),'You have <b>Guard</b>. It soaks damage before your HP and fades at the start of your next turn, so use it when a big hit is coming.'],
     ['mentor',()=>b.turn>=2&&!b.mentor.used&&mentorBtn,'Your <b>mentor</b> can step in once per fight and play their card for free.']];
   async function tutTick(){ if(tutOn||busy||done||!run.tut||document.querySelector('.modal,.clash')) return; store.tips=store.tips||{}; for(const [k,el,txt] of TUTS){ if(store.tips[k]) continue; const t=el(); if(!t) continue; tutOn=true; await coach(k,t,txt); tutOn=false; refresh(); return; } }
   function handCosts(){ const seen={}; const S=b.p; handEls.forEach(el=>{ const id=el.dataset.id, k=(seen[id]=(seen[id]||0)+1)-1; const d=(S.disc&&S.disc[id])?S.disc[id].slice().sort((a,c)=>c-a):[]; const dv=d[k]||0, C=CARDS[id]; { const tx=el.querySelector('.c-text>div'); if(tx){ if(tx.dataset.o===undefined) tx.dataset.o=tx.innerHTML; const ia=S.alch?S.ia||0:0; if(S.wuk&&C.ops&&C.ops.some(o=>o.staff)){ let n=0; const z=S.size||0; tx.innerHTML=z>0?tx.dataset.o.replace(/<b>(\d+)<\/b>/g,(m,v)=>{ if(n++>0) return m; return `<b class="ia-up">${+v+z}</b>`; }):tx.dataset.o; el.classList.toggle('iaboost',z>0); } else if(S.wuk&&C.ops&&C.ops.some(o=>o.book)){ const lim=10+2*(S.size||0); tx.innerHTML=tx.dataset.o.replace(/<b>10<\/b> \+ \(<b>2<\/b> \u00d7 <span class="kw">Size<\/span>\)/,`<b class="ia-up">${lim}</b>`)+`<small style="display:block;opacity:.8">(now ${lim} HP)</small>`; el.classList.add('iaboost'); } else if(ia>0&&C.ops&&C.ops.some(o=>o.dmg!==undefined&&o.dmg>0)){ const r=b._iaRate(S); let n=0; tx.innerHTML=tx.dataset.o.replace(/<b>(\d+)<\/b>/g,(m,v)=>{ if(n++>0) return m; const nv=Math.floor(+v*(1+r*ia)); return nv>+v?`<b class="ia-up">${nv}</b>`:m; }); el.classList.add('iaboost'); } else { if(tx.innerHTML!==tx.dataset.o) tx.innerHTML=tx.dataset.o; el.classList.remove('iaboost'); } } }
@@ -12555,7 +12605,15 @@ function festival(){ return new Promise(resolve=>{ const me=run, stage=run.stage
   async function fightCall(){ if(fcalled||left>0||run!==me||$('.fcall',s)) return; fcalled=true; await sleep(450); if(run!==me||$('.fcall',s)) return; const o=getF(oppId()); if(!o) return; const m=h('div','fcall');
     m.innerHTML=`<div class="fc-bk"></div><div class="fc-box" style="--c:${o.color||'#ff4d6a'}"><small>The bell is ringing</small><b>Time for your fight</b><div class="fc-vs"><div class="fc-a" style="background-image:url(img/p_${HERO}.webp)"></div><i>VS</i><div class="fc-a" style="background-image:url(${avaOf(o)})"></div></div><p>${hero().name} vs <em>${o.name}</em><br><span>Round ${stage+1} of the Grand Tournament</span></p><div class="fc-acts"><button class="btn alt sm" data-f="no">Not yet</button><button class="btn" data-f="ok">Accept</button></div></div>`;
     s.appendChild(m); Snd.sfx('advance'); m.addEventListener('click',ev=>{ const k=ev.target.closest('[data-f]'); if(!k) return; Snd.sfx('click'); if(k.dataset.f==='ok'){ m.remove(); onFit=null; run.fest=null; resolve(); } else { m.classList.add('out'); setTimeout(()=>m.remove(),250); } }); }
-  show(s,music); draw(true); onFit=draw; fsv(); if(left<=0) fightCall();
+  async function festTour(){ if(store.tutDone||run.quick) return; await sleep(1100); const q=sel=>run===me&&$(sel,s);
+    const T=[['f_map','.rtitle','This is the <b>festival map</b>. Between fights you walk its roads, visit places and prepare. The title shows how many days are left before your rival.'],
+      ['f_days','.fstats .fst:nth-child(2)','<b>Days</b>: every road you walk costs one. When they run out you face your next rival, so spend them well.'],
+      ['f_node','.rn:not(.here):not(.done)','Tap a <b>place</b> to see what is there: fights, shops, training, shrines and rivals. The <b>threat badge</b> shows how dangerous it is and its real HP.'],
+      ['f_stall','[data-a=store]','<b>Stalls</b> sell techniques and charms. Charms and conditions are used up by your next tournament fight.'],
+      ['f_deck','[data-a=deck]','<b>My deck</b> shows every card you own. Check it before you fight.'],
+      ['f_go','[data-a=go]','When you are ready, <b>To the arena</b> takes you to the bracket and your next fight.']];
+    for(const [k,sel,txt] of T){ if(run!==me||store.tutDone) return; const el=q(sel); if(!el||el.getBoundingClientRect().width<2) continue; await coach(k,el,txt); await sleep(250); } }
+  show(s,music); draw(true); onFit=draw; fsv(); if(left<=0) fightCall(); else festTour();
   if(W.split&&W.split.fresh&&!rising){ W.split.fresh=false; busy=true; setTimeout(async()=>{ await quake(); busy=false; },700*speed); }
   if(moonOn()&&!FZ) setTimeout(()=>{ const bn=h('div','regban moon',`<small>Tonight</small><b>Blood Moon</b><span>The horde is stronger and pays double. A shrine appears that only the moon can open.</span>`); s.appendChild(bn); Snd.sfx('power',true); setTimeout(()=>{ bn.classList.add('out'); setTimeout(()=>bn.remove(),500); },3400*speed); },(rising?8200:(W.split&&!W.split.fresh&&stage===2?5200:900))*speed);
   async function quake(){ const map=$('.rmap',s); Snd.fx3&&Snd.fx3('ultboom',.9); let n=0; const rt=setInterval(()=>{ n++; Snd.fx2&&Snd.fx2('earth',.6); map.animate([{translate:'0 0'},{translate:`${(Math.random()-.5)*14}px ${(Math.random()-.5)*14}px`},{translate:'0 0'}],{duration:240}); },260*speed);
@@ -12945,6 +13003,24 @@ async function nkOvertime(sprEl,overlay){ try{ const im=sprEl&&sprEl.querySelect
   await new Promise(r=>setTimeout(r,1500)); setTimeout(()=>w.remove(),1300); }catch(e){} }
 // ── Calamity spoils: choose one of three Calamity-only relics ──
 (function(){ const css=`
+.tutg{position:fixed;inset:0;z-index:9500;display:grid;place-items:center;animation:fade .25s both;font-family:'Barlow Condensed',sans-serif;color:#fff}
+.tutg .tg-bk{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(120,10,30,.3),transparent 60%),rgba(5,3,14,.92)}
+.tutg .tg-box{position:relative;width:min(11.4rem,96vw);height:min(6.3rem,94vh);display:flex;flex-direction:column;background:#120d24;border:.02rem solid rgba(255,255,255,.18);box-shadow:.07rem .08rem 0 #12091c}
+.tutg .tg-hd{padding:.1rem .2rem;border-bottom:.015rem solid rgba(255,255,255,.12)}.tutg .tg-hd small{display:block;font:700 .12rem/1 'Barlow Condensed';letter-spacing:.32em;color:#ff4d6a;text-transform:uppercase}.tutg .tg-hd b{font:400 .34rem/1 'Anton';text-transform:uppercase}
+.tutg .tg-body{flex:1;min-height:0;display:flex}
+.tutg .tg-nav{width:2.6rem;flex:none;overflow:auto;border-right:.015rem solid rgba(255,255,255,.1);padding:.06rem}
+.tutg .tg-n{display:flex;align-items:center;gap:.08rem;width:100%;margin:.03rem 0;padding:.05rem .07rem;border:.015rem solid transparent;background:rgba(255,255,255,.04);color:#fff;text-align:left;cursor:pointer;font:inherit}
+.tutg .tg-n i{flex:none;width:.24rem;height:.24rem;display:grid;place-items:center;background:#2a2147;font:400 .15rem/1 'Anton';font-style:normal}.tutg .tg-n b{display:block;font:600 .17rem/1.1 'Barlow Condensed';letter-spacing:.06em;text-transform:uppercase}.tutg .tg-n small{display:block;font:500 .13rem/1.2 'Barlow Condensed';color:#b9b0cf}
+.tutg .tg-n.on{border-color:#ffd34d;background:rgba(255,211,77,.1)}.tutg .tg-n.on i{background:#ffd34d;color:#12091c}
+.tutg .tg-pg{flex:1;min-width:0;overflow:auto;padding:.14rem .24rem}
+.tutg .tg-pg h3{margin:0 0 .1rem;font:400 .34rem/1 'Anton';text-transform:uppercase}.tutg .tg-pg h3 small{display:block;margin-top:.04rem;font:600 .15rem/1 'Barlow Condensed';letter-spacing:.2em;color:#ff4d6a}
+.tutg .tg-st{display:flex;gap:.1rem;margin:.07rem 0;padding:.07rem .09rem;background:rgba(255,255,255,.05);border-left:.03rem solid #ffd34d}
+.tutg .tg-st i{flex:none;width:.26rem;height:.26rem;display:grid;place-items:center;background:#ffd34d;color:#12091c;font:400 .17rem/1 'Anton';font-style:normal}
+.tutg .tg-st>div>b{display:block;font:600 .19rem/1.1 'Barlow Condensed';letter-spacing:.06em;text-transform:uppercase;color:#ffd34d}.tutg .tg-st span b{color:#fff;font-weight:700}.tutg .tg-st span{display:block;font:500 .19rem/1.3 'Barlow Condensed';color:#e6e0f5}
+.tutg .tg-kws{margin-top:.1rem}.tutg .tg-kws>b{display:block;font:600 .15rem/1 'Barlow Condensed';letter-spacing:.2em;color:#ff4d6a;text-transform:uppercase;margin-bottom:.05rem}.tutg .tg-kw{display:inline-block;margin:.02rem .03rem;padding:.02rem .07rem;background:rgba(255,255,255,.08);font:600 .15rem/1.2 'Barlow Condensed';cursor:help}
+.tutg .tg-pn{display:flex;align-items:center;justify-content:space-between;margin-top:.12rem}.tutg .tg-pn span{font:600 .16rem/1 'Barlow Condensed';letter-spacing:.2em;color:#b9b0cf}
+.tutg .tg-ft{display:flex;justify-content:space-between;padding:.08rem .2rem;border-top:.015rem solid rgba(255,255,255,.12)}
+@media (max-aspect-ratio:1/1){.tutg .tg-body{flex-direction:column}.tutg .tg-nav{width:auto;display:flex;overflow-x:auto;border-right:0;border-bottom:.015rem solid rgba(255,255,255,.1)}.tutg .tg-n{width:auto;flex:none}.tutg .tg-n small{display:none}}
 .fcall{position:absolute;inset:0;z-index:60;display:grid;place-items:center;animation:fade .25s both}.fcall.out{opacity:0;transition:opacity .25s}
 .fcall .fc-bk{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(120,10,30,.35),transparent 60%),rgba(5,3,14,.82)}
 .fcall .fc-box{position:relative;min-width:3.6rem;max-width:90%;padding:.22rem .34rem .26rem;background:#16102c;border:.025rem solid color-mix(in srgb,var(--c) 70%,#fff 10%);box-shadow:.07rem .08rem 0 #12091c,0 0 .5rem color-mix(in srgb,var(--c) 40%,transparent);text-align:center;transform:skewX(-4deg);animation:csUp .45s cubic-bezier(.2,.9,.25,1) both;font-family:'Barlow Condensed',sans-serif;color:#fff}
@@ -13213,7 +13289,7 @@ async function openSettings(btn,tab){ Snd.init(); Snd.sfx('click'); const opt=OP
     game(){ page.appendChild(row('Text speed','Story and dialogue typing.',seg([[.5,'Slow'],[1,'Normal'],[2,'Fast'],[99,'Instant']],opt.ts||1,v=>{ opt.ts=+v; save(); }))); page.appendChild(row('HD-2D stages (test)','Fights play in front of the 3D Moonlit Bamboo Road set. Turn off if fights feel slow.',seg([['off','Off'],['on','On']],opt.hd2d?'on':'off',v=>{ opt.hd2d=v==='on'; save(); if(v!=='on') ls3dCall('stop'); }))); page.appendChild(row('Paper sprites (test)','Fighters use their new shonen-style art as paper cut-outs that sway on the stage. Attack animations still use the current art. Also in the fight menu (Esc), next to the Arena switch.',seg([['off','Off'],['on','On']],opt.paper?'on':'off',v=>{ opt.paper=v==='on'; save(); try{ window.__lsPaperSwap&&document.querySelector('.scr.battle')&&window.__lsPaperSwap(); }catch(_){} }))); page.appendChild(row('Super Art cinematics','Full-screen animated supers. First time plays each one once per run.',seg([['full','Full'],['first','First time'],['off','Off']],opt.cine||'full',v=>{ opt.cine=v; save(); })));
       if(!DESK) page.appendChild(row('Vibration','Buzz on hits, specials and K.O. (phones that support it).',sw(!!opt.vib,on=>{ opt.vib=on; save(); if(on) vib([20,30,40]); })));
       const rt=h('button','btn alt sm',store.tutDone?'Replay tutorial':'On for your next fight'); rt.onclick=()=>{ store.tutDone=0; store.tips={}; save(); rt.textContent='On for your next run'; Snd.sfx('click'); };
-      page.appendChild(row('Tutorial','Show the coach tips again.',rt));
+      page.appendChild(row('Tutorial','Show the coach tips again.',rt)); { const ot=h('button','btn sm','Open tutorial'); ot.onclick=()=>{ Snd.sfx('click'); tutorialScreen(); }; page.appendChild(row('Tutorial guide','Every mechanic, chapter by chapter.',ot)); }
       if(DESK){ const q=h('button','btn red sm','Quit to desktop'); q.onclick=()=>{ try{ autoSaveIfIdle(); }catch(e){} setTimeout(()=>DESK.quit(),150); }; page.appendChild(row('Quit','Your run autosaves every turn.',q)); } },
     keys(){ const K=[['Play a card','1 – 9, or click'],['End turn','E or Space'],['Camera effects','C'],['Camera style','V'],['Settings','Esc'],['Fullscreen','F11'+(DESK&&DESK.platform==='darwin'?' or Ctrl+Cmd+F':'')],['Free roam: move','WASD or arrow keys'],['Debug tools','F12 (desktop)']];
       const t=h('div','skeys'); K.forEach(([a,k])=>t.appendChild(h('div','skey',`<span>${a}</span><kbd>${k}</kbd>`))); page.appendChild(t); },

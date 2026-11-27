@@ -1,5 +1,15 @@
 [
  {
+  "version": "0.3.91",
+  "date": "Nov 26, 2026",
+  "title": "Tutorial for every mechanic",
+  "items": [
+   "New Tutorial guide with 9 chapters: basics, intent and Guard, combos, counters, Spirit and supers, status effects, Insight and Mentor, the festival map, and the bracket and torch.",
+   "Open it from the main menu, the ? button or Settings; you can also replay the guided tips.",
+   "The first run now coaches you through the festival map and bracket, plus status and Guard tips in your first fight."
+  ]
+ },
+ {
   "version": "0.3.90",
   "date": "Nov 26, 2026",
   "title": "Fight-day call, steadier camera",
