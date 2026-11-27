@@ -1,5 +1,14 @@
 [
  {
+  "version": "0.3.103",
+  "date": "Nov 27, 2026",
+  "title": "Smoother 3D combat and repeat Rushdowns",
+  "items": [
+   "Fighter ground shadows are prepared off the render thread to reduce hitches when poses change.",
+   "Rushdown reuses a recently visited 3D arena when available, so repeat chases can open sooner."
+  ]
+ },
+ {
   "version": "0.3.102",
   "date": "Nov 27, 2026",
   "title": "Counter banner removed",

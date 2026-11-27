@@ -77,14 +77,29 @@ function deHaze(S) {
   S.traverse(o => { if (!o.isSprite) return; const m = o.material; if (!m || m.map || seen.has(m)) return; seen.add(m); m.map = PUFF; m.depthWrite = false; m.transparent = true;
     if (m.blending !== T.AdditiveBlending) { const L = .3 * m.color.r + .59 * m.color.g + .11 * m.color.b; if (L > .6) m.opacity *= .6; } m.needsUpdate = true; });
 }
-let modeled = null, spare = null;   // spare: the Rushdown neighbour, built ahead under the loading screen so the swap is instant
+// Keep one spare modelled arena: either the prepared Rushdown neighbour or the arena we just left.
+let modeled = null, spare = null;
 async function modeledCtx(name) {
   if (modeled && modeled.name === name) { use(modeled); await modeled.ready; return modeled; }
-  if (spare && spare.name === name) { const old = modeled; await spare.ready; modeled = spare; spare = null; use(modeled); if (old && old !== modeled) disposeCtx(old); return modeled; }
+  if (spare && spare.name === name) {
+    const next = spare;
+    await next.ready;
+    spare = modeled;
+    modeled = next;
+    use(modeled);
+    return modeled;
+  }
   const old = modeled, cx = modeled = blank(new T.Scene()); cx.name = name; cx.painted = false; cx.modeled = true;
   use(cx); cx.ready = MODELED[name]().then(async mod => { await mod.build(D, /2$/.test(name) ? 2 : 1, name); /* boss arenas: a name ending in 2 is the second-phase look */ deHaze(D.scene); cx.P = mod.PRESET; cx.fx = FX = new ArenaFX(D); D.renderer.toneMappingExposure = cx.P.exposure || 1.75; cx.look = look(name, cx.P); D.setFX(cx.look); try { D.envLight({ env: cx.look.env }); } catch (_) {} });
-  if (old && old !== cx) disposeCtx(old);
-  await cx.ready; return cx;
+  await cx.ready;
+  if (old) {
+    if (spare && spare.name === NEXT[name]) disposeCtx(old);
+    else {
+      if (spare) disposeCtx(spare);
+      spare = old;
+    }
+  }
+  return cx;
 }
 // is there a 3D set for this fight? (a roam fight names its bamboo spot; otherwise the fight's backdrop decides)
 export async function covers(bgUrl, k) { if (k) return true; const n = nameOf(bgUrl); if (!n) return false; if (n === 'w_bamboo' || MODELED[n]) return true; return !!(await setsMeta())[n]; }
@@ -180,25 +195,102 @@ function releaseMarks() { if (!OTS.own) return; OTS.own = false; for (const sd o
 //    ground as a dark silhouette, sheared away from the set's light. Rebuilt from whatever is on screen every frame, so the
 //    shadow follows the pose; a fighter in the air leaves the shadow on the ground under them, fainter and further out. ──
 const SHIMG = {};
-function poseFrame(f) { const pe = f && f.querySelector('.spr .pose'); if (!pe || !pe._pf) return null; const r = pe.getBoundingClientRect(); if (r.width < 4) return null;
-  const pf = pe._pf; let im = SHIMG[pf.src]; if (!im) { im = SHIMG[pf.src] = new Image(); im.src = pf.src; } if (!im.complete || !im.naturalWidth) return null; return { pf, im, r }; }
+let shadowWorker, nextMaskId = 0;
+const pendingMasks = new Map();
+function shadowMaskWorker() {
+  if (shadowWorker !== undefined) return shadowWorker;
+  try {
+    const worker = new Worker(new URL('./shadow_mask_worker.js', import.meta.url));
+    shadowWorker = worker;
+    worker.onmessage = ({ data: { id, bytes } }) => {
+      const finish = pendingMasks.get(id);
+      pendingMasks.delete(id);
+      finish?.(bytes);
+    };
+    worker.onerror = () => {
+      worker.terminate();
+      shadowWorker = null;
+      for (const finish of pendingMasks.values()) finish();
+      pendingMasks.clear();
+    };
+  } catch { shadowWorker = null; }
+  return shadowWorker;
+}
+function poseFrame(f) {
+  const pe = f && f.querySelector('.spr .pose');
+  if (!pe || !pe._pf) return null;
+  const r = pe.getBoundingClientRect();
+  return r.width >= 4 ? { pf: pe._pf, r } : null;
+}
+function shadowPixels(tex, bytes, width, height) {
+  // Three.js retains the original GPU allocation until the texture is disposed.
+  if (tex.image.width !== width || tex.image.height !== height) tex.dispose();
+  tex.image = { data: new Uint8Array(bytes), width, height };
+  tex.needsUpdate = true;
+}
 function caster(side, fd) {
   let c = casters[side];
+  const worker = shadowMaskWorker();
   if (!c) {
-    const cnv = document.createElement('canvas'); cnv.width = cnv.height = 4;
-    const tex = new T.CanvasTexture(cnv); tex.colorSpace = T.SRGBColorSpace;
+    const tex = new T.DataTexture();
+    tex.colorSpace = T.SRGBColorSpace;
+    tex.flipY = true;
+    tex.generateMipmaps = true;
+    tex.minFilter = T.LinearMipmapLinearFilter;
+    tex.magFilter = T.LinearFilter;
     const m = new T.Mesh(new T.PlaneGeometry(1, 1).translate(0, .5, 0), new T.MeshBasicMaterial({ map: tex, color: 0x000000, transparent: true, opacity: .8, alphaTest: .02, depthWrite: false, side: T.DoubleSide, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4, fog: false }));
     m.matrixAutoUpdate = false; m.renderOrder = 2; m.castShadow = false; m.receiveShadow = false;
-    D.scene.add(m); c = casters[side] = { m, tex, cnv, src: '', key: '' };
+    D.scene.add(m); c = casters[side] = { m, tex, src: '', key: '' };
   }
-  // the source: the pose frame when one is showing, else the sprite image itself
-  const pf = fd.f && poseFrame(fd.f), im = fd.img, hid = im && im.style.visibility === 'hidden';
-  let key, draw;
-  if (pf) { const q = pf.pf; key = q.src + '|' + q.x + ',' + q.y + ',' + q.w + ',' + q.h; draw = g => g.drawImage(pf.im, q.x, q.y, q.w, q.h, 0, 0, c.cnv.width, c.cnv.height); c.wh = [q.w, q.h]; c.rect = pf.r; }
-  else if (im && !hid && im.complete && im.naturalWidth) { key = im.currentSrc || im.src; draw = g => g.drawImage(im, 0, 0, c.cnv.width, c.cnv.height); c.wh = [im.naturalWidth, im.naturalHeight]; c.rect = im.getBoundingClientRect(); }
-  else { c.rect = null; return c; }
-  if (key !== c.key) { const k = Math.min(1, 128 / Math.max(c.wh[0], c.wh[1])); c.cnv.width = Math.max(4, Math.round(c.wh[0] * k)); c.cnv.height = Math.max(4, Math.round(c.wh[1] * k));
-    const g = c.cnv.getContext('2d'); g.clearRect(0, 0, c.cnv.width, c.cnv.height); draw(g); c.tex.needsUpdate = true; c.key = key; c.src = key; }
+  const pose = poseFrame(fd.f), im = fd.img;
+  let src, crop, w, h;
+  if (pose) {
+    const q = pose.pf;
+    src = new URL(q.src, document.baseURI).href;
+    crop = [q.x, q.y, q.w, q.h];
+    [w, h] = [q.w, q.h];
+    c.rect = pose.r;
+  } else if (im && im.style.visibility !== 'hidden' && im.complete && im.naturalWidth) {
+    src = im.currentSrc || im.src;
+    [w, h] = [im.naturalWidth, im.naturalHeight];
+    c.rect = im.getBoundingClientRect();
+  } else {
+    c.rect = c.target = null;
+    return c;
+  }
+  const key = crop ? src + '|' + crop.join(',') : src;
+  c.target = key;
+  if (key === c.key || c.pending) return c;
+  const scale = Math.min(1, 128 / Math.max(w, h));
+  const width = Math.max(4, Math.round(w * scale)), height = Math.max(4, Math.round(h * scale));
+  if (worker && key !== c.failed) {
+    const id = ++nextMaskId;
+    c.pending = true;
+    pendingMasks.set(id, bytes => {
+      c.pending = false;
+      if (!bytes) c.failed = key;
+      else if (c.target === key && casters[side] === c) {
+        shadowPixels(c.tex, bytes, width, height);
+        c.src = c.key = key;
+      }
+    });
+    worker.postMessage({ id, src, crop, width, height });
+  } else {
+    // Older browser engines can still build the same mask synchronously.
+    if (pose) {
+      let image = SHIMG[src];
+      if (!image) { image = SHIMG[src] = new Image(); image.src = src; }
+      if (!image.complete || !image.naturalWidth) return c;
+    }
+    const canvas = c.canvas ||= document.createElement('canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    canvas.width = width;
+    canvas.height = height;
+    if (crop) ctx.drawImage(SHIMG[src], ...crop, 0, 0, width, height);
+    else ctx.drawImage(im, 0, 0, width, height);
+    shadowPixels(c.tex, ctx.getImageData(0, 0, width, height).data.buffer, width, height);
+    c.src = c.key = key;
+  }
   return c;
 }
 // lay a silhouette on the ground: feet at base, sprite width along the camera's right, sprite height sheared along the shadow direction
@@ -221,7 +313,7 @@ function placeExtraCasters(X) {
     const c = caster(fd.key, fd); seen.add(fd.key);
     const base = groundAt(fd.x, fd.y, P.c[1] + (fd.f && +fd.f.closest('.gpk,.smn')?.dataset.y3 || 0)); if (!base) { c.m.visible = false; continue; }
     const dist = cam.position.distanceTo(base), k = 2 * dist * Math.tan(cam.fov * Math.PI / 360) / innerHeight;
-    layShadow(c, base, fd.h * k, fd.w * k, fd.mir, 0, fd.op > .15 && !!c.rect);
+    layShadow(c, base, fd.h * k, fd.w * k, fd.mir, 0, fd.op > .15 && !!c.rect && !!c.key);
   }
   for (const k in casters) if (k !== 'p' && k !== 'e' && !seen.has(k)) { casters[k].m.visible = false; if (!document.querySelector(`[data-l3="${k}"]`)) { D.scene.remove(casters[k].m); casters[k].tex.dispose(); delete casters[k]; } }
 }
@@ -240,7 +332,7 @@ function placeCasters(F) {
   const [cx, cy, cz] = P.c, cam = D.camera; shadowDir();
   for (const side of ['p', 'e']) {
     const fd = F[side], c = fd && caster(side, fd); if (!c) { if (casters[side]) casters[side].m.visible = false; continue; }
-    const r = c.rect, hidden = !r || +getComputedStyle(fd.f).opacity < .1;
+    const r = c.rect, hidden = !r || !c.key || +getComputedStyle(fd.f).opacity < .1;
     // world point under the feet: the clearing mark for that side, nudged to follow lunges/knockback on screen
     const base = new T.Vector3(cx + (side === 'p' ? -gapNow() : gapNow()), cy, cz);
     if (hidden) { c.m.visible = false; continue; }
