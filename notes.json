@@ -1,5 +1,15 @@
 [
  {
+  "version": "0.3.92",
+  "date": "Nov 26, 2026",
+  "title": "Cleaner, smoother hits",
+  "items": [
+   "Hit-stop now freezes only the fighters, in one shared hold, instead of pausing the whole page.",
+   "Screen shake no longer stacks, and flinch poses no longer restart on top of each other.",
+   "Middle hits of multi-hit cards play lighter effects, and the screen caps overlapping effects to stay smooth."
+  ]
+ },
+ {
   "version": "0.3.91",
   "date": "Nov 26, 2026",
   "title": "Tutorial for every mechanic",
