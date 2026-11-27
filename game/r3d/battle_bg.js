@@ -353,7 +353,11 @@ function zoomFor(F, X) {
   let tz = 1; for (const sd of ['p', 'e']) { const f = F[sd]; if (f && f.h > 4) { const raw = f.h / fz, room = innerHeight * (innerWidth < innerHeight ? .5 : .6); if (raw > room) tz = Math.min(tz, Math.max(.45, room / raw)); } }
   // heads must stay clear of the status chips / next-move bar under each HP bar: measure the real sprite against the real HUD and pull back to fit
   const appE = document.getElementById('app'), stg = document.getElementById('stage');
-  const nowZ = performance.now(); if (nowZ - (zoomFor.t || 0) > (zoomFor.calm > 3 ? 1200 : 400) && appE && !appE.classList.contains('cine') && !appE.classList.contains('airtime') && !(stg && /ots/.test(stg.className))) {
+  const nowZ = performance.now();
+  // measure only when something that affects framing changed (screen size, who is on the field, status rows), a few passes to settle, then hold: re-measuring a camera that just moved is a feedback loop that never stops adjusting
+  const zsig = innerWidth + 'x' + innerHeight + '|' + ['p', 'e'].map(sd => (F[sd] ? (F[sd].h || 0) + ':' + (F[sd].id || F[sd].key || F[sd].name || F[sd].nm || '') : '')).join('|') + '|' + document.querySelectorAll('.scr.battle .fighter').length + '|' + document.querySelectorAll('.scr.battle .hp .sts .st').length;
+  if (zoomFor.sig !== zsig) { zoomFor.sig = zsig; zoomFor.cnt = 0; }
+  if ((zoomFor.cnt | 0) < 4 && nowZ - (zoomFor.t || 0) > 400 && appE && !appE.classList.contains('cine') && !appE.classList.contains('airtime') && !(stg && /ots/.test(stg.className))) {
     let hzN = 1;
     // a sprite mid-flourish (lunge, launch, tumble, KO spin) is not standing: measuring it would pull the camera far out and shrink everyone
     const moving = [...document.querySelectorAll('.scr.battle .fighter .spr,.scr.battle .fighter')].some(e => e.getAnimations().some(q => !(typeof CSSAnimation !== 'undefined' && q instanceof CSSAnimation)));
@@ -363,7 +367,7 @@ function zoomFor(F, X) {
       let hb = 0; document.querySelectorAll('.scr.battle .hp.' + sd + ' .bar,.scr.battle .hp.' + sd + ' .sts,.scr.battle .intent.dock').forEach(el => { if (sd === 'p' && el.classList.contains('intent')) return; const b = el.getBoundingClientRect(); if (b.width && b.height) hb = Math.max(hb, b.bottom); });
       if (!hb) continue; hb += innerHeight * .02; const need = fz * (r.bottom - hb) / r.height; if (need < 1) hzN = Math.min(hzN, Math.max(.8, need));
     }
-    if (!moving) { if (hzN < (zoomFor.hz || 1) && Math.abs(hzN - (zoomFor.hc || 9)) > .03) { zoomFor.hc = hzN; } else { zoomFor.hz = hzN; zoomFor.hc = 9; } zoomFor.t = nowZ; zoomFor.calm = (zoomFor.hz === zoomFor.hz0) ? (zoomFor.calm | 0) + 1 : 0; zoomFor.hz0 = zoomFor.hz; }
+    if (!moving) { if (hzN < (zoomFor.hz || 1) && Math.abs(hzN - (zoomFor.hc || 9)) > .03) { zoomFor.hc = hzN; } else { zoomFor.hz = hzN; zoomFor.hc = 9; } zoomFor.t = nowZ; zoomFor.cnt = (zoomFor.cnt | 0) + 1; }
   }
   tz = Math.min(tz, zoomFor.hz || 1);
   const want = Math.min(gz, tz); fz += (want - fz) * .08; if (Math.abs(want - fz) < .002) fz = want;
@@ -422,14 +426,14 @@ function ensure() {
     // re-aim every frame, eased: the stage's talk/counter camera swings the fighters around and the set has to glide with them (a 4 Hz step here read as choppy)
     { const nf = solveFit(lastF), a = fit ? 1 - Math.exp(-Math.min(dt, .1) * 14) : 1; fit = fit ? { C: fit.C.lerp(nf.C, a), f: nf.f, M: nf.M, depth: fit.depth + (nf.depth - fit.depth) * a } : nf; }
     hitK = Math.max(0, hitK - dt * 2.6); shake = Math.max(0, shake - dt * .45);
-    const am = P.painted ? .4 : 1; let ang = Math.sin(t * .13) * .018 * am, push = 0;
+    const am = P.painted ? .4 : 1; let ang = 0, push = 0;   // idle camera holds perfectly still (the slow orbit made the whole set creep when nothing was happening)
     if (supT >= 0) { supT += dt; const u = Math.min(1, supT / 1.8); ang = (-.1 + ease(u) * .2) * am; push = Math.sin(u * Math.PI) * .06; if (supT > 2.2) supT = -1; }
     const k = ease(Math.min(1, hitK)); push += k * .03;
     // drift, sweep and push-in all pivot on the clearing's centre, so the fighters stay planted on their marks
     const rel = fit.C.clone().sub(fit.M).applyAxisAngle(new T.Vector3(0, 1, 0), ang).multiplyScalar(1 - push);
     const dir = fit.f.clone().applyAxisAngle(new T.Vector3(0, 1, 0), ang);
     const sx = (Math.random() - .5) * shake, sy = (Math.random() - .5) * shake;
-    D.camera.position.copy(fit.M).add(rel).add(new T.Vector3(sx + hitSide * .12 * k, sy + Math.sin(t * .17) * .03, 0));
+    D.camera.position.copy(fit.M).add(rel).add(new T.Vector3(sx + hitSide * .12 * k, sy, 0));
     D.camera.lookAt(D.camera.position.clone().add(dir)); D.camera.clearViewOffset();
     { const dk = dt / (window.__tScale || 1); OTS.k = Math.max(0, Math.min(1, OTS.k + (live && OTS.F0 ? dk / .42 : -dk / .45))); OTS.w = Math.max(0, Math.min(1, OTS.w + (OTS.mode === 'wide' ? dk / .5 : -dk / .5))); }
     D.camera.updateProjectionMatrix(); D.camera.updateMatrixWorld();
@@ -445,7 +449,7 @@ function ensure() {
     litTick(t);
     groupPlace(lastF); const X = extras(); zoomFor(lastF, X); placeExtraCasters(X); lightExtras(X, t);
     // paper sprites: the set's light also falls over the paper cut-outs (dappled shade + warm lantern rim, masked to whatever image the fighter shows: idle, counter pose, kneel, awakened)
-    if (document.getElementById('app').classList.contains('paperon') && OTS.k <= 0) lightSprites(lastF, t); else if (OTS.k <= 0 && !P.painted && window.__ls3dLive !== false) lightLive(lastF, t); else for (const sd of ['p', 'e']) if (lits[sd]) { if (OTS.k > 0 && !P.painted) { lits[sd].a.style.display = 'none'; lits[sd].b.style.display = 'none'; } else { lits[sd].a.remove(); lits[sd].b.remove(); delete lits[sd]; } }
+    if (window.__lsLiteOn) { for (const sd of ['p', 'e']) if (lits[sd]) { lits[sd].a.remove(); lits[sd].b.remove(); delete lits[sd]; } } else if (document.getElementById('app').classList.contains('paperon') && OTS.k <= 0) lightSprites(lastF, t); else if (OTS.k <= 0 && !P.painted && window.__ls3dLive !== false) lightLive(lastF, t); else for (const sd of ['p', 'e']) if (lits[sd]) { if (OTS.k > 0 && !P.painted) { lits[sd].a.style.display = 'none'; lits[sd].b.style.display = 'none'; } else { lits[sd].a.remove(); lits[sd].b.remove(); delete lits[sd]; } }
   });
   return built;
 }

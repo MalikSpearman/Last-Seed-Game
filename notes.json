@@ -1,5 +1,31 @@
 [
  {
+  "version": "0.3.101",
+  "date": "Nov 27, 2026",
+  "title": "Rushdown finisher + lighter shadows",
+  "items": [
+   "Rushdown's final hit now deals its own 5 damage on top of the damage from the cards you throw (it lands even if you throw nothing). The number shows on the finisher and in the tally.",
+   "3D shadows re-bake every other frame instead of every frame, cutting a full depth pass per frame."
+  ]
+ },
+ {
+  "version": "0.3.100",
+  "date": "Nov 27, 2026",
+  "title": "Performance mode",
+  "items": [
+   "New Graphics setting: Performance mode (Auto / On / Off). It simplifies the paper outline to three shadows instead of ten, turns off the sprite light overlays and the 3D ambient occlusion and bloom. Auto switches it on by itself when a fight runs slowly."
+  ]
+ },
+ {
+  "version": "0.3.99",
+  "date": "Nov 27, 2026",
+  "title": "Steady camera, paper counter fix",
+  "items": [
+   "The camera now holds perfectly still when nothing is happening (removed the slow idle orbit and bob, and the zoom no longer keeps re-measuring).",
+   "Paper mode: counter-stance art no longer gets the broken paper rim. Fixed for every paper fighter, worst on Gogo."
+  ]
+ },
+ {
   "version": "0.3.98",
   "date": "Nov 27, 2026",
   "title": "Stuck sprite fix",

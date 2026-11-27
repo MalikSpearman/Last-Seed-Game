@@ -317,10 +317,11 @@ export class Diorama {
   }
   _render() {
     const r = this.renderer, fx = this.fx, off = this.fxOff, q = this._quad, U = this.post.uniforms;
-    const lite = !!this.lite, noAO = !!this.noAO; if (r.shadowMap.autoUpdate === (lite || noAO)) r.shadowMap.autoUpdate = !(lite || noAO);
+    const lite = !!this.lite, noAO = !!this.noAO; r.shadowMap.autoUpdate = false;   // the shadow map re-bakes every other frame (and once at the start) instead of every frame: shadows move slowly, the saving is a full extra depth pass per frame
+    if (!(lite || noAO) && (!this._shInit || (this._sf = (this._sf | 0) + 1) % 2 === 0)) { r.shadowMap.needsUpdate = true; this._shInit = true; }
     r.setRenderTarget(this.rt); r.render(this.scene, this.camera);
     const blit = (mat, tgt) => { q.material = mat; r.setRenderTarget(tgt); r.render(this.postScene, this.postCam); };
-    const ao = !off && !lite && !noAO && fx.ao > 0, bl = !off && !lite && fx.bloom > 0;
+    const pl = !!window.__lsLiteOn, ao = !off && !lite && !noAO && !pl && fx.ao > 0, bl = !off && !lite && !pl && fx.bloom > 0;
     if (ao) { const A = this.aoMat.uniforms, cam = this.camera; A.proj.value.copy(cam.projectionMatrix); A.projInv.value.copy(cam.projectionMatrixInverse); A.R.value = fx.aoR;
       A.far.value = this.scene.fog ? this.scene.fog.far : 60; blit(this.aoMat, this.aoRT); }
     if (bl) { const B = this.brMat.uniforms; B.thr.value = fx.thr; B.knee.value = fx.knee; B.ex.value = r.toneMapping === THREE.NoToneMapping ? 1 : r.toneMappingExposure; B.px.value.set(.5 / this.rt.width, .5 / this.rt.height); blit(this.brMat, this.bl[0]);

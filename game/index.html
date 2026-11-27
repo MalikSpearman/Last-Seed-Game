@@ -2310,6 +2310,12 @@ body.ctrmode #app.hd3d #bg{filter:saturate(.2) brightness(.66) contrast(1.05)!im
 #stage.ots .fighter .ctraura{opacity:.12}
 #stage.ots .fighter .spr{filter:drop-shadow(0 .04rem .08rem rgba(0,0,0,.55))!important}
 #stage.ots .fighter:not(.paper):not(.awk) .spr img,#stage.ots .fighter:not(.awk) .spr .pose{filter:none}   /* the counter camera already shadows the whole sprite: a second shadow on the scaled-up image doubled the redraw cost */
+/* paper mode: counter-stance art is full-colour art, not a paper cut-out, so it never gets the paper rim (8 stacked offset shadows scaled up by the counter camera looked broken, worst on Gogo) */
+#app.paperon .scr.battle .fighter.ctrposed:not(.awk) .spr img,#app.paperon .scr.battle .fighter.ctrposed:not(.awk) .spr .pose{filter:drop-shadow(0 .04rem .08rem rgba(0,0,0,.45))!important}
+#app.paperon .scr.battle .fighter.ctrposed.awk .spr img,#app.paperon .scr.battle .fighter.ctrposed.awk .spr .pose{filter:drop-shadow(0 0 .06rem var(--a2)) drop-shadow(0 0 .22rem var(--a1))!important}
+/* Performance mode: one cheap cut-out rim instead of ten stacked shadows, no sprite light overlays, no AO/bloom in 3D (see __lsLiteOn) */
+body.lite #app.paperon .scr.battle .fighter .spr img:not([src*="/pp_"]),body.lite #app.paperon .scr.battle .spr .pose,body.lite #app.paperon .scr.battle .fighter.awk .spr img:not([src*="/pp_"]){filter:drop-shadow(calc(var(--ppw)*.5) 0 0 #f7f2e6) drop-shadow(calc(var(--ppw)*-.5) 0 0 #f7f2e6) drop-shadow(calc(var(--ppw)*.7) calc(var(--ppw)*1) 0 rgba(0,0,0,.28))}
+body.lite #app.paperon .smn .smi img,body.lite #app.paperon .gpk .gim img,body.lite #app.paperon .gpk .gim img[src*="/pp_"]{filter:drop-shadow(calc(var(--ppw)*.5) 0 0 #f7f2e6) drop-shadow(calc(var(--ppw)*.7) calc(var(--ppw)*1) 0 rgba(0,0,0,.28))}
 #stage.ots .fighter .spr img{animation-play-state:paused}
 .fighter.ctrposed .spr img{animation:none!important}
 .cl-timer{position:relative;overflow:visible!important}
@@ -4209,7 +4215,7 @@ const ULTS = {
 };
 // Three bars of 6. Super Art = 1 bar, Ultimate = 2, Awakening = all 3 (then it drains a bar at the start of each of your turns).
 // ── Counter rules (tuning knobs): triangle off => only cost matters; strike off => counters never hit back ──
-const RUSH = {secs:4.2};   // Rushdown: each thrown card is one hit for its cost in damage (0-cost cards hit for 1, X cards for 2); secs = real-time window to pick
+const RUSH = {secs:4.2, fin:5};   // Rushdown: each thrown card is one hit for its cost in damage (0-cost cards hit for 1, X cards for 2); secs = real-time window to pick
 const COUNTER = {poiseStart:2, poiseMax:3, poiseGain:1, poiseCost:1, breakMult:1.25, breakTurns:2, triangle:true, strike:true, cut1:.3, cut2:.6, types:['attack','skill'], immune:/^(sup|ult|crit)_/, ai:[.7,.85,.93,.97], aiMax:2, aiOdds:{perfect:.55,good:.4}};
 const BEATS = {phys:'tech', tech:'spirit', spirit:'phys'};   // key beats value: Physical > Technique > Spirit > Physical
 const CT_TECH = ['pierce','exposed','shock','draw','guard','counter','feint','feintX','stun','dice','echo','charge','removeGuard','disarm','siphon','leech'];
@@ -4799,7 +4805,7 @@ class Battle {
   rushReady(side,i){ const f=this.S(side), id=f.hand[i], c=CARDS[id], d=this.O(side); return !!(c&&c.cb==='r'&&d&&((d.air&&d.air.by===side)||d.pbrk>0)&&!d.aw&&d.hp>0&&!this.rush&&this.rushOk(f.cmb,c)&&this.canPlay(side,i)); }
   rushDmg(id){ const c=CARDS[id]||{}; return Math.max(1,c.x?2:(c.cost|0)); }
   aiRushPick(side){ const f=this.S(side), o=this.O(side), out=[]; let tot=0; f.hand.forEach((id,i)=>{ tot+=this.rushDmg(id); });
-    if(tot>=o.hp||f.energy<=0) return f.hand.map((_,i)=>i);   // lethal, or nothing left to play: throw the lot
+    if(tot+RUSH.fin>=o.hp||f.energy<=0) return f.hand.map((_,i)=>i);   // lethal, or nothing left to play: throw the lot
     f.hand.forEach((id,i)=>{ const c=CARDS[id]||{}; if(c.type==='curse'||c.unplayable||this.cost(side,id,i)>f.energy) out.push(i); }); return out; }
   rushPick(side,idx){ const R=this.rush; if(!R||R.side!==side) return false; this.rush=null; const f=this.S(side), os=R.os, d=this.S(os);
     const pick=[...new Set((idx||[]).filter(i=>i>=0&&i<f.hand.length))].sort((a,b)=>a-b), ids=pick.map(i=>f.hand[i]);
@@ -4808,7 +4814,9 @@ class Battle {
     const RR=(CARDS[R.card]||{}).rr||{};
     for(let n=0;n<ids.length&&!this.over;n++){ const dm=this.rushDmg(ids[n])*(n===0&&RR.first2x?2:1); d.hp-=dm; tot+=dm; this.emit({t:'rushhit',side:os,from:side,card:ids[n],amount:dm,n:n+1,of:ids.length}); if(this._ko(os)) break; if(RR.burn) this._st(os,'burn',RR.burn); }
     if(RR.mon&&ids.length) this.emit({t:'rushmon',side:os,from:side,amount:RR.mon*ids.length});
-    this.emit({t:'rushend',side:os,from:side,n:ids.length,total:tot,card:R.card}); return true; }
+    // the finisher is its own hit: 5 damage on top of whatever the thrown cards did (it lands even with nothing thrown)
+    let fin=0; if(!this.over&&d.hp>0){ fin=RUSH.fin; d.hp-=fin; if(this._ko(os)){ /* KO'd by the finisher */ } }
+    this.emit({t:'rushend',side:os,from:side,n:ids.length,total:tot,fin,card:R.card}); return true; }
   _rushAuto(){ const R=this.rush; if(R) this.rushPick(R.side,this.aiRushPick(R.side)); }
   _sp(f,n){ if(f.ult&&!f.aw) f.spirit=Math.min(SPIRIT.max,f.spirit+n); }
   // ── arts: Super (1 bar), Ultimate (2 bars), Awakening (3 bars, then the gauge drains a bar a turn), Critical Art (only while awakened, ends it) ──
@@ -5534,12 +5542,14 @@ window.FXQ=()=>Math.min(({low:.3,med:.65}[OPT().fxq]||1),[1,.65,.3][window.__lsQ
   { const ds=[]; let pt=0; const m=t=>{ if(pt&&!document.hidden) ds.push(t-pt); pt=t; if(ds.length<90) requestAnimationFrame(m); else { ds.sort((a,b)=>a-b); const md=ds[ds.length>>1]||16.7; window.__lsHz=Math.round(1000/md/5)*5||60; setIv(); } }; requestAnimationFrame(m); }
   function setIv(){ const q=window.__lsQ|0, base=window.__lsHz>80?60:0, tgt=[base,45,30][q]; window.__ls3dIv=tgt?1000/tgt:0; }
   window.addEventListener('ls-quality',setIv);
+  window.__lsLiteSync=function(){ const m=window.__lsPerfOpt||'auto', on=m==='on'||(m==='auto'&&(window.__lsQ|0)>=1); window.__lsLiteOn=on; document.body.classList.toggle('lite',on); if(m==='off'&&(window.__lsQ|0)){ window.__lsQ=0; try{ (window.__lsDio||[]).forEach(d=>d.perf(0)); }catch(e){} setIv(); } };
+  window.addEventListener('ls-quality',()=>window.__lsLiteSync());
   const tick=t=>{ requestAnimationFrame(tick); if(document.hidden||!document.querySelector('.scr.battle')){ t0=0; bad=0; warm=0; return; } if(!warm) warm=t+6000; if(!t0){ t0=t; n=0; return; } n++; if(t-t0<1000) return; const fps=n*1000/(t-t0); t0=t; n=0;
     let capv=0; try{ capv=+(JSON.parse(localStorage.getItem('ls_disp')||'{}').fps)||0; }catch(e){} if(capv&&capv<=40){ bad=0; return; }
-    if(t<cool||t<warm) return; if(fps<Math.max(34,window.__lsHz*.45)) bad++; else bad=0;
+    if(t<cool||t<warm||window.__lsPerfOpt==='off') return; if(fps<Math.max(34,window.__lsHz*.45)) bad++; else bad=0;
     if(bad>=4&&window.__lsQ<2){ bad=0; window.__lsQ++; cool=t+6000; try{ (window.__lsDio||[]).forEach(d=>d.perf(window.__lsQ)); }catch(e){} try{ window.dispatchEvent(new Event('ls-quality')); }catch(e){} } };
   requestAnimationFrame(tick); })();
-function applyOpt(){ const o=OPT(); document.body.classList.toggle('rm',!!o.rm); document.body.classList.toggle('nof',!!o.nof); document.body.classList.toggle('bigtxt',!!o.big); document.body.classList.toggle('cbsafe',!!o.cb); window.__fxq=o.fxq||'high'; }
+function applyOpt(){ const o=OPT(); document.body.classList.toggle('rm',!!o.rm); document.body.classList.toggle('nof',!!o.nof); document.body.classList.toggle('bigtxt',!!o.big); document.body.classList.toggle('cbsafe',!!o.cb); window.__fxq=o.fxq||'high'; window.__lsPerfOpt=o.perf||'auto'; if(window.__lsLiteSync) window.__lsLiteSync(); }
 addEventListener('pointerdown',e=>{ const t=e.target.closest&&e.target.closest('button,.btn,.ubtn,.card.ok'); if(t){ vib(6); t.classList.remove('prs'); void t.offsetWidth; t.classList.add('prs'); } },true);
 function utilBar(){ applyOpt(); const u=h('div'); u.id='util'; const b=(ic,tip,fn)=>{ const x=h('button','ubtn',ic); x.dataset.tip=tip; x.onclick=e=>{ e.stopPropagation(); fn(x); }; u.appendChild(x); return x; };
   b(I.home,'Back to title',async()=>{ Snd.sfx('click'); if(!run||cur&&cur.classList.contains('title')) return; const v=await modal('Leave this run?','The current run is abandoned. Legacy is only saved when a run ends in the ring.','<p style="font-size:.17rem;opacity:.8">Your saved mentors and ghosts are not affected.</p>',[['Stay','alt'],['Leave run','red','go']]); if(v==='go'){ rsClear(); RS_b=null; if(abortBattle) abortBattle(); document.querySelectorAll('#overlay .vs').forEach(x=>x.remove()); run=null; title(); } });
@@ -11465,13 +11475,13 @@ const VINTRO={"kaiko":{"_intro":"Kaiko. Tag's KAIJU underscore K-O. Don't make m
     await rdHit(C,ev.from,ev.side,ev.n,ev.of+1,ev.amount,c); }
   function gap0(){ return Math.abs(sprC('p').x-sprC('e').x)||innerWidth*.3; }
   async function rushEndFx(ev){ const tgt=ev.side, att=ev.from; s.classList.remove('rdslow'); if(RSD.wait){ RSD.wait.remove(); RSD.wait=null; }
-    const C=RDC.S; if(C){ if(!ev.n) C.seq={k:'carry',moves:[],fin:'phys'}; await rdHit(C,att,tgt,(ev.n||0)+1,(ev.n||0)+1,0,CARDS[ev.card]||{});
+    const C=RDC.S; if(C){ if(!ev.n) C.seq={k:'carry',moves:[],fin:'phys'}; await rdHit(C,att,tgt,(ev.n||0)+1,(ev.n||0)+1,ev.fin||0,CARDS[ev.card]||{});
       C.o.querySelector('.rdc-tot').classList.add('fin'); await sleep(260); C.S.blink(420,1,'#fff'); await sleep(90);
       try{ ls3dCall('impact',tgt,{fin:true}); }catch(e){}   // the fight carries on in the map the dash took them to
       C.end(); }
     const sps=[$('.spr',F.p),$('.spr',F.e)].filter(Boolean); rdReset(); poseEnd('p'); poseEnd('e');
     sps.forEach(sp=>{ sp.getAnimations().forEach(a=>{ try{ a.cancel(); }catch(e){} }); sp.style.visibility=''; sp.style.opacity=''; sp.animate([{opacity:0},{opacity:1}],{duration:260*speed}); });
-    { const t=sprC(tgt); hitTag(t.x,t.top+t.h*.3,ev.n?'RUSHDOWN ×'+ev.n+' · '+ev.total:'RUSHDOWN','crit'); }
+    { const t=sprC(tgt); hitTag(t.x,t.top+t.h*.3,(ev.n?'RUSHDOWN ×'+ev.n+' · '+ev.total:'RUSHDOWN')+(ev.fin?' +'+ev.fin+' FINISHER':''),'crit'); }
     pose(tgt,[['down',700,{land:1}]]); { const tt=sprC(tgt); fxs('dust',tt.x,tt.top+tt.h*.97,tt.h*.5,500,0,false); } await sleep(420); }
   // the attacker throws away cards from their hand: real-time window like the counter window (slow motion, timer), tap cards to throw them
   function rushWindow(){ return new Promise(done_=>{ const f=b.p, DUR=window.__RDDUR||RUSH.secs*1000, ids=f.hand.slice(), pick=new Set(); let fin=false;
@@ -13356,6 +13366,7 @@ async function openSettings(btn,tab){ Snd.init(); Snd.sfx('click'); const opt=OP
       page.appendChild(note('The interface scales to any window, from 1280×720 up to 4K, and keeps the same layout at every size.'));
     },
     graphics(){ let cam='full', cst='orbit'; try{ cam=localStorage.getItem('ls_cam')||'full'; cst=localStorage.getItem('ls_camst')||'orbit'; }catch(e){}
+      page.appendChild(row('Performance mode','Simplifies paper outlines, turns off sprite light overlays and 3D ambient occlusion and bloom. Auto switches it on by itself when a fight runs slowly.',seg([['auto','Auto'],['on','On'],['off','Off']],opt.perf||'auto',v=>{ opt.perf=v; save(); applyOpt(); })));
       page.appendChild(row('Effects quality','Fewer particles, simpler hit layers and lighter 3D shadows on slower devices. Low is the smoothest. Applies from the next hit.',seg([['high','High'],['med','Medium'],['low','Low']],opt.fxq||'high',v=>{ opt.fxq=v; save(); applyOpt(); })));
       page.appendChild(row('Camera effects','Zooms, pans and impact punches during fights. Changes apply from your next fight. (C in a fight)',seg([['full','Full'],['low','Low'],['off','Off']],cam,v=>{ try{ localStorage.setItem('ls_cam',v); }catch(e){} })));
       page.appendChild(row('Camera style','How the camera follows attacks. (V in a fight)',seg([['orbit','Arena orbit'],['ark','Tracking'],['anime','Anime punch-in']],cst,v=>{ try{ localStorage.setItem('ls_camst',v); }catch(e){} })));
