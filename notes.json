@@ -1,5 +1,22 @@
 [
  {
+  "version": "0.3.96",
+  "date": "Nov 26, 2026",
+  "title": "High refresh rate performance",
+  "items": [
+   "On 90 Hz and faster screens the 3D set now redraws at 60 while sprites, UI and effects keep running at your full refresh rate, which frees a lot of graphics time for 120 fps.",
+   "The automatic performance governor now scales with your screen's refresh rate and also drops anti-aliasing when it steps down."
+  ]
+ },
+ {
+  "version": "0.3.95",
+  "date": "Nov 26, 2026",
+  "title": "Automatic performance mode",
+  "items": [
+   "Fights now watch their own frame rate. If it stays under about 34 fps, the game lowers 3D shadows, render resolution and particle counts by itself until it runs smoothly."
+  ]
+ },
+ {
   "version": "0.3.94",
   "date": "Nov 26, 2026",
   "title": "Hotfix: fights start again",

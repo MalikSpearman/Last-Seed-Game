@@ -34,6 +34,7 @@ export class Diorama {
     this.clock = new THREE.Clock(); this.time = 0;
     this.billboards = []; this.updaters = []; this.lights = [];
     this._post();
+    (window.__lsDio = window.__lsDio || new Set()).add(this); this.perf(window.__lsQ | 0);
     this.resize(); addEventListener('resize', () => this.resize()); try { new ResizeObserver(() => this.resize()).observe(canvas); } catch (_) {}
   }
   resize() {
@@ -41,10 +42,12 @@ export class Diorama {
     const c = this.renderer.domElement, w = c.clientWidth || innerWidth, h = c.clientHeight || innerHeight;
     // cap the render size (about 2.4 megapixels): the tilt-shift softens it anyway, and a full Retina buffer starves the
     // browser of graphics memory, which shows up as the rest of the page flickering or layers vanishing
-    const pr = Math.max(.5, Math.min(devicePixelRatio || 1, this._prMax, Math.sqrt(2.4e6 / Math.max(1, w * h)))); this.renderer.setPixelRatio(pr);
+    const pr = Math.max(.5, Math.min(devicePixelRatio || 1, this._prMax * [1, .75, .55][window.__lsQ | 0 || 0], Math.sqrt(2.4e6 / Math.max(1, w * h)))); this.renderer.setPixelRatio(pr);
     this.renderer.setSize(w, h, false); this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
     this._sizePost(Math.round(w * pr), Math.round(h * pr));
   }
+  // adaptive quality (see the governor in index.html): 0 full, 1 no real-time shadows + lower resolution, 2 lower still
+  perf(q) { const was = this.renderer.shadowMap.enabled, on = this.opt.quality === 'high' && q < 1; this.renderer.shadowMap.enabled = on; try { const sm = (this.opt.quality === 'high' && q < 1) ? 2 : 0; if (this.rt.samples !== sm) { this.rt.samples = sm; this.rt.dispose(); } } catch (_) {} this.scene.traverse(o => { if (o.isLight && o.castShadow !== undefined && !on) o.castShadow = false; if (was !== on && o.material) { [].concat(o.material).forEach(m => { m.needsUpdate = true; }); } }); if (this._post_ready !== undefined || this.camera) this.resize(); }
   // ── lighting ──
   moonlight({ color = 0x9fb6ff, intensity = 1.6, dir = [-0.6, 1, 0.45], ambient = 0x2a3466, ambientI = 1.1, sky = 0x5a6cc0, ground = 0x1a2418 } = {}) {
     this.scene.add(new THREE.HemisphereLight(sky, ground, ambientI));
@@ -327,8 +330,8 @@ export class Diorama {
     q.material = this.post; r.setRenderTarget(null); r.render(this.postScene, this.postCam);
   }
   // give the graphics memory back while the set isn't on screen (between fights), and take it again when it is
-  release() { if (this.released) return; this.released = true; this.paused = true; this._sizePost(1, 1); this.renderer.setSize(1, 1, false); if (this.moon) { this.moon.shadow.map && this.moon.shadow.map.dispose(); this.moon.shadow.map = null; } this.renderer.renderLists.dispose(); }
-  restore() { if (!this.released) return; this.released = false; this.resize(); }
+  release() { if (this.released) return; this.released = true; (window.__lsDio && window.__lsDio.delete(this)); this.paused = true; this._sizePost(1, 1); this.renderer.setSize(1, 1, false); if (this.moon) { this.moon.shadow.map && this.moon.shadow.map.dispose(); this.moon.shadow.map = null; } this.renderer.renderLists.dispose(); }
+  restore() { if (!this.released) return; this.released = false; (window.__lsDio = window.__lsDio || new Set()).add(this); this.resize(); }
   // fade foreground props that stand between the camera and a point (HD-2D "see-through")
   fadeFor(p) {
     for (const m of this.billboards) {
@@ -350,6 +353,8 @@ export class Diorama {
       this._lights(this.focus || this.camera.position);
       if (this.faceCam) { const c = this.camera.position; for (const m of this.billboards) m.rotation.y = Math.atan2(c.x - m.position.x, c.z - m.position.z) * this.faceCam; }
       if (this.backdropMesh) { const b = this.backdropMesh; b.position.x = b.userData.x0 + this.camera.position.x * b.userData.parallax; }
+      // the set redraws at its own rate (60 on a 120 Hz screen, less when the governor steps down); sprites and effects still run every screen frame
+      { const iv = window.__ls3dIv || 0, n = performance.now(); if (iv && n - (this._lr || 0) < iv - 2) return; this._lr = n; }
       this._render();
     };
     loop();
