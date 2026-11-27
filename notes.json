@@ -1,5 +1,15 @@
 [
  {
+  "version": "0.3.89",
+  "date": "Nov 26, 2026",
+  "title": "Heads clear the HUD, smoother counters",
+  "items": [
+   "Tall fighters pull the camera back so the status chips and Next bar no longer cover their heads.",
+   "The whole counter scene skips the heaviest 3D passes for fewer frame drops before, during and right after.",
+   "The Calamity Spoils screen now uses the menu UI style."
+  ]
+ },
+ {
   "version": "0.3.88",
   "date": "Nov 26, 2026",
   "title": "A livelier, clearer map",

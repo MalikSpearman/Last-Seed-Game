@@ -7079,7 +7079,7 @@ function vsSplash(opp,stage,label){ return new Promise(res=>{ Snd.setMech('valka
 // ── fit camera: keeps every fighter's head below the HUD. Tall sprites (KAIJU MODE, giant bosses) pull the view back;
 // in 3D arenas the set's own camera does this (battle_bg zoomFor), here it's the 2D arena's turn ──
 let FZ2=1; (function fzLoop(){ requestAnimationFrame(fzLoop); const app=document.getElementById('app'); if(!app) return; const scr=document.querySelector('.scr.battle');
-  let want=1; if(scr&&!app.classList.contains('hd3d')){ let hb=0; scr.querySelectorAll('.hp .bar').forEach(b=>{ const r=b.getBoundingClientRect(); if(r.height) hb=Math.max(hb,r.bottom); }); if(!hb) hb=innerHeight*.18; hb+=innerHeight*.025;
+  let want=1; if(scr&&!app.classList.contains('hd3d')){ let hb=0; scr.querySelectorAll('.hp .bar,.hp .sts,.intent.dock').forEach(b=>{ const r=b.getBoundingClientRect(); if(r.height&&r.width) hb=Math.max(hb,r.bottom); }); if(!hb) hb=innerHeight*.18; hb+=innerHeight*.025;
     const k=app.offsetWidth?app.getBoundingClientRect().width/app.offsetWidth:1;
     scr.querySelectorAll('.fighter.p,.fighter.e').forEach(f=>{ const im=f.querySelector('.spr img'); if(!im||!im.offsetHeight) return; const room=f.getBoundingClientRect().top-hb, raw=im.offsetHeight*k; if(room>40&&raw>room) want=Math.min(want,Math.max(.45,room/raw)); }); }
   FZ2+=(want-FZ2)*.07; if(Math.abs(want-FZ2)<.002) FZ2=want; if(app._fz2!==FZ2){ app._fz2=FZ2; app.style.setProperty('--fz2',FZ2.toFixed(3)); } })();
@@ -12941,38 +12941,46 @@ async function nkOvertime(sprEl,overlay){ try{ const im=sprEl&&sprEl.querySelect
   await new Promise(r=>setTimeout(r,1500)); setTimeout(()=>w.remove(),1300); }catch(e){} }
 // ── Calamity spoils: choose one of three Calamity-only relics ──
 (function(){ const css=`
-.cals{position:fixed;inset:0;z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2.4vh,26px);padding:4vh 3vw;overflow:auto;background:radial-gradient(ellipse at 50% 40%,#3a0a10 0%,#12040a 55%,#050208 100%);font-family:'Barlow Condensed',sans-serif;color:#fff;animation:calwIn .4s ease-out both}
+.cals{position:fixed;inset:0;z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem;padding:.3rem .4rem;overflow:hidden;background:#07050f;font-family:'Barlow Condensed',sans-serif;color:#fff;animation:calwIn .4s ease-out both}
 .cals.out{animation:calwOut .45s ease-in forwards}
-.cals .cs-rays{position:fixed;left:50%;top:42%;width:240vmax;height:240vmax;margin:-120vmax;background:repeating-conic-gradient(from 0deg,rgba(255,200,90,.10) 0 6deg,transparent 6deg 18deg);animation:csSpin 40s linear infinite;pointer-events:none}
-@keyframes csSpin{to{transform:rotate(360deg)}}
-.cals .cs-hd{position:relative;text-align:center;animation:calwUp .5s .1s both}
-.cals .cs-hd small{display:block;font:800 clamp(11px,1.8vh,15px)/1 'Barlow Condensed';letter-spacing:.5em;color:#ff5a6e}
-.cals .cs-hd b{display:block;font:900 italic clamp(34px,7.5vh,78px)/.95 'Barlow Condensed';text-transform:uppercase;background:linear-gradient(180deg,#fff6d8 0%,#ffd36b 45%,#c8861e 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(255,190,80,.55)) drop-shadow(0 3px 0 #5a1a08)}
-.cals .cs-hd span{display:block;margin-top:.4em;font:600 italic clamp(12px,2vh,17px)/1.25 'Barlow Condensed';letter-spacing:.08em;color:#f1d6c8}
-.cals .cs-row{position:relative;display:flex;gap:clamp(10px,1.8vw,22px);flex-wrap:wrap;justify-content:center;max-width:1100px}
-.cals .cs-c{position:relative;width:clamp(150px,22vw,250px);padding:clamp(12px,2vh,20px) clamp(12px,1.4vw,18px);display:flex;flex-direction:column;align-items:center;gap:.5em;text-align:center;cursor:pointer;background:linear-gradient(170deg,#2a0c12,#12060c 70%);border:1px solid rgba(255,200,110,.45);clip-path:polygon(16px 0,calc(100% - 16px) 0,100% 16px,100% 100%,0 100%,0 16px);box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 0 40px rgba(255,60,60,.12);transition:transform .2s,box-shadow .2s,border-color .2s;animation:csIn .6s cubic-bezier(.2,1.3,.3,1) both}
-.cals .cs-c:nth-child(2){animation-delay:.15s}.cals .cs-c:nth-child(3){animation-delay:.3s}
-@keyframes csIn{from{opacity:0;transform:translateY(40px) rotateX(50deg)}to{opacity:1;transform:none}}
-.cals .cs-c:hover,.cals .cs-c:focus-visible{transform:translateY(-6px);border-color:#ffd36b;box-shadow:inset 0 0 0 1px #ffd36b,0 0 34px rgba(255,190,80,.45),inset 0 0 50px rgba(255,190,80,.15);outline:none}
-.cals .cs-c::before{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,240,200,.22) 50%,transparent 65%);background-size:250% 100%;animation:csShine 3.2s ease-in-out infinite;pointer-events:none}
-@keyframes csShine{0%{background-position:150% 0}60%,100%{background-position:-60% 0}}
-.cals .cs-rar{font:800 clamp(9px,1.3vh,11px)/1 'Barlow Condensed';letter-spacing:.35em;color:#ff5a6e;padding:.3em .6em;border:1px solid rgba(255,90,110,.55);background:rgba(255,31,61,.12)}
-.cals .cs-ic{width:clamp(70px,13vh,120px);aspect-ratio:1;object-fit:contain;filter:drop-shadow(0 0 14px rgba(255,190,80,.55));animation:csFloat 2.6s ease-in-out infinite}
-@keyframes csFloat{50%{transform:translateY(-6px)}}
-.cals .cs-n{font:900 italic clamp(18px,2.9vh,26px)/1 'Barlow Condensed';text-transform:uppercase;color:#ffe2a0}
-.cals .cs-t{font:600 clamp(12px,1.85vh,16px)/1.25 'Barlow Condensed';color:#f4e7e2}
-.cals .cs-f{font:italic 500 clamp(10px,1.5vh,13px)/1.25 'Barlow Condensed';color:#b9a3a8}
+.cals .hb-bg{position:absolute;inset:0;background:url(img/mn_bg_versus.webp) center/cover;opacity:.2;filter:blur(.03rem) saturate(.9)}
+.cals .hb-vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 42%,rgba(120,10,30,.38),transparent 55%),radial-gradient(ellipse at 50% 50%,transparent 35%,#07050f 88%)}
+.cals .cs-top{position:absolute;left:.5rem;top:.16rem;z-index:3}
+.cals .cs-hd{position:relative;z-index:2;text-align:center;animation:csUp .5s .05s both}
+.cals .cs-hd small{display:inline-block;padding:.03rem .1rem;background:rgba(7,5,15,.78);font:700 .13rem/1 'Barlow Condensed';letter-spacing:.32em;color:#ff4d6a;text-transform:uppercase;transform:skewX(-9deg)}
+.cals .cs-hd b{display:block;margin-top:.06rem;font:400 .7rem/.9 'Anton';text-transform:uppercase;transform:skewX(-9deg);text-shadow:.04rem .05rem 0 #12091c;color:#fff}
+.cals .cs-hd b::first-line{color:#fff}
+.cals .cs-hd span{display:block;margin-top:.08rem;font:600 .17rem/1.25 'Barlow Condensed';letter-spacing:.1em;color:#d9d1ea;text-transform:uppercase}
+@keyframes csUp{from{opacity:0;transform:translateY(.25rem)}}
+.cals .cs-row{position:relative;z-index:2;display:flex;gap:.3rem;flex-wrap:wrap;justify-content:center;align-items:stretch;padding:.1rem}
+.cals .cs-c{position:relative;width:2.9rem;min-height:3.6rem;padding:0;border:.025rem solid rgba(255,255,255,.18);background:#16102c;color:#fff;font:inherit;text-align:center;cursor:pointer;overflow:hidden;transform:skewX(-8deg);--rc:#ff4d3d;box-shadow:.06rem .07rem 0 #12091c;outline:none;animation:csIn .5s cubic-bezier(.2,.9,.25,1) both;transition:border-color .15s,box-shadow .2s,translate .2s}
+.cals .cs-c:nth-child(2){animation-delay:.07s}.cals .cs-c:nth-child(3){animation-delay:.14s}
+@keyframes csIn{from{opacity:0;transform:skewX(-8deg) translateY(.35rem)}}
+.cals .cs-c::before{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(7,5,15,.7) 6%,transparent 55%),radial-gradient(ellipse at 50% 28%,color-mix(in srgb,var(--rc) 38%,transparent),transparent 62%);pointer-events:none}
+.cals .cs-c::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 38%,rgba(255,240,210,.16) 50%,transparent 62%);background-size:260% 100%;animation:csShine 4s ease-in-out infinite;pointer-events:none}
+@keyframes csShine{0%{background-position:160% 0}55%,100%{background-position:-60% 0}}
+.cals .cs-c:hover,.cals .cs-c:focus-visible{border-color:#ffd36b;translate:0 -.06rem;box-shadow:0 0 0 .02rem #ffd36b,0 0 .3rem rgba(255,190,80,.5),.06rem .07rem 0 #12091c}
+.cals .cs-c>*{position:relative;z-index:1;transform:skewX(8deg)}
+.cals .cs-c{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1rem;padding:.26rem .24rem}
+.cals .cs-c>div{display:flex;flex-direction:column;align-items:center;gap:.08rem}
+.cals .cs-ic{width:1.25rem;height:1.25rem;object-fit:contain;filter:drop-shadow(0 0 .14rem rgba(255,190,80,.6));animation:csFloat 2.6s ease-in-out infinite}
+@keyframes csFloat{50%{translate:0 -.06rem}}
+.cals .cs-rar{display:inline-block;padding:.03rem .1rem;transform:skewX(-12deg);background:rgba(14,11,26,.85);border:.02rem solid rgba(255,77,106,.6);color:#ff4d6a;font:700 .12rem/1 'Barlow Condensed';letter-spacing:.24em}
+.cals .cs-n{font:400 .32rem/1 'Anton';text-transform:uppercase;letter-spacing:.02em;color:#fff;text-shadow:.03rem .04rem 0 #12091c}
+.cals .cs-t{font:600 .18rem/1.25 'Barlow Condensed';letter-spacing:.03em;color:#ffe9c4}
+.cals .cs-f{font:italic 500 .14rem/1.3 'Barlow Condensed';color:#b9aed3}
 .cals .cs-c.pick{animation:csPick .7s ease-out forwards}
 .cals .cs-c.drop{animation:csDrop .4s ease-in forwards}
-@keyframes csPick{30%{transform:scale(1.1);box-shadow:0 0 80px #ffd36b}100%{transform:scale(1.04);box-shadow:0 0 60px rgba(255,211,107,.8)}}
-@keyframes csDrop{to{opacity:.15;transform:scale(.9);filter:grayscale(1)}}
-@media (max-width:520px){ .cals{justify-content:flex-start} .cals .cs-row{flex-direction:column;align-items:center} .cals .cs-c{width:min(86vw,320px);flex-direction:row;text-align:left;gap:.8em} .cals .cs-c>div{display:flex;flex-direction:column;gap:.3em;align-items:flex-start} .cals .cs-ic{width:64px} }
+@keyframes csPick{30%{box-shadow:0 0 .8rem #ffd36b,.06rem .07rem 0 #12091c}100%{border-color:#ffd36b;box-shadow:0 0 .55rem rgba(255,211,107,.8),.06rem .07rem 0 #12091c}}
+@keyframes csDrop{to{opacity:.15;filter:grayscale(1)}}
+.cals.rm *{animation-duration:.01s!important;animation-iteration-count:1!important}
+@media (max-width:520px){ .cals{justify-content:flex-start;overflow:auto;padding-top:.5rem} .cals .cs-hd b{font-size:.46rem} .cals .cs-row{flex-direction:column;align-items:center;gap:.18rem} .cals .cs-c{width:min(86vw,3.4rem);min-height:0;flex-direction:row;text-align:left;gap:.14rem} .cals .cs-ic{width:.8rem;height:.8rem} .cals .cs-c>div{align-items:flex-start} }
 `; const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st); })();
 const CAL_RELICS=['cal_key','cal_contract','cal_card'];
 const CAL_FLAV={cal_key:'His office has a window. Nobody below the 40th floor has seen it.',cal_contract:'Signed in 1994. The ink is still wet.',cal_card:'No limit. No name. The bank calls him “sir”.'};
 function calSpoils(LIST,FLAV){ LIST=LIST||CAL_RELICS; FLAV=FLAV||CAL_FLAV; return new Promise(res=>{ const rm=(()=>{ try{ return OPT().rm; }catch(e){ return false; } })();
   const el=document.createElement('div'); el.className='cals'+(rm?' rm':'');
-  el.innerHTML=`<div class="cs-rays"></div><div class="cs-hd"><small>CALAMITY DEFEATED</small><b>Calamity Spoils</b><span>Choose one. These never appear anywhere else.</span></div><div class="cs-row"></div>`;
+  el.innerHTML=`<div class="hb-bg"></div><div class="hb-vig"></div><div class="cs-hd"><small>Calamity defeated</small><b>Calamity Spoils</b><span>Choose one. These never appear anywhere else.</span></div><div class="cs-row"></div>`;
   const row=el.querySelector('.cs-row');
   LIST.forEach(id=>{ const R=RELICS[id]; const c=document.createElement('button'); c.className='cs-c'; c.innerHTML=`<img class="cs-ic" alt=""><div><span class="cs-rar">CALAMITY RELIC</span><div class="cs-n"></div><div class="cs-t"></div><div class="cs-f"></div></div>`;
     c.querySelector('.cs-ic').src=relicImg(id); c.querySelector('.cs-n').textContent=R.n; c.querySelector('.cs-t').textContent=R.t; c.querySelector('.cs-f').textContent=FLAV[id]||'';

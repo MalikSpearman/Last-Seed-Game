@@ -351,6 +351,18 @@ function zoomFor(F, X) {
   const n = X.filter(x => x.dim).length, gz = n >= 2 ? .72 : n === 1 ? .82 : 1;
   // both sides: Kaiko's KAIJU MODE towers on the player's side, giants on the rival's
   let tz = 1; for (const sd of ['p', 'e']) { const f = F[sd]; if (f && f.h > 4) { const raw = f.h / fz, room = innerHeight * (innerWidth < innerHeight ? .5 : .6); if (raw > room) tz = Math.min(tz, Math.max(.45, room / raw)); } }
+  // heads must stay clear of the status chips / next-move bar under each HP bar: measure the real sprite against the real HUD and pull back to fit
+  const appE = document.getElementById('app'), stg = document.getElementById('stage');
+  const nowZ = performance.now(); if (nowZ - (zoomFor.t || 0) > 240 && appE && !appE.classList.contains('cine') && !appE.classList.contains('airtime') && !(stg && /ots/.test(stg.className))) {
+    let hzN = 1;
+    for (const sd of ['p', 'e']) {
+      const img = document.querySelector('.scr.battle .fighter.' + sd + ' .spr img'); if (!img) continue; const r = img.getBoundingClientRect(); if (r.height < 40) continue;
+      let hb = 0; document.querySelectorAll('.scr.battle .hp.' + sd + ' .bar,.scr.battle .hp.' + sd + ' .sts,.scr.battle .intent.dock').forEach(el => { if (sd === 'p' && el.classList.contains('intent')) return; const b = el.getBoundingClientRect(); if (b.width && b.height) hb = Math.max(hb, b.bottom); });
+      if (!hb) continue; hb += innerHeight * .02; const need = fz * (r.bottom - hb) / r.height; if (need < 1) hzN = Math.min(hzN, Math.max(.5, need));
+    }
+    zoomFor.hz = hzN; zoomFor.t = nowZ;
+  }
+  tz = Math.min(tz, zoomFor.hz || 1);
   const want = Math.min(gz, tz); fz += (want - fz) * .08; if (Math.abs(want - fz) < .002) fz = want;
   document.getElementById('app').style.setProperty('--fz3d', fz.toFixed(3));
 }
@@ -423,6 +435,8 @@ function ensure() {
     D.camera.updateProjectionMatrix(); D.camera.updateMatrixWorld();
     // while the counter camera is swinging in or out, draw a light frame (no AO, bloom or shadow refresh): the move is brief and the full-quality frame lands as it settles
     D.lite = !!(live ? OTS.k < 1 || OTS.w !== (OTS.mode === 'wide' ? 1 : 0) : OTS.k > 0);
+    // the whole counter (window opening, the camera push, the strike, the pull-back and a beat after) skips the ambient-occlusion pass and shadow re-bakes: the biggest per-frame GPU costs, and invisible under the counter's own lighting
+    { const nowT = performance.now(); if (OTS.on || OTS.k > 0 || live) OTS.tAfter = nowT + 900; D.noAO = nowT < (OTS.tAfter || 0); }
     D.focus = { x: cx, z: cz }; D.followShadow(new T.Vector3(cx, cy, cz));
     if (OTS.k > 0) { for (const sd in casters) casters[sd].m.visible = false; } else { placeCasters(lastF); envShade(lastF, t); }
     litTick(t);
