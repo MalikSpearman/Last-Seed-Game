@@ -1,5 +1,13 @@
 [
  {
+  "version": "0.3.94",
+  "date": "Nov 26, 2026",
+  "title": "Hotfix: fights start again",
+  "items": [
+   "Fixed a crash from 0.3.93 that stopped every fight (including Practice and Training) from starting after you picked your fighter."
+  ]
+ },
+ {
   "version": "0.3.93",
   "date": "Nov 26, 2026",
   "title": "Quality, accessibility and backups",
