@@ -7501,7 +7501,6 @@ function battle(opp,stage,custom){ return new Promise(resolve=>{ app.classList.r
   //  advantage finishes: OVERPOWER (Physical) breaks the blow head-on · UNRAVEL (Technique) slips it and cuts it apart · PHASE (Spirit) lets it pass straight through
   var CTRSEQ=null;
   async function ctrFinish(ev,def,att,perfect){ const t=sprC(att), d=sprC(def), O=OO(), kt=CT_ADV[ev.ct]?ev.ct:'tech', sg=def==='p'?1:-1, S0=Math.min(stageEl.clientWidth,stageEl.clientHeight), dist=Math.abs(t.x-d.x), mx=(t.x+d.x)/2, my=(t.y+d.y)/2, ecol=ctrElCol(def);
-    ctrTag(CT_ADV[kt],mx,Math.min(t.top,d.top)+t.h*.06,CT_COL[kt]);
     if(kt==='phys'){   // OVERPOWER: meet it head-on and break it
       ctrPose(def,'b_strike'); lunge(def,dist*.2,300); await sleep(120); fxs('clash_shatter',mx,my,t.h*.8,620,rnd(-6,6),false); ctrFx('impact',mx,my,S0*.24,{dur:380}); try{ Snd.fx2('shatter',.9); Snd.fx3('gcrush',.7); }catch(_){} await hitStop(perfect?170:90);
       ctrPose(att,'f_stagger'); ctrShove(att,sg*S0*.09,600,sg*8); ctrSkid(att,sg); shake(9,260); await sleep(320); return; }

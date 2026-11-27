@@ -1,5 +1,13 @@
 [
  {
+  "version": "0.3.102",
+  "date": "Nov 27, 2026",
+  "title": "Counter banner removed",
+  "items": [
+   "Removed the small OVERPOWER / UNRAVEL / PHASE banner that popped up during counter finishes."
+  ]
+ },
+ {
   "version": "0.3.101",
   "date": "Nov 27, 2026",
   "title": "Rushdown finisher + lighter shadows",
