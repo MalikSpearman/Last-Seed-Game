@@ -1,5 +1,16 @@
 [
  {
+  "version": "0.3.104",
+  "date": "Nov 28, 2026",
+  "title": "Arena art and combat fixes",
+  "items": [
+   "Moonlit Bamboo Road is a continuous walkable stage, with updated bridge, shrine, paths and scenery. Regional arenas have updated art and foreground details.",
+   "Sea Cave’s water fades into the painted inlet, and wet patches sit flush with the floor in Rushdown close-ups.",
+   "Group encounters show the replacement fighter’s health correctly. Kaede’s Critical Art restores fighters when combat resumes, and Dynamic Blossom restores her landing and combat framing.",
+   "Breaking either fighter’s Poise adds one Seeing Stars to their hand. This update also includes first-fight loading, progression, and cloud-save fixes."
+  ]
+ },
+ {
   "version": "0.3.103",
   "date": "Nov 27, 2026",
   "title": "Smoother 3D combat and repeat Rushdowns",
