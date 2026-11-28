@@ -3,6 +3,7 @@
 // the moon casts each fighter's silhouette onto the 3D ground, and the sprites pick up the set's light and shade.
 import { Diorama, T } from './diorama.js';
 import { build } from './scene_bamboo.js';
+import { BRIDGE_ENTRY, bridgeAdvance, bridgeAnchor, bridgeDirection, bridgePoint, bridgeSection, bridgeTravel } from './bridge_route.js';
 import { buildPainted, setsMeta, nameOf } from './scene_painted.js';
 import { ArenaFX } from './arena_fx.js';
 import { look } from './kit.js';
@@ -55,7 +56,7 @@ async function paintedCtx(name, url) {
 // modelled sets: real 3D dioramas built for a backdrop; they take over from that backdrop's painted relief
 // a backdrop whose name a bamboo spot already uses (road / shrine / bridge) maps to its modelled set here
 const BYBG = { shrine: 'fox_shrine' };
-const MODELED = { festival: () => import('./scene_festival.js'), blight: () => import('./scene_blight.js'), marsh: () => import('./scene_marsh.js'),
+const MODELED = { bridge: () => import('./scene_bridge.js'), festival: () => import('./scene_festival.js'), blight: () => import('./scene_blight.js'), marsh: () => import('./scene_marsh.js'),
   seacave: () => import('./scene_seacave.js'), harbor: () => import('./scene_harbor.js'), nw_street: () => import('./scene_nw_street.js'),
   sunken: () => import('./scene_sunken.js'), mountain_pass: () => import('./scene_mountain_pass.js'), rooftops: () => import('./scene_rooftops.js'),
   nw_express: () => import('./scene_nw_express.js'), w_village: () => import('./scene_w_village.js'), w_graves: () => import('./scene_w_graves.js'),
@@ -90,7 +91,7 @@ async function modeledCtx(name) {
     return modeled;
   }
   const old = modeled, cx = modeled = blank(new T.Scene()); cx.name = name; cx.painted = false; cx.modeled = true;
-  use(cx); cx.ready = MODELED[name]().then(async mod => { await mod.build(D, /2$/.test(name) ? 2 : 1, name); /* boss arenas: a name ending in 2 is the second-phase look */ deHaze(D.scene); cx.P = mod.PRESET; cx.fx = FX = new ArenaFX(D); D.renderer.toneMappingExposure = cx.P.exposure || 1.75; cx.look = look(name, cx.P); D.setFX(cx.look); try { D.envLight({ env: cx.look.env }); } catch (_) {} });
+  use(cx); cx.ready = MODELED[name]().then(async mod => { await mod.build(D, /2$/.test(name) ? 2 : 1, name); /* boss arenas: a name ending in 2 is the second-phase look */ deHaze(D.scene); cx.P = name === 'bridge' ? PRESETS.bridge : mod.PRESET; cx.fx = FX = new ArenaFX(D); D.renderer.toneMappingExposure = cx.P.exposure || 1.75; cx.look = look(name, cx.P); D.setFX(cx.look); try { D.envLight({ env: cx.look.env }); } catch (_) {} });
   await cx.ready;
   if (old) {
     if (spare && spare.name === NEXT[name]) disposeCtx(old);
@@ -439,12 +440,15 @@ function lightExtras(X, t) {
 // ── group fights on the set: backup foes and summons stand on the stage's own marks, sized by their real depth ──
 let fz = 1;
 function zoomFor(F, X) {
+  const appE = document.getElementById('app');
+  // Dynamic Blossom's launch moves only the performing sprite. Keep the combat framing through the landing.
+  if (appE?.classList.contains('blossom-camera')) return;
   // group fights pull back a little so the whole crew fits; tall enemies pull back until their head clears the HUD band
   const n = X.filter(x => x.dim).length, gz = n >= 2 ? .72 : n === 1 ? .82 : 1;
   // both sides: Kaiko's KAIJU MODE towers on the player's side, giants on the rival's
   let tz = 1; for (const sd of ['p', 'e']) { const f = F[sd]; if (f && f.h > 4) { const raw = f.h / fz, room = innerHeight * (innerWidth < innerHeight ? .5 : .6); if (raw > room) tz = Math.min(tz, Math.max(.45, room / raw)); } }
   // heads must stay clear of the status chips / next-move bar under each HP bar: measure the real sprite against the real HUD and pull back to fit
-  const appE = document.getElementById('app'), stg = document.getElementById('stage');
+  const stg = document.getElementById('stage');
   const nowZ = performance.now();
   // measure only when something that affects framing changed (screen size, who is on the field, status rows), a few passes to settle, then hold: re-measuring a camera that just moved is a feedback loop that never stops adjusting
   const zsig = innerWidth + 'x' + innerHeight + '|' + ['p', 'e'].map(sd => (F[sd] ? (F[sd].h || 0) + ':' + (F[sd].id || F[sd].key || F[sd].name || F[sd].nm || '') : '')).join('|') + '|' + document.querySelectorAll('.scr.battle .fighter').length + '|' + document.querySelectorAll('.scr.battle .hp .sts .st').length;
@@ -501,7 +505,8 @@ function ensure() {
   // full-screen cinematics (supers, ultimates, criticals, awakenings) cover the stage: stop drawing it so they get the GPU to themselves
   // counter: once the over-the-shoulder camera has swung in and settled, the view holds still while the player answers,
   // so the set stops redrawing (a full 3D + comic-shading frame every tick was what dropped counters to ~11 fps); it resumes the moment the counter ends or the camera moves
-  const otsHeld = () => { const hold = OTS.on && OTS.F0 && OTS.k >= 1 && OTS.w === (OTS.mode === 'wide' ? 1 : 0) && shake <= 0 && hitK <= 0; if (!hold) { OTS.hs = 0; return false; } const n = performance.now(); if (!OTS.hs) OTS.hs = n; return n - OTS.hs > 120; };
+  const otsHeld = () => { const hold = OTS.on && OTS.F0 && OTS.k >= 1 && OTS.w === (OTS.mode === 'wide' ? 1 : 0) && shake <= 0 && hitK <= 0; if (!hold) { OTS.hs = 0; return false; } if (!window.__lsLiteOn && document.getElementById('app').classList.contains('paperon')) lightSprites(fighters(), D.time);
+    const n = performance.now(); if (!OTS.hs) OTS.hs = n; return n - OTS.hs > 120; };
   D.skip = () => { const a = document.getElementById('app'); return !!(a && a.classList.contains('cine')) || !!document.querySelector('.lsq-wrap,.lsq,.ultc') || otsHeld(); };
   built = Promise.resolve();
   let lastF = {};
@@ -541,7 +546,7 @@ function ensure() {
     litTick(t);
     groupPlace(lastF); const X = extras(); zoomFor(lastF, X); placeExtraCasters(X); lightExtras(X, t);
     // paper sprites: the set's light also falls over the paper cut-outs (dappled shade + warm lantern rim, masked to whatever image the fighter shows: idle, counter pose, kneel, awakened)
-    if (window.__lsLiteOn) { for (const sd of ['p', 'e']) if (lits[sd]) { lits[sd].a.remove(); lits[sd].b.remove(); delete lits[sd]; } } else if (document.getElementById('app').classList.contains('paperon') && OTS.k <= 0) lightSprites(lastF, t); else if (OTS.k <= 0 && !P.painted && window.__ls3dLive !== false) lightLive(lastF, t); else for (const sd of ['p', 'e']) if (lits[sd]) { if (OTS.k > 0 && !P.painted) { lits[sd].a.style.display = 'none'; lits[sd].b.style.display = 'none'; } else { lits[sd].a.remove(); lits[sd].b.remove(); delete lits[sd]; } }
+    if (window.__lsLiteOn) { for (const sd of ['p', 'e']) if (lits[sd]) { lits[sd].a.remove(); lits[sd].b.remove(); delete lits[sd]; } } else if (document.getElementById('app').classList.contains('paperon')) lightSprites(F, t); else if (OTS.k <= 0 && !P.painted && window.__ls3dLive !== false) lightLive(lastF, t); else for (const sd of ['p', 'e']) if (lits[sd]) { if (OTS.k > 0 && !P.painted) { lits[sd].a.style.display = 'none'; lits[sd].b.style.display = 'none'; } else { lits[sd].a.remove(); lits[sd].b.remove(); delete lits[sd]; } }
   });
   return built;
 }
@@ -581,14 +586,14 @@ function weatherFor(cx) {
   const n = cx.P.name, W = /mountain|frost|kuzuryu/.test(n) ? [['snow', .55], ['clear', .3], ['fog', .15]] : /^nw_|rushhour|express|street|roof|web/.test(n) ? [['rain', .45], ['clear', .4], ['fog', .15]] : [['clear', .55], ['rain', .2], ['fog', .15], ['snow', .1]];
   let r = Math.random(); for (const [w, p] of W) { if ((r -= p) < 0) return w; } return 'clear';
 }
-function setWeather(cx, kind) {
-  if (!cx.fx) return; cx.fx.weather(kind, cx.P.c);
+function setWeather(cx, kind, center = cx.P.c) {
+  if (!cx.fx) return; cx.fx.weather(kind, center);
   if (cx.painted && cx.P.surf) { cx.P.surf.rainK = kind === 'rain' ? 1 : 0; cx.P.surf.snowK = kind === 'snow' ? 1 : 0; if (kind !== 'snow') cx.P.surf.snow.value = 0; }
   if (cx.painted) { const f = D.scene.fog, base = new T.Color(`rgb(${cx.P.fog.join(',')})`); f.color.copy(base); f.near = kind === 'fog' ? 40 : 60; f.far = kind === 'fog' ? 190 : kind === 'rain' ? 260 : 400; D.scene.background.copy(base); }
 }
 // k: a roam fight's bamboo spot (road / shrine / bridge); bgUrl: the fight's backdrop, matched to its painted 3D set
 let gen = 0;
-export function start(host, k, bgUrl) {
+export function start(host, k, bgUrl, bridgeX) {
   const g0 = gen;
   const go = async () => {
     if (g0 !== gen) return; ensure(); k = k || window.__ls3dKey; const n = nameOf(bgUrl);
@@ -597,11 +602,13 @@ export function start(host, k, bgUrl) {
     else if (!k && n && MODELED[BYBG[n] || n] && !window.__lsPainted) { const mk = BYBG[n] || n; cx = await modeledCtx(mk); P = cx.P; key = mk; }
     else if (!k && n && n !== 'w_bamboo' && (await setsMeta())[n]) { cx = await paintedCtx(n, bgUrl); P = cx.P; key = n; }
     else { cx = await bambooCtx(); key = PRESETS[k] ? k : Object.keys(PRESETS)[Math.random() * 3 | 0]; P = PRESETS[key]; cx.P = P; }
-    if (g0 !== gen) return; fit = null;
+    if (g0 !== gen) return;
+    if (key === 'bridge') placeBridge(bridgeAnchor(bridgeX));
+    fit = null;
     if (cv.parentNode !== host) host.appendChild(cv); cv.style.display = '';
     document.getElementById('app').classList.add('hd3d', 'hd3dsh'); spriteLight(cx); litSvg(); litSet(cx);
     D.restore(); D.resize(); D.paused = false;
-    if (FX) { FX.clear(); FX.life(P.c, cx.painted ? P : null); setWeather(cx, weatherFor(cx)); }
+    if (FX) { FX.clear(); FX.life(P.c, cx.painted ? P : null); setWeather(cx, weatherFor(cx), P.c); }
     requestAnimationFrame(() => { cv.style.opacity = 1; });
   };
   return (lock = lock.then(go, go));
@@ -623,41 +630,101 @@ function freeDist(o, d, skip) {
   for (const h of hs) { const m = h.object; if (!m.isMesh || !vis(m) || skip.has(m) || !m.geometry || h.distance < .3) continue; const mt = Array.isArray(m.material) ? m.material[0] : m.material; if (!mt || mt.side === T.BackSide || (mt.transparent && mt.opacity < .5) || mt.colorWrite === false || mt.isShadowMaterial) continue; (CH.hits = CH.hits || []).push((m.name || m.type) + ':' + h.distance.toFixed(1)); return h.distance; }
   return 70;
 }
+function placeBridge(x) {
+  const p = PRESETS.bridge, { y, z } = bridgePoint(x);
+  const dx = x - BRIDGE_ENTRY, dz = z - p.c[2];
+  P = {
+    ...p, c: [x, y, z],
+    slots: p.slots.map(([a, b, h]) => [a + dx, b + dz, h]),
+    sum: [p.sum[0] + dx, p.sum[1] + dz],
+  };
+  fit = null;
+}
+
+export function bridgeDestination(direction, mirrored) {
+  if (key !== 'bridge') return null;
+  return bridgeAdvance(P.c[0], bridgeDirection(direction, mirrored));
+}
+
 export function chase(on, o = {}) {
-  if (!on) { CH.on = false; if (CH.hid) { for (const m of CH.hid) m.visible = true; CH.hid = null; } return true; }
+  if (!on) {
+    CH.on = false;
+    if (CH.hid) { for (const m of CH.hid) m.visible = true; CH.hid = null; }
+    const route = CH.route; CH.route = null;
+    if (route && o.land && key === 'bridge') {
+      placeBridge(route.to);
+      D.focus = { x: P.c[0], z: P.c[2] };
+      if (FX?.wx) FX.wx.material.uniforms.ctr.value.set(...P.c);
+      return { bridgeX: route.to };
+    }
+    return true;
+  }
   if (!D || D.paused || !P || P.painted) { CH.on = false; return false; }
   const [cx, cy, cz] = P.c, cam = D.camera, skip = new Set(D.billboards || []); CH.hits = [];
   for (const sd in casters) skip.add(casters[sd].m);
   const up = new T.Vector3(0, 1, 0), c = new T.Vector3(cx, cy + 1.0, cz);
-  // the run follows the set's own depth (the street/path the battle camera looks down); the camera turns side-on to it
-  const ax = cam.getWorldDirection(new T.Vector3()).setY(0).normalize(), rt = new T.Vector3().crossVectors(ax, up).normalize();
-  const fwd = Math.min(32, freeDist(c, ax, skip) - 4), bck = Math.min(5, Math.max(0, freeDist(c, ax.clone().negate(), skip) - 1.5));
-  const x0 = -bck, x1 = Math.max(4, fwd);
-  // which side has a wall to stream past: sample both sides along the run
-  const L = [], R = []; for (let i = 0; i < 7; i++) { const p = c.clone().addScaledVector(ax, x0 + (x1 - x0) * i / 6); L.push(freeDist(p, rt.clone().negate(), skip)); R.push(freeDist(p, rt, skip)); }
-  const med = v => v.slice().sort((a, b) => a - b)[v.length >> 1], ml = med(L), mr = med(R);
-  let n = ml <= mr ? rt.clone().negate() : rt.clone(), wall = Math.min(ml, mr), back = Math.max(ml, mr);
-  if (wall > 30) wall = 14;   // open both sides: frame a middle distance and let the far scenery stream
   const tanH = Math.tan(cam.fov * Math.PI / 360), hf = o.hf || .5, Df0 = 1.75 / (hf * 2 * tanH);
-  let Df = Df0, a = Math.max(0, Math.min(wall - 2.2, wall * .35)); if (Df - a > back - .6) Df = Math.max(2.5, back - .6 + a);
+  let ax, n, x0, x1, a = 0, Df = Df0, ml, mr, wall, back;
+  CH.route = null;
+  if (key === 'bridge') {
+    const dir = o.dir < 0 ? -1 : 1;
+    const from = cx;
+    const localTo = bridgeDestination(dir, o.flip);
+    const receivedTo = o.bridgeTo;
+    const adjacent = receivedTo === from || receivedTo === bridgeAdvance(from, -1) || receivedTo === bridgeAdvance(from, 1);
+    const to = adjacent ? receivedTo : localTo;
+    CH.route = { from, to, dir };
+    // Track along the deck from its open south edge. The camera faces the far
+    // rail and ravine throughout the chase, including either catch direction.
+    ax = new T.Vector3(1, 0, 0);
+    n = new T.Vector3(0, 0, -1);
+    x0 = -3.8;
+    x1 = 3.8;
+  } else {
+    // Follow the set's depth and shoot across the run, choosing the side with more room for the camera.
+    ax = cam.getWorldDirection(new T.Vector3()).setY(0).normalize();
+    const rt = new T.Vector3().crossVectors(ax, up).normalize();
+    const fwd = Math.min(32, freeDist(c, ax, skip) - 4);
+    const bck = Math.min(5, Math.max(0, freeDist(c, ax.clone().negate(), skip) - 1.5));
+    x0 = -bck;
+    x1 = Math.max(4, fwd);
+    const L = [], R = [];
+    for (let i = 0; i < 7; i++) {
+      const p = c.clone().addScaledVector(ax, x0 + (x1 - x0) * i / 6);
+      L.push(freeDist(p, rt.clone().negate(), skip));
+      R.push(freeDist(p, rt, skip));
+    }
+    const med = v => v.slice().sort((a, b) => a - b)[v.length >> 1];
+    ml = med(L); mr = med(R);
+    n = ml <= mr ? rt.clone().negate() : rt.clone();
+    wall = Math.min(ml, mr); back = Math.max(ml, mr);
+    if (wall > 30) wall = 14; // Open on both sides.
+    a = Math.max(0, Math.min(wall - 2.2, wall * .35));
+    if (Df - a > back - .6) Df = Math.max(2.5, back - .6 + a);
+  }
   // u>0 must read as screen-right
   const sr = new T.Vector3().crossVectors(n, up).normalize(), sg = sr.dot(ax) >= 0 ? 1 : -1;
   CH.ax = ax.clone().multiplyScalar(sg); CH.n = n; CH.x0 = sg > 0 ? x0 : -x1; CH.x1 = sg > 0 ? x1 : -x0;
   CH.mid = new T.Vector3(cx, cy, cz).addScaledVector(n, a); CH.Df = Df; CH.camH = 1.15;
   // crowd cut-outs standing between the camera and the fighters would fill the frame: step them aside for the chase
-  CH.hid = []; for (const m of D.billboards || []) { if (m.visible && m.position.clone().sub(CH.mid).dot(n) < -.4) { m.visible = false; CH.hid.push(m); } }
+  CH.hid = []; if (!CH.route) for (const m of D.billboards || []) { if (m.visible && m.position.clone().sub(CH.mid).dot(n) < -.4) { m.visible = false; CH.hid.push(m); } }
   CH.on = true; CH.dbg = { hits: (CH.hits || []).slice(0, 8), ml, mr, wall, back, a, Df, Df0, x0, x1, sg };
-  place(0); const g = CH.mid.clone().project(cam);
-  return { gy: (1 - g.y) / 2, scale: Df0 / Df, dbg: CH.dbg };
+  const ground = place(CH.route ? -CH.route.dir : 0); const g = ground.project(cam);
+  return { gy: (1 - g.y) / 2, scale: Df0 / Df, dbg: CH.dbg, route: !!CH.route, flip: !!CH.route && !!o.flip };
 }
 function place(x) { const cam = D.camera, f = CH.mid.clone().addScaledVector(CH.ax, x);
+  if (CH.route) {
+    const { from, to, dir } = CH.route;
+    const p = bridgeTravel(from, to, (dir * x + 1) / 2);
+    f.set(p.x, p.y, p.z);
+  }
   cam.position.copy(f).addScaledVector(CH.n, -CH.Df).add(new T.Vector3(0, CH.camH, 0));
   cam.lookAt(f.clone().add(new T.Vector3(0, CH.camH * .82, 0))); cam.updateProjectionMatrix(); cam.updateMatrixWorld(); return f; }
 // u: -1..1 along the run (sign follows the attacker's direction), dt: seconds for the set's own animation
 export function chaseDraw(u, dt) {
   if (!CH.on || !D || D.paused) return null;
   dt = Math.min(dt || 0, .05); D.time += dt; for (const up of D.updaters) up(D.time, dt);
-  const cam = D.camera, f = place(u < 0 ? -u * CH.x0 : u * CH.x1);
+  const cam = D.camera, f = place(CH.route ? u : u < 0 ? -u * CH.x0 : u * CH.x1);
   D._lights(f); D.focus = { x: f.x, z: f.z }; D.followShadow(f);
   for (const sd in casters) casters[sd].m.visible = false;
   if (D.faceCam) { const c = cam.position; for (const m of D.billboards) m.rotation.y = Math.atan2(c.x - m.position.x, c.z - m.position.z) * D.faceCam; }
@@ -667,11 +734,68 @@ export function chaseDraw(u, dt) {
 // build the set a Rushdown would carry this fight into, while the VS / loading screen still covers the arena:
 // the spare is built as its own world (its scene, lights, effects, shaders compiled), then the current set is put back
 // on the VS / loading screen: build this fight's own 3D set (so the arena comes up already built) and then its Rushdown neighbour
-export function prewarm(bgUrl, k) {
+// Warm the verified modeled arenas in small offscreen draws while the VS screen is up.
+// The live first frame still renders the complete scene, including its shadows.
+async function warmArenaDraws(signal, splitSetup){
+  const nextFrame=()=>new Promise(resolve=>{
+    const id=requestAnimationFrame(()=>{ clearTimeout(timer); resolve(); });
+    const timer=setTimeout(()=>{ cancelAnimationFrame(id); resolve(); },100);
+  });
+  // The ring's renderer and scene setup can already occupy most of a frame.
+  if(splitSetup) await nextFrame();
+  if(signal?.aborted||document.hidden) return;
+  const r=D.renderer, cam=D.camera, scene=D.scene, frame=solveFit(null);
+  const cameraMask=cam.layers.mask, target=r.getRenderTarget();
+  const position=cam.position.clone(), rotation=cam.quaternion.clone();
+  const shadow=r.shadowMap, shadowUpdate=shadow.needsUpdate, shadowAuto=shadow.autoUpdate;
+  const objects=[], lights=[];
+  scene.traverseVisible(object=>{
+    if(!object.layers.test(cam.layers)) return;
+    if(object.isLight) lights.push([object,object.layers.mask]);
+    else if(object.material) objects.push([object,object.layers.mask]);
+  });
+  const deadline=performance.now()+1500;
+  try{
+    cam.position.copy(frame.C);
+    cam.lookAt(frame.C.clone().add(frame.f));
+    cam.updateMatrixWorld();
+    cam.layers.set(31);
+    for(const [light] of lights) light.layers.enable(31);
+    shadow.autoUpdate=false;
+    shadow.needsUpdate=false;
+    for(let i=0;i<objects.length&&!signal?.aborted&&!document.hidden&&performance.now()<deadline;i+=8){
+      const batch=objects.slice(i,i+8);
+      for(const [object] of batch) object.layers.enable(31);
+      try {
+        r.setRenderTarget(D.rt);
+        r.render(scene,cam);
+      } finally {
+        r.setRenderTarget(target);
+        for(const [object,mask] of batch) object.layers.mask=mask;
+      }
+      await nextFrame();
+    }
+  } finally {
+    cam.layers.mask=cameraMask;
+    cam.position.copy(position);
+    cam.quaternion.copy(rotation);
+    cam.updateMatrixWorld();
+    for(const [light,mask] of lights) light.layers.mask=mask;
+    shadow.autoUpdate=shadowAuto;
+    shadow.needsUpdate=shadowUpdate;
+  }
+}
+export function prewarm(bgUrl, k, signal) {
   const go = async () => {
     ensure(); const n = nameOf(bgUrl), mk = k && MODELED[k] ? k : (!k && n && MODELED[BYBG[n] || n] && !window.__lsPainted ? (BYBG[n] || n) : null);
     if (!mk) return null; const wasPaused = D.paused; D.paused = true;
-    try { await modeledCtx(mk); P = modeled.P; key = mk; } catch (e) { console.warn('ls3d prewarm', mk, e); D.paused = wasPaused; return null; }
+    try {
+      const cx=await modeledCtx(mk); P=cx.P; key=mk;
+      if((mk==='ring'||mk==='festival')&&wasPaused&&!D.released&&D.opt.quality==='high'&&!document.hidden&&!signal?.aborted&&!cx.drawWarmAttempted){
+        cx.drawWarmAttempted=true;
+        try { await warmArenaDraws(signal,mk==='ring'); } catch (e) { console.warn('ls3d warm arena', e); }
+      }
+    } catch (e) { console.warn('ls3d prewarm', mk, e); D.paused = wasPaused; return null; }
     D.paused = wasPaused; return mk;
   };
   return (lock = lock.then(go, go)).then(r => r ? prepare() : null);
@@ -750,7 +874,7 @@ export function field(kind) {
   if (FLD.g) { FLD.g.grp.removeFromParent(); FLD.g = null; }
   FLD.k = kind; FLD.g = buildRime(); FLD.a = 0; FLD.want = 1; D.scene.add(FLD.g.grp); return true; }
 export function fieldKinds() { return ['rime']; }
-export function stop() { if (FLD.g) { FLD.g.grp.removeFromParent(); FLD.g = null; FLD.k = null; FLD.a = 0; FLD.want = 0; } window.__ls3dSet = false; releaseMarks(); OTS.on = false; OTS.k = 0; gen++; if (!D) return; cv.style.opacity = 0; document.getElementById('app').classList.remove('hd3d', 'hd3dsh'); fz = 1; document.getElementById('app').style.removeProperty('--fz3d'); clearLights(); for (const k in lits) delete lits[k]; for (const s in casters) casters[s].m.visible = false; setTimeout(() => { if (cv.style.opacity === '0') { D.release(); cv.style.display = 'none'; } }, 900); }
+export function stop() { if (CH.route) chase(false); if (FLD.g) { FLD.g.grp.removeFromParent(); FLD.g = null; FLD.k = null; FLD.a = 0; FLD.want = 0; } window.__ls3dSet = false; releaseMarks(); OTS.on = false; OTS.k = 0; gen++; if (!D) return; cv.style.opacity = 0; document.getElementById('app').classList.remove('hd3d', 'hd3dsh'); fz = 1; document.getElementById('app').style.removeProperty('--fz3d'); clearLights(); for (const k in lits) delete lits[k]; for (const s in casters) casters[s].m.visible = false; setTimeout(() => { if (cv.style.opacity === '0') { D.release(); cv.style.display = 'none'; } }, 900); }
 export function hit(side, big) { hitK = big ? 1.3 : .8; hitSide = side === 'e' ? 1 : -1; shake = big ? .08 : .04; }
 // a hit lands on 'p' or 'e': camera push + shake, then the arena reacts at their feet (light, dust, cracks, element marks)
 export function impact(side, o = {}) {
@@ -765,7 +889,7 @@ export function sweep() { supT = 0; }
 export function ots(on, def, mode) { OTS.on = !!on; if (def) OTS.def = def; OTS.mode = on && mode === 'wide' ? 'wide' : 'tight'; if (!on) OTS.mode = 'tight'; }
 // the game asks whether the 3D set is steering the fighters through a counter (then it leaves their transforms alone)
 export function otsLive() { return !!(D && !D.paused && P && !P.painted); }
-export const _debug = () => ({ depth: fit && fit.depth, key, P, casters: Object.fromEntries(Object.entries(casters).map(([k, c]) => [k, { vis: c.m.visible, src: c.src.slice(-30), pos: c.m.position.toArray().map(v => +v.toFixed(2)), sc: c.m.scale.toArray().map(v => +v.toFixed(2)) }])), shadows: D && D.renderer.shadowMap.enabled });
+export const _debug = () => ({ depth: fit && fit.depth, key, bridgeSection: key === 'bridge' ? bridgeSection(P.c[0]) : null, P, casters: Object.fromEntries(Object.entries(casters).map(([k, c]) => [k, { vis: c.m.visible, src: c.src.slice(-30), pos: c.m.position.toArray().map(v => +v.toFixed(2)), sc: c.m.scale.toArray().map(v => +v.toFixed(2)) }])), shadows: D && D.renderer.shadowMap.enabled });
 export const _dbg2 = () => ({ cur: cur && (cur.name || 'bamboo'), kids: D.scene.children.map(o => o.type + (o.geometry ? ':' + (o.geometry.index ? o.geometry.index.count : 0) : '')).slice(0, 12), cam: D.camera.position.toArray().map(v => +v.toFixed(2)), dir: D.camera.getWorldDirection(new T.Vector3()).toArray().map(v => +v.toFixed(2)), box: (() => { const m = D.scene.children.find(o => o.isMesh && o.geometry.index && o.geometry.index.count > 1000); if (!m) return null; m.geometry.computeBoundingBox(); const b = m.geometry.boundingBox; return [b.min.toArray().map(v => +v.toFixed(1)), b.max.toArray().map(v => +v.toFixed(1)), !!(m.material.map && m.material.map.image)]; })(), P: P && { c: P.c, gap: P.gap, pitch: P.pitch } });
 export const _surf = () => P && P.surf;
 export const _D = () => D;

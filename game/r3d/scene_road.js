@@ -7,6 +7,34 @@ import { kit, rng, sky, pbr, ctex, cvs, bannerTex, water, pagoda, farPainting, s
 
 export const PRESET = { c: [0, 0, 0], gap: 3.4, pitch: .2, cover: 1.5, slots: [[4.4, -2], [-4.4, -2.4], [1.6, -3.4]], sum: [-5.6, .8], exposure: 1.4 };
 
+// One continuous road cap. The old overlapping rectangles reset texture scale at the bends.
+function laidRoad(D, material) {
+  const points = [[0, 10], [0, -6], [-2, -20], [-7, -36], [-14, -56], [-20, -80], [-24, -110]];
+  const positions = [], uv = [], indices = [];
+  for (let i = 0; i < points.length; i++) {
+    const [x,z] = points[i], a = points[Math.max(0, i - 1)], b = points[Math.min(i + 1, points.length - 1)];
+    const angle = Math.atan2(b[0] - a[0], a[1] - b[1]), width = Math.max(4.5, 13 - i * 1.5);
+    for (const side of [-1, 1]) {
+      const px = x + side * width * Math.cos(angle), pz = z + side * width * Math.sin(angle);
+      positions.push(px, .01, pz);
+      uv.push(px / 17, -pz / 75);
+    }
+    if (i) {
+      const k = i * 2;
+      indices.push(k - 2, k - 1, k, k - 1, k + 1, k);
+    }
+  }
+  const geometry = new T.BufferGeometry();
+  geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  const road = new T.Mesh(geometry, material);
+  road.name = 'Festival Road continuous paving';
+  road.receiveShadow = true;
+  D.scene.add(road);
+}
+
 export async function build(D) {
   const K = kit(D), { S, add, box, prop } = K, R = rng(741);
   S.fog = new T.Fog(0x8a5a7a, 34, 170); S.background = new T.Color(0x5a3a6a);
@@ -18,9 +46,23 @@ export async function build(D) {
     ban: new T.MeshStandardMaterial({ map: ctex(bannerTex({ field: ['#3a2a6a', '#24183a'], trim: '#e3b552', sd: 101, emblem: (g, cx, cy) => { g.strokeStyle = '#f0c766'; g.lineWidth = 7; g.beginPath(); g.arc(cx, cy, 54, 0, 7); g.stroke(); g.fillStyle = '#f0c766'; g.beginPath(); for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2 - Math.PI / 2, r = k % 2 ? 16 : 40; g.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); } g.closePath(); g.fill(); } })), side: T.DoubleSide, alphaTest: .4 }) };
   // ── the road: a wide flagstone band curving away left, verges either side ──
   groundFill(D, M.verge, { y: -.03, z0: 30, z1: -180 });
-  { const pts = [[0, 10], [0, -6], [-2, -20], [-7, -36], [-14, -56], [-20, -80], [-24, -110]], g = new T.Group(); S.add(g);
-    for (let i = 0; i < pts.length - 1; i++) { const [ax, az] = pts[i], [bx, bz] = pts[i + 1], L = Math.hypot(bx - ax, bz - az), ry = -Math.atan2(bz - az, bx - ax) + Math.PI / 2, w = 26 - i * 3;
-      const m = new T.Mesh(new T.PlaneGeometry(w, L + .5), M.road); m.rotation.set(-Math.PI / 2, 0, ry); m.position.set((ax + bx) / 2, .01 + i * .001, (az + bz) / 2); m.receiveShadow = true; g.add(m); } }
+  laidRoad(D, M.road);
+  // Canal-side recess and low tether blocks sit outside both the fighter and walking lane.
+  for (const side of [-1, 1]) for (let i = 0; i < 6; i++) {
+    const x = side * (11.75 - i * .152), z = -2.6 - i * 1.86;
+    box(.51, .18, 1.78, M.stone, x, -.04, z, { ry: side * .08, cast: false });
+  }
+  const marketZ = -10.2;
+  for (const x of [-5.25, 5.25]) {
+    box(.24, 4.55, .28, M.post, x, 0, marketZ);
+    box(.55, .23, .56, M.stone, x, 0, marketZ);
+  }
+  box(11.2, .23, .46, M.red, 0, 4.23, marketZ, { cast: false });
+  for (const x of [-4, -2, 0, 2, 4]) {
+    const y = 3.25 + .034 * x * x;
+    const shade = add(new T.CylinderGeometry(.245, .25, .50, 9), M.lamp, x, y, marketZ + .28, { cast: false });
+    D.updaters.push(t => { shade.rotation.z = Math.sin(t * 1.35 + x) * .065; });
+  }
   // ── lanterns on wooden posts with crest banners, down the left side and on into the distance ──
   const lp = (x, z, s = 1, banner = false) => { box(.26 * s, 4.4 * s, .26 * s, M.post, x, 0, z); box(1.4 * s, .16 * s, .16 * s, M.post, x + .6 * s, 4.2 * s, z, { cast: false });
     const l = add(new T.CylinderGeometry(.34 * s, .34 * s, .7 * s, 12), M.lamp, x + 1 * s, 3.5 * s, z, { cast: false }); D.lantern(x + 1 * s, 3.5 * s, z + .2, { intensity: 14 * s, distance: 10 * s, glow: 1.1 * s });
@@ -37,7 +79,8 @@ export async function build(D) {
     for (const [x, zz] of [[9.4, -12.2], [19.6, -8.5]]) for (const s of [-1, 1]) { box(.16, 1.3, .16, M.red, x + s * .37, 0, zz + s * 1); add(new T.SphereGeometry(.12, 8, 6), new T.MeshStandardMaterial({ color: 0xd9a441, metalness: .6, roughness: .35 }), x + s * .37, 1.4, zz + s * 1); }
     pagoda(K, D, 24, -4, { w: 8, d: 6, h: 3.6, tiers: 2, y: 0, roof: M.roof, beam: M.post, sd: 4 }); pagoda(K, D, 28, -18, { w: 6, d: 5, h: 3, tiers: 1, y: 0, roof: M.roof, sd: 7 }); }
   // ── cherry trees framing the road, more along it ──
-  for (const [x, z, h] of [[-15, -5, 11], [-12, -12, 9], [14, 2, 10], [-17, -24, 9], [11, -24, 8], [-22, -40, 8], [7, -40, 7], [-27, -56, 7]]) await prop('sakura', x, z, h, { flip: R() < .5, sway: .01, blobW: .3 });
+  for (const [x, z, h] of [[-15, -5, 11], [-12, -12, 9], [16, -.85, 10], [-17, -24, 9], [11, -24, 8], [-22, -40, 8], [7, -40, 7], [-27, -56, 7]]) await prop('sakura', x, z, h, { flip: R() < .5, sway: .01, blobW: .3 });
+  await prop('rg_willow', -16.5, -9.5, 7.4, { sway: .012, tint: 0xa5a09e, blob: false });
   // ── the distance: fields and village roofs, the colosseum glowing, mountains, the sun going down ──
   for (let i = 0; i < 10; i++) { const f = add(new T.PlaneGeometry(R.r(10, 20), R.r(6, 10)), M.field, R.r(-60, 40), .02, R.r(-60, -110), { rx: -Math.PI / 2, cast: false }); f.rotation.z = R.r(-.3, .3); }
   for (let i = 0; i < 16; i++) pagoda(K, D, R.r(-70, 30), R.r(-70, -110), { w: R.r(3, 6), d: R.r(3, 5), h: R.r(1.6, 2.6), tiers: 1, y: 0, roof: M.roof, sd: i, lamp: false });
@@ -51,5 +94,5 @@ export async function build(D) {
   scatter(D, rng(143), { area: [-14, 14, -4, 7], puddles: 8, petals: 380, pebbles: 40, stone: 0x8a7a80, tufts: 30, tuft: 0x6a8a4a });
   decals(D, rng(691), { area: [-14, 14, -4, 7], list: [['moss', 4, [1.4, 2.6]], ['crack', 3, [1.4, 2.6]], ['stain', 3, [1.2, 2.2]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   await clutter(D, K, rng(144), 'shrine', { area: [-16, -10, -2, -16], n: 6, clear: 0 });
-  await dress(D, rng(1021), { area: [-16, 16, -9, 4], items: [['img:rg_yatai', 1, [3, 3.4]], ['img:rg_taiko', 1, [1.6, 1.9]], ['img:rg_willow', 1, [6, 7.5]], ['painted_wooden_bench', 2, [.9, 1]], ['wine_barrel_01', 1, [1, 1.2]], ['wooden_bucket_01', 1, [.55, .7]]] });   // real CC0 models placed where they fit (kit.dress)
+  await dress(D, rng(1021), { area: [-16, 16, -9, 4], items: [['img:rg_yatai', 1, [3, 3.4]], ['img:rg_taiko', 1, [1.6, 1.9]], ['painted_wooden_bench', 2, [.9, 1]], ['wine_barrel_01', 1, [1, 1.2]], ['wooden_bucket_01', 1, [.55, .7]]] });   // real CC0 models placed where they fit (kit.dress)
 }

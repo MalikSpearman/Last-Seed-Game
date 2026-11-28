@@ -1,6 +1,7 @@
 // Whalebone Shore: a wet fishing-dock deck above a beach at night. A whale's skeleton lies on the sand under its ribs,
 // a fisher's hut with crest banners and lanterns, rowboats drawn up, a drying rack of fish, a long lit pier out to the
 // junks at anchor, waves running up the sand, under a blood moon.
+import { whaleboneRigging } from './coast_landmarks.js';
 import { T } from './diorama.js';
 import { kit, rng, sky, moon, pbr, ship, sea, breakers, deck, rail, pagoda, bannerTex, ctex, scatter, clutter, farPainting, drift, decals, dress } from './kit.js';
 
@@ -11,7 +12,7 @@ export async function build(D) {
   S.fog = new T.Fog(0x3a1a40, 26, 140); S.background = new T.Color(0x24122e);
   D.moonlight({ color: 0xffa0a8, intensity: 2, dir: [.4, 1, -.4], ambient: 0x5a3068, ambientI: 2, sky: 0x9a5aa8, ground: 0x4a3028 });
   sky(D, [[0, '#140a24'], [.5, '#4a1640'], [1, '#8a2a3a']], { stars: 60 }); moon(D, 24, 50, -140, 26, [240, 70, 60], [220, 40, 70]);
-  const M = { deck: pbr('weathered_planks', [6, 2], { color: 0xd0a8b0, rough: .32, metal: .1, ns: 1.3 }), post: pbr('weathered_planks', [.4, 1], { color: 0x8a6a6a }),
+  const M = { deck: pbr('weathered_planks', [6, 2], { color: 0xd0a8b0, rough: .58, metal: .024, ns: 1.3 }), post: pbr('weathered_planks', [.4, 1], { color: 0x8a6a6a }),
     stone: pbr('mossy_rock', [.5, .5], { color: 0xc8c0b8 }), sand: pbr('coast_sand_rocks_02', [12, 6], { color: 0xb8a0a0, rough: .8 }), bone: pbr('rock_face', [1, 3], { color: 0xf0e8dc, rough: .7 }),
     wood: pbr('japanese_cedar_planks', [.4, 1], { color: 0x9a6a58 }), roof: pbr('roof_tiles_14', [3, 3], { color: 0x8a80a0 }), boat: pbr('weathered_planks', [1, 1], { color: 0xa84040 }),
     rock: pbr('rock_face', [2, 2], { color: 0x6a5a6a, ns: 1.8 }), fish: new T.MeshStandardMaterial({ color: 0xc8c8d0, metalness: .6, roughness: .3 }),
@@ -20,6 +21,7 @@ export async function build(D) {
   // ── the beach below and the sea ──
   { const b = new T.Mesh(new T.PlaneGeometry(120, 30), M.sand); b.rotation.x = -Math.PI / 2; b.rotation.z = .08; b.position.set(-10, -1.2, -16); b.receiveShadow = true; S.add(b); }
   sea(D, R, { z: -80, shore: -26, foam: 7 });
+  whaleboneRigging(D, K);
   // ── the whale skeleton: spine, ribs arching over the sand, skull, jaw ──
   { const x0 = -14, z0 = -12, sp = []; for (let i = 0; i <= 16; i++) { const u = i / 16; sp.push(new T.Vector3(x0 + u * 18, 1.6 + Math.sin(u * Math.PI) * 2.2 - u * 1.2, z0 - u * 3)); }
     const spine = new T.CatmullRomCurve3(sp); add(new T.TubeGeometry(spine, 40, .28, 8), M.bone, 0, 0, 0);
@@ -43,7 +45,7 @@ export async function build(D) {
   // ── rocks and a cliff on the left, waves breaking ──
   for (let i = 0; i < 10; i++) { const r = add(new T.DodecahedronGeometry(R.r(1.4, 4), 1), M.rock, R.r(-30, -18), R.r(-1, 4), R.r(-4, -30), { ry: R() * 6 }); r.scale.y = R.r(.7, 1.6); }
   breakers(D, R, [[-18, -26, 1.2], [4, -28, .8], [30, -24, 1]]);
-  farPainting(D, 'e_whale', { v1: .45, z: -144 });
+  farPainting(D, 'e_whale', { v1: .44, z: -144, tint: 0xc6b7b0 });
   scatter(D, rng(77), { area: [-14, 14, -3, 5.4], puddles: 8, pebbles: 30, stone: 0x6a5a50, petals: 40, petal: 0xff4a50 });
   decals(D, rng(761), { area: [-14, 14, -3, 5.4], list: [['stain', 3, [1.2, 2.2]], ['oil', 2, [.9, 1.6]], ['moss', 2, [1.4, 2.4]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   await clutter(D, K, rng(78), 'dock', { area: [-14, 14, -3.2, -2.6], n: 8, clear: 6 });

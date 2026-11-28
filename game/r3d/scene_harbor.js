@@ -1,6 +1,7 @@
 // Pirate Harbor: the end of a rain-dark wharf. Rope-slung bollards along the edge, crates and barrels under a skull flag,
 // a stilt-town of lit warehouses running out along the pier, a cliff temple above, and a red-sailed junk at anchor
 // under a blood moon.
+import { dockFenders } from './coast_landmarks.js';
 import { T } from './diorama.js';
 import { kit, rng, ctex, cvs, sky, moon, planks, rough, bannerTex, rail, ship, water, drift, pbr, farPainting, groundFill, scatter, cityBlocks, walkers, clutter, model, decals, dress } from './kit.js';
 
@@ -47,6 +48,7 @@ export async function build(D) {
   // rope coil at the near left
   for (let i = 0; i < 4; i++) add(new T.TorusGeometry(.9 - i * .14, .1, 6, 20), M.rope, -8.6, .1 + i * .08, 3.4, { rx: Math.PI / 2 });
 
+  dockFenders(K);
   // ── cargo: crates and barrels stacked on the left, a cargo net strung from the flag gallows ──
   // real cargo (Poly Haven models): long crates stacked two high, a flat crate on top, a sea chest, barrels
   { const c1 = await model(D, 'wooden_crate_02', -12.6, 0, -1.4, { s: 2.3, ry: 1.67 }); model(D, 'wooden_crate_01', -12.4, c1.userData.h || 1, -1.5, { s: 1.9, ry: .3 });
@@ -90,7 +92,7 @@ export async function build(D) {
 
   // ── detail wave 2: painted far backdrop, ground to the horizon, near scatter ──
   const R2 = rng(881);
-  farPainting(D, 'harbor', { v1: .5, z: -145 });
+  farPainting(D, 'harbor', { v1: .48, z: -145, tint: 0xabb5c5 });
   scatter(D, R2, { area: [-15, 15, -3, 6], puddles: 9, petals: 60, petal: 0xff6aa8, pebbles: 20, stone: 0x5a4a3a });
   decals(D, rng(628), { area: [-15, 15, -3, 6], list: [['oil', 3, [1, 2]], ['stain', 4, [1.2, 2.6]], ['moss', 3, [1.2, 2.4]], ['crack', 3, [1.4, 2.6]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   // background life and mid-ground clutter

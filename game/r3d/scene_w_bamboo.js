@@ -2,6 +2,7 @@
 // three sides, straw ropes of paper streamers and prayer tablets strung between the stalks, two lit stone lanterns,
 // mossy jizo in red bibs, purple irises, a misty pond at the back with blue spirit flames drifting over it.
 // Built at real-world scale (1 unit = 1 m): the fight camera puts the marks 1.7 m apart and a fighter stands ~1.75 m tall.
+import { grovePond } from './marsh_landmarks.js';
 import { T } from './diorama.js';
 import { kit, rng, sky, moon, pbr, stoneLantern, water, scatter, decals, drift, dress, farPainting, IMG } from './kit.js';
 
@@ -19,17 +20,18 @@ export async function build(D) {
   // violet moonlight from the upper right; the lanterns and spirit flames do the rest
   D.moonlight({ color: 0xc8a8ff, intensity: 1.9, dir: [.55, 1, -.35], ambient: 0x3a2a6a, ambientI: 1.9, sky: 0x6a4aa8, ground: 0x1a2a24 });
   sky(D, [[0, '#0e0820'], [.55, '#2a1448'], [1, '#4a1a4a']], { stars: 40 }); moon(D, 14, 30, -120, 16, [255, 60, 60], [220, 30, 60]);
-  const M = { flag: pbr('rock_tile_floor', [4, 2.4], { color: 0x8a7aa8, rough: .18, metal: .2, ns: 1.4 }), moss: pbr('mossy_rock', [.6, .6], { color: 0xa8b0a0 }),
+  const M = { flag: pbr('rock_tile_floor', [4, 2.4], { color: 0x8a9294, rough: .51, metal: .035, ns: 1.4 }), moss: pbr('mossy_rock', [.6, .6], { color: 0xa8b0a0 }),
     ground: pbr('mud_forest', [20, 20], { color: 0x3a4038 }) };
   // ── the forest floor, the wet flagstone clearing and the misty pond behind it ──
   { const g = new T.Mesh(new T.PlaneGeometry(200, 140), M.ground); g.rotation.x = -Math.PI / 2; g.position.set(0, -.03, -40); g.receiveShadow = true; S.add(g);
     const f = new T.Mesh(new T.PlaneGeometry(17, 11), M.flag); f.rotation.x = -Math.PI / 2; f.position.set(0, .01, -.6); f.receiveShadow = true; softEdge(f.material, .26, .34); f.renderOrder = -1; S.add(f); }
   water(D, 1.5, -9, 9, 5, 0x1a1438, { y: -.06, sky: ['#5a2a5a', '#120a24'], rings: 6, scale: 3 });
+  grovePond(D, K, M);
   // ── the painting far behind: its red moon and the deep forest ──
-  farPainting(D, 'w_bamboo', { v0: 0, v1: .45, z: -60, yb: -3, h: 42, w: 160, tint: 0xc8c0e0 });
+  farPainting(D, 'w_bamboo', { v0: 0, v1: .45, z: -60, yb: -3, h: 42, w: 160, tint: 0xadb5cf });
   // ── walls of bamboo: dense rows left, right and behind, thinning toward the pond ──
   const bam = (x, z, h, o = {}) => D.prop(IMG(R() < .3 ? 'bamboo3' : R() < .45 ? 'rg_bamclump' : R() < .6 ? 'rfg_bamboo' : 'bamboo1'), x, z, h, Object.assign({ flip: R() < .5, sway: .01, blob: false }, o));
-  for (const sd of [-1, 1]) for (let z = 1.5; z > -16; z -= R.r(.7, 1.2)) { const x = sd * R.r(5.2, 7.5) + sd * Math.max(0, -z) * .15; await bam(x, z, R.r(7, 10), { tint: z < -6 ? 0xa8b0d0 : 0xffffff }); if (R() < .6) await bam(x + sd * R.r(1, 2.2), z - .4, R.r(8, 11), { tint: 0x9aa4c8 }); }
+  for (const sd of [-1, 1]) for (let z = 1.5; z > -16; z -= R.r(.7, 1.2)) { const x = sd * R.r(7.35, 9.1) + sd * Math.max(0, -z) * .15; await bam(x, z, R.r(7, 10), { tint: z < -6 ? 0xa8b0d0 : 0xffffff }); if (R() < .6) await bam(x + sd * R.r(1, 2.2), z - .4, R.r(8, 11), { tint: 0x9aa4c8 }); }
   for (let x = -6; x < 6.5; x += R.r(.8, 1.4)) { if (x > -3 && x < 4.5) { if (R() < .5) continue; await bam(x, -13 - R() * 2, R.r(8, 11), { tint: 0x8a94bc }); continue; } await bam(x, -9 - R() * 3, R.r(8, 10.5), { tint: 0x9aa4c8 }); }
   // ── lanterns, jizo, irises, rocks: the painting's dressing at real size ──
   stoneLantern(D, K, -4.1, -1.5, 1, { mat: M.moss }); stoneLantern(D, K, 4.3, -1.8, 1, { mat: M.moss });

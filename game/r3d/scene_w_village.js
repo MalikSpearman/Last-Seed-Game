@@ -36,6 +36,29 @@ export async function build(D) {
   for (const [a, b] of [[[-6.4, -7], [8.6, -11]], [[-6.6, -11], [-3, -28]], [[9, -14], [5, -36]]]) { const L = Math.hypot(b[0] - a[0], b[1] - a[1]), ry = -Math.atan2(b[1] - a[1], b[0] - a[0]);
     box(L, .16, 1.4, M.walk, (a[0] + b[0]) / 2, .85, (a[1] + b[1]) / 2, { ry, cast: false }); for (let k = 0; k <= L; k += 2.4) { const x = a[0] + (b[0] - a[0]) * k / L, z = a[1] + (b[1] - a[1]) * k / L; box(.2, 2.6, .2, M.old, x, -1.6, z, { cast: false }); }
     for (const s of [-.7, .7]) { const nx = Math.sin(-ry) * s, nz = Math.cos(ry) * s; rail(K, [[a[0] - nx, a[1] + nz], [b[0] - nx, b[1] + nz]], { y: 1, h: .7, step: 2.4, mat: M.old, post: .1, rails: [.85] }); } }
+  // A tide-marked edge, copper mooring posts and the river gate frame the landing.
+  // Low nosing stays below foot height and the gate sits behind the walking trace.
+  const sill = pbr('weathered_planks', [4, 1], { color: 0x657481, rough: .82 });
+  box(27.4, .11, .32, sill, 0, -.12, -3.03, { cast: false });
+  const copper = new T.MeshStandardMaterial({ color: 0x8b7969, roughness: .75, metalness: .36 });
+  for (const x of [-9.4, -6.4, 6.4, 9.4]) {
+    box(.29, .48, .27, M.old, x, -.04, -2.85);
+    box(.34, .092, .33, copper, x, .43, -2.85);
+  }
+  for (const x of [-3.55, 3.55]) {
+    box(.33, 4.34, .37, M.old, x, -.35, -11.25);
+    box(.65, .36, .55, M.stone, x, -.42, -11.25);
+  }
+  box(7.42, .24, .42, M.wood, 0, 3.54, -11.25);
+  box(8.4, .16, .68, M.roof, 0, 4.03, -11.25);
+  for (const x of [-1.77, 0, 1.77]) {
+    const lamp = add(new T.CylinderGeometry(.15, .21, .46, 8),
+      new T.MeshBasicMaterial({ color: x ? 0xfcd49c : 0xaef5ed }),
+      x, 3.16 + Math.abs(x)*.11, -10.98, { cast: false });
+    D.updaters.push(t => { lamp.rotation.z = .048 * Math.sin(t * 1.4 + x); });
+  }
+  D.lantern(0, 3.14, -10.82, { color: 0x80dfdb, intensity: 8, distance: 8, glow: .48 });
+
   // ── the lantern boat ──
   { const g = new T.Group(); g.position.set(2, -.55, -12); g.rotation.y = .3; S.add(g); for (const [y, w, l] of [[0, 1.5, 4.6], [-.25, 1.1, 4], [-.45, .7, 3.2]]) { const h = new T.Mesh(new T.BoxGeometry(w, .25, l), M.boat); h.position.y = y; h.castShadow = true; g.add(h); } for (const s of [-1, 1]) { const p = new T.Mesh(new T.ConeGeometry(.5, 1.2, 4), M.boat); p.rotation.x = s * Math.PI / 2; p.position.set(0, -.1, s * 2.8); p.scale.x = 1.4; g.add(p); }
     const pole = new T.Mesh(new T.CylinderGeometry(.04, .04, 2.2), M.wood); pole.position.set(0, 1.1, -1.6); g.add(pole); const lan = new T.Mesh(new T.SphereGeometry(.24, 10, 8), new T.MeshStandardMaterial({ color: 0xfff0c0, emissive: 0xffa040, emissiveIntensity: 2 })); lan.position.set(0, 1.8, -1.6); g.add(lan);

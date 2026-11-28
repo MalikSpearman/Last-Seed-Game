@@ -1,6 +1,7 @@
 // Sunken Shrine: a mossy stone terrace at the edge of a flooded shrine precinct. Toppled stone torii and rows of
 // drowned pillars stand in glowing water, the old hall waits at the top of its submerged steps under a blood moon,
 // wisteria hangs over the left and blue spirit-flames drift on the water.
+import { templeWaterline } from './marsh_landmarks.js';
 import { T } from './diorama.js';
 import { kit, rng, sky, moon, pbr, stoneLantern, water, drift, pagoda, bannerTex, ctex, farPainting, groundFill, scatter, cityBlocks, walkers, clutter, decals, dress } from './kit.js';
 
@@ -13,7 +14,7 @@ export async function build(D) {
   sky(D, [[0, '#120c30'], [.55, '#3a2468'], [1, '#5a3a7a']], { stars: 100 });
   moon(D, 30, 52, -140, 26, [240, 70, 60], [220, 40, 70]);
   const M = {
-    floor: pbr('rock_tile_floor', [4, 2], { color: 0xa890c0, rough: .35, metal: .15, ns: 1.4 }),
+    floor: pbr('rock_tile_floor', [4, 2], { color: 0x929aa9, rough: .59, metal: .03, ns: 1.4 }),
     stone: pbr('castle_wall_slates', [.5, 2], { color: 0xb0a8b8 }), moss: pbr('mossy_rock', [1, 1], { color: 0xb8c0b0 }),
     rock: pbr('mossy_rock', [2, 2], { color: 0x8a8aa0, ns: 1.6 }),
     wood: pbr('weathered_planks', [.5, 1], { color: 0xb05050 }), roof: pbr('roof_tiles_14', [3, 3], { color: 0x9a9ab0 }),
@@ -26,6 +27,7 @@ export async function build(D) {
   for (let i = 0; i < 9; i++) { const x = R.r(-13, 13), z = R.r(-3.4, -5.5); const b = box(R.r(1.2, 2.6), .5, R.r(.8, 1.4), M.floor, x, -.65, z, { ry: R.r(-.3, .3) }); b.rotation.z = R.r(-.1, .1); }
   const w = water(D, 0, -40, 200, 76, 0x1a4a6a, { y: -.5, sky: ['#5a3a8a', '#1a4a6a'], rings: 14 }); w.material.emissive = new T.Color(0x0a4a5a); w.material.emissiveIntensity = .22;
 
+  templeWaterline(D, K, M);
   // ── ruined stone torii: one leaning left, one standing right, a fallen lintel between ──
   const stoneGate = (x, z, h, tilt, ry) => { const g = new T.Group(); g.position.set(x, -.5, z); g.rotation.set(0, ry, tilt); S.add(g); const wd = h * .8;
     for (const s of [-1, 1]) K.add(new T.BoxGeometry(.8, h, .8), M.stone, s * wd / 2, h / 2, 0, { to: g });
@@ -62,7 +64,7 @@ export async function build(D) {
 
   // ── detail wave 2: painted far backdrop, ground to the horizon, near scatter ──
   const R2 = rng(287);
-  farPainting(D, 'sunken', { v1: .5, z: -145 });
+  farPainting(D, 'sunken', { v1: .49, z: -145, tint: 0x99b5bf });
   scatter(D, R2, { area: [-14, 14, -3, 6], puddles: 7, petals: 160, petal: 0xd090ff, tufts: 50, tuft: 0x5a8a3a, pebbles: 60, stone: 0x6a6080 });
   decals(D, rng(712), { area: [-14, 14, -3, 6], list: [['moss', 8, [1.5, 3.2]], ['crack', 3, [1.4, 2.6]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   // background life and mid-ground clutter

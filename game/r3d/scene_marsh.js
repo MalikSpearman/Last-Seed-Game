@@ -1,5 +1,6 @@
 // Lotus Marsh: a rain-slick boardwalk deck over a black pond, stilt houses with lit shoji, a boardwalk winding
 // off to the sacred tree on its island (rope, paper streamers, a waterfall), blue will-o-wisps, under a blood moon.
+import { ferryLanding } from './marsh_landmarks.js';
 import { T } from './diorama.js';
 import { kit, rng, ctex, cvs, sky, moon, planks, rough, rail, stoneLantern, water, drift, pbr, farPainting, groundFill, scatter, cityBlocks, walkers, clutter, decals, dress } from './kit.js';
 
@@ -18,7 +19,7 @@ export async function build(D) {
   moon(D, 14, 60, -140, 24, [230, 70, 60], [200, 40, 60]);
 
   const M = {
-    deck: pbr('weathered_planks', [5, 2], { color: 0xf0d0d8, rough: .4, metal: .08, ns: 1.3 }),
+    deck: pbr('weathered_planks', [5, 2], { color: 0xbeacb9, rough: .58, metal: .025, ns: 1.3 }),
     walk: pbr('worn_planks', [1, 4], { color: 0xe0c0c8, rough: .5, metal: .06 }),
     wood: pbr('japanese_cedar_planks', [.4, 1], { color: 0xb07a68 }),
     old: pbr('weathered_planks', [.4, 1], { color: 0xb08a88 }),
@@ -48,6 +49,7 @@ export async function build(D) {
   stoneLantern(D, K, -9.6, -2.7, 1.25, { mat: M.stone }); stoneLantern(D, K, 10.2, -2.6, 1.25, { mat: M.stone });
   D.lantern(-4, 2.6, 1.5, { intensity: 14, distance: 12, glow: 0 }); D.lantern(4, 2.6, 1.5, { intensity: 14, distance: 12, glow: 0 });
 
+  ferryLanding(D, K, M);
   // ── the boardwalk winding off to the right and back, lanterns on posts along it ──
   const walk = [[6.8, -3.3], [7.6, -9], [12, -14], [10.6, -22], [15, -30], [13, -40]];
   for (let i = 0; i < walk.length - 1; i++) { const [ax, az] = walk[i], [bx, bz] = walk[i + 1], L = Math.hypot(bx - ax, bz - az), ry = -Math.atan2(bz - az, bx - ax) + Math.PI / 2;
@@ -110,7 +112,7 @@ export async function build(D) {
 
   // ── detail wave 2: painted far backdrop, ground to the horizon, near scatter ──
   const R2 = rng(790);
-  farPainting(D, 'marsh', { v1: .5, z: -145 });
+  farPainting(D, 'marsh', { v1: .48, z: -145, tint: 0xa3adc8 });
   scatter(D, R2, { area: [-11, 11, -3, 5], puddles: 7, petals: 220, leaves: 50, leaf: 0x4a7a3a, avoid: 4 });
   decals(D, rng(642), { area: [-11, 11, -3, 5], list: [['moss', 6, [1.2, 2.6]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   // background life and mid-ground clutter

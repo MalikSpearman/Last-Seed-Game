@@ -1,6 +1,7 @@
 // Willow Graves: a rain-slick mossy plaza at the edge of an old graveyard. Leaning headstones, wooden grave tablets and
 // red-bibbed jizo statues among red spider lilies, an ancient weeping willow, a torii up worn steps to a small shrine,
 // stone lanterns at the corners, blue soul-fires drifting over the stones, under a blood moon.
+import { memorialCourt } from './west_landmarks.js';
 import { T } from './diorama.js';
 import { kit, rng, sky, moon, pbr, stoneLantern, drift, rain, torii, pagoda, water, deadTree, farPainting, groundFill, scatter, cityBlocks, walkers, clutter, decals, dress } from './kit.js';
 
@@ -11,7 +12,7 @@ export async function build(D) {
   S.fog = new T.Fog(0x382a58, 18, 105); S.background = new T.Color(0x22183e);
   D.moonlight({ color: 0xd8b8ff, intensity: 2, dir: [.4, 1, -.2], ambient: 0x4a3c7a, ambientI: 2, sky: 0x8a6ac8, ground: 0x2a3028 });
   sky(D, [[0, '#120a26'], [.55, '#36205a'], [1, '#5a2e6a']], { stars: 40 }); moon(D, 18, 48, -140, 24, [240, 70, 60], [220, 40, 70]);
-  const M = { floor: pbr('rock_tile_floor', [4, 3], { color: 0x9a88b0, rough: .3, metal: .15, ns: 1.4 }), moss: pbr('mossy_rock', [.6, .6], { color: 0xb8b8b0 }), stone: pbr('castle_wall_slates', [.4, .6], { color: 0xb0a8b8 }),
+  const M = { floor: pbr('rock_tile_floor', [4, 3], { color: 0x8d929e, rough: .58, metal: .03, ns: 1.4 }), moss: pbr('mossy_rock', [.6, .6], { color: 0xb8b8b0 }), stone: pbr('castle_wall_slates', [.4, .6], { color: 0xb0a8b8 }),
     grave: pbr('rock_face', [.5, .8], { color: 0xb8b0b8 }), wood: pbr('weathered_planks', [.2, 1], { color: 0xa08a80 }), red: new T.MeshStandardMaterial({ color: 0xc02030, roughness: .8 }),
     lily: new T.MeshStandardMaterial({ color: 0xff2a30, emissive: 0xa00a14, emissiveIntensity: .6 }), stem: new T.MeshStandardMaterial({ color: 0x3a6a2a }),
     gate: pbr('weathered_planks', [.5, 2], { color: 0xc04040 }), roof: pbr('roof_tiles_14', [3, 3], { color: 0x8a8aa0 }), bark: pbr('japanese_cedar_bark', [2, 3], { color: 0x9a8888, ns: 1.5 }),
@@ -19,6 +20,7 @@ export async function build(D) {
   { const g = new T.Mesh(new T.PlaneGeometry(200, 140), M.ground); g.rotation.x = -Math.PI / 2; g.position.set(0, -.02, -50); g.receiveShadow = true; S.add(g);
     const f = new T.Mesh(new T.PlaneGeometry(28, 12), M.floor); f.rotation.x = -Math.PI / 2; f.position.set(0, .01, 1); f.receiveShadow = true; S.add(f); }
   water(D, 10, -20, 30, 16, 0x1a2a4a, { y: -.05, sky: ['#5a3a6a', '#1a2a4a'], rings: 10, scale: 4 });
+  memorialCourt(D, K);
   // ── the graveyard: headstones, tablets, jizo, lilies ──
   const headstone = (x, z, h, tilt) => { const b = box(.8 * h / 2, h, .3, M.grave, x, 0, z, { ry: R.r(-.3, .3) }); b.rotation.z = tilt; box(1 * h / 2, .3, .5, M.moss, x, 0, z); };
   for (let i = 0; i < 34; i++) { const x = R.r(-16, 4), z = R.r(-5, -18); if (Math.abs(x + 9) < 2 && z > -8) continue; headstone(x, z, R.r(1.2, 2.4), R.r(-.12, .12)); }
@@ -46,10 +48,11 @@ export async function build(D) {
 
   // ── detail wave 2: painted far backdrop, ground to the horizon, near scatter ──
   const R2 = rng(627);
-  farPainting(D, 'w_graves', { v1: .5, z: -145 });
+  farPainting(D, 'w_graves', { v1: .49, z: -145, tint: 0xa4bacb });
+  await prop('rg_willow', -18.2, -9.6, 9.5, { sway: .017, tint: 0x91a7a6, blob: false });
   scatter(D, R2, { area: [-14, 14, -4, 6], puddles: 9, tufts: 90, tuft: 0x5a8a3a, leaves: 110, leaf: 0x8aa848, pebbles: 70, stone: 0x6a6070 });
   decals(D, rng(733), { area: [-14, 14, -4, 6], list: [['moss', 7, [1.4, 3]], ['stain', 3, [1.2, 2.2]], ['crack', 3, [1.4, 2.6]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   // background life and mid-ground clutter
   await clutter(D, K, R2, 'shrine', { area: [-16, 6, -4, -16], n: 20, clear: 3 });
-  await dress(D, rng(922), { area: [-16, 16, -9, 4], items: [['img:rg_willow', 2, [7, 9]], ['tree_stump_01', 2, [.4, .6]], ['dead_tree_trunk', 1, { s: [.7, 1] }], ['namaqualand_boulder_02', 2, [.6, 1.2]], ['painted_wooden_bench', 1, [.9, 1]]] });   // real CC0 models placed where they fit (kit.dress)
+  await dress(D, rng(922), { area: [-16, 16, -9, 4], items: [['tree_stump_01', 2, [.4, .6]], ['dead_tree_trunk', 1, { s: [.7, 1] }], ['namaqualand_boulder_02', 2, [.6, 1.2]], ['painted_wooden_bench', 1, [.9, 1]]] });   // real CC0 models placed where they fit (kit.dress)
 }

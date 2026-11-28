@@ -1,6 +1,7 @@
 // Lighthouse Point: a wet stone ledge on the rocky point under the lighthouse. Its lamp sweeps a real beam over the
 // sea, the keeper's house and stair climb the cliff, a fish-drying rack, a wreck on the reef, red spider lilies,
 // stone lanterns, and waves smashing on the rocks under a blood moon.
+import { lookoutSteps } from './coast_landmarks.js';
 import { T } from './diorama.js';
 import { kit, rng, sky, moon, pbr, ship, sea, breakers, stoneLantern, pagoda, scatter, clutter, farPainting, drift, decals, dress } from './kit.js';
 
@@ -11,7 +12,7 @@ export async function build(D) {
   S.fog = new T.Fog(0x3a1a44, 26, 140); S.background = new T.Color(0x22122e);
   D.moonlight({ color: 0xffa0b0, intensity: 2, dir: [.5, 1, -.5], ambient: 0x5a3070, ambientI: 2, sky: 0x9a5ab0, ground: 0x3a2a30 });
   sky(D, [[0, '#140a26'], [.5, '#4a1844'], [1, '#8a2a40']], { stars: 60 }); moon(D, 20, 50, -140, 26, [240, 70, 60], [220, 40, 70]);
-  const M = { floor: pbr('rock_tile_floor', [4, 2], { color: 0xb8a0b0, rough: .3, metal: .15, ns: 1.2 }), stone: pbr('mossy_rock', [.5, .5], { color: 0xc8c0b8 }),
+  const M = { floor: pbr('rock_tile_floor', [4, 2], { color: 0xb8a0b0, rough: .58, metal: .04, ns: 1.2 }), stone: pbr('mossy_rock', [.5, .5], { color: 0xc8c0b8 }),
     rock: pbr('rock_face', [2, 2], { color: 0x6a5a70, ns: 2 }), tower: pbr('castle_wall_slates', [2, 4], { color: 0xd8d0c8 }), wood: pbr('weathered_planks', [.4, 1], { color: 0x8a6a60 }),
     roof: pbr('roof_tiles_14', [3, 3], { color: 0x8a80a0 }), red: new T.MeshStandardMaterial({ color: 0xb02030, roughness: .7, side: T.DoubleSide }), fish: new T.MeshStandardMaterial({ color: 0xc0c0d0, metalness: .6, roughness: .3 }),
     lily: new T.MeshStandardMaterial({ color: 0xff2a30, emissive: 0xa00a14, emissiveIntensity: .6 }), lamp: new T.MeshStandardMaterial({ color: 0xfff0c0, emissive: 0xffc060, emissiveIntensity: 3 }) };
@@ -19,6 +20,7 @@ export async function build(D) {
   box(30, 1.6, 10, M.floor, 0, -1.6, 1.4); for (let i = 0; i < 12; i++) { const r = add(new T.DodecahedronGeometry(R.r(1, 2.2), 1), M.rock, R.r(-15, 15), -1.2, R.r(-3.6, -5), { ry: R() * 6 }); r.scale.y = .6; }
   stoneLantern(D, K, -12.6, -2.8, 1.4, { mat: M.stone }); stoneLantern(D, K, 12.8, -2.6, 1.4, { mat: M.stone });
   sea(D, R, { z: -70, shore: -8, foam: 6 });
+  lookoutSteps(D, K);
   // ── the point: a rocky hill on the left with the lighthouse, keeper's house and steps ──
   for (let i = 0; i < 14; i++) { const r = add(new T.DodecahedronGeometry(R.r(3, 7), 1), M.rock, R.r(-30, -12), R.r(-2, 6), R.r(-6, -26), { ry: R() * 6 }); r.scale.y = R.r(.8, 1.4); }
   const lx = -19, lz = -16, ly = 8;
@@ -41,7 +43,7 @@ export async function build(D) {
   // red spider lilies along the edges
   for (let i = 0; i < 50; i++) { const x = (R() < .5 ? -1 : 1) * R.r(9, 15), z = R.r(-3, 5.6); add(new T.CylinderGeometry(.015, .015, .5, 3), new T.MeshStandardMaterial({ color: 0x3a6a2a }), x, .25, z, { cast: false });
     const f = add(new T.SphereGeometry(.14, 6, 4), M.lily, x, .52, z, { cast: false }); f.scale.y = .6; }
-  farPainting(D, 'e_light', { v1: .45, z: -144 });
+  farPainting(D, 'e_light', { v1: .44, z: -144, tint: 0xaeb9c4 });
   scatter(D, rng(91), { area: [-14, 14, -3, 5.6], puddles: 9, pebbles: 40, stone: 0x6a6070, tufts: 40, tuft: 0x4a7a3a });
   decals(D, rng(614), { area: [-14, 14, -3, 5.6], list: [['moss', 5, [1.4, 3]], ['stain', 3, [1, 2]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   drift(D, 60, 0, -10, 24, 12, 0xffffff, { y0: 0, y1: 5, size: 6 });

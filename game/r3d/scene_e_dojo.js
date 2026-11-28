@@ -1,6 +1,7 @@
 // Cliffside Dojo: the polished training deck of a pirate dojo on a sea cliff. The dojo hall with its skull-and-swords
 // banner and red lanterns, steps up to a bell pavilion with a great bronze bell, bonsai pines leaning over the drop,
 // surf crashing on the rocks below, and red-sailed junks crossing under a blood moon.
+import { dojoBanners } from './coast_landmarks.js';
 import { T } from './diorama.js';
 import { kit, rng, sky, moon, pbr, ship, sea, breakers, deck, rail, pagoda, bannerTex, ctex, scatter, farPainting, drift, deadTree, decals, dress } from './kit.js';
 
@@ -15,7 +16,7 @@ export async function build(D) {
   S.fog = new T.Fog(0x3a1840, 28, 150); S.background = new T.Color(0x22122e);
   D.moonlight({ color: 0xffa0a8, intensity: 2, dir: [.5, 1, -.4], ambient: 0x5a3068, ambientI: 2, sky: 0x9a5aa8, ground: 0x4a2a28 });
   sky(D, [[0, '#140a26'], [.5, '#4a1644'], [1, '#8a2a3a']], { stars: 60 }); moon(D, 18, 48, -140, 30, [240, 70, 60], [220, 40, 70]);
-  const M = { deck: pbr('japanese_cedar_planks', [8, 2], { color: 0xb07060, rough: .22, metal: .12, ns: 1 }), post: pbr('weathered_planks', [.4, 1], { color: 0x7a5050 }),
+  const M = { deck: pbr('japanese_cedar_planks', [8, 2], { color: 0xb07060, rough: .54, metal: .028, ns: 1 }), post: pbr('weathered_planks', [.4, 1], { color: 0x7a5050 }),
     stone: pbr('mossy_rock', [.5, .5], { color: 0xc8c0b8 }), rock: pbr('rock_face', [3, 3], { color: 0x6a5a70, ns: 2 }), wood: pbr('japanese_cedar_planks', [.4, 1], { color: 0x8a3a30, rough: .4 }),
     roof: pbr('roof_tiles_14', [3, 3], { color: 0x8a80a0 }), bronze: new T.MeshStandardMaterial({ color: 0x8a6a3a, metalness: .85, roughness: .35 }), pine: new T.MeshStandardMaterial({ color: 0x2a4a3a, roughness: .9, flatShading: true }),
     bark: pbr('japanese_cedar_bark', [1, 2], { color: 0x7a6060 }), lan: new T.MeshStandardMaterial({ color: 0xff6040, emissive: 0xff3018, emissiveIntensity: 1.6 }),
@@ -25,6 +26,7 @@ export async function build(D) {
   // ── the cliff the dojo stands on and the drop to the sea ──
   box(40, 14, 16, M.rock, -12, -14, -12, { cast: false }); for (let i = 0; i < 12; i++) { const r = add(new T.DodecahedronGeometry(R.r(2, 5), 1), M.rock, R.r(-4, 16), R.r(-10, -4), R.r(-6, -20), { ry: R() * 6 }); r.scale.y = R.r(.8, 1.5); }
   sea(D, R, { z: -75, y: -9, shore: -16, foam: 6 }); breakers(D, R, [[6, -14, 1.6], [14, -18, 1.3], [0, -22, 1.2]], { y: -8.5 });
+  dojoBanners(D, K);
   // ── the dojo hall (left), its banner and lanterns ──
   pagoda(K, D, -14, -7, { w: 11, d: 7, h: 4.6, tiers: 2, y: 0, roof: M.roof, beam: M.wood, sd: 4 });
   { const b = new T.Mesh(new T.PlaneGeometry(2.6, 4.2, 1, 6), M.ban); b.geometry.translate(0, -2.1, 0); b.position.set(-10.6, 5.6, -3.3); b.castShadow = true; S.add(b); D.updaters.push(t => { b.rotation.y = Math.sin(t * .8) * .12; }); }
@@ -41,7 +43,7 @@ export async function build(D) {
   const pine = (x, y, z, s) => { deadTree(K, x, z, 6 * s, M.bark, x | 0).position.y = y; for (let k = 0; k < 6; k++) { const p = add(new T.SphereGeometry(1, 8, 6), M.pine, x + R.r(-2, 3) * s, y + R.r(3.5, 6) * s, z + R.r(-1, 1), { cast: true }); p.scale.set(R.r(1.4, 2.4) * s, .45 * s, 1.2 * s); } };
   pine(-6, 2, -16, 1.1); pine(6, -3, -12, .9); pine(-20, 6, -12, 1);
   ship(K, D, 20, -50, 16, { y: -9, ry: -.15 }); ship(K, D, 4, -70, 12, { y: -9, ry: .1 }); ship(K, D, 36, -80, 12, { y: -9 });
-  farPainting(D, 'e_dojo', { v1: .45, z: -144, yb: -14 });
+  farPainting(D, 'e_dojo', { v1: .45, z: -144, yb: -14, tint: 0xc4b2af });
   scatter(D, rng(93), { area: [-14, 14, -3, 5.4], puddles: 6, petals: 60, petal: 0xff6a8a, leaves: 30, leaf: 0x3a5a3a });
   decals(D, rng(754), { area: [-14, 14, -3, 5.4], list: [['stain', 3, [1.2, 2.2]], ['moss', 2, [1.4, 2.4]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   drift(D, 40, 0, -10, 20, 10, 0xffb070, { y0: .5, y1: 6, size: 7 });

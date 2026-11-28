@@ -1,5 +1,7 @@
 // Free roam in 3D (HD-2D): the Moonlit Bamboo Road as the game's free-roam mode.
 // The game supplies the hero atlas and callbacks (fights, loot, exit); this module owns the 3D world and controls.
+import { bridgeEncounter } from './bridge_route.js';
+import { buildBambooRoam } from './scene_bamboo_roam.js';
 import { Diorama, T } from './diorama.js';
 import * as BAM from './scene_bamboo.js';
 import { look, walkPath } from './kit.js';
@@ -117,6 +119,7 @@ export async function createRoam(host, cfg) {
     if (D.moon && D.moon.shadow && D.moon.shadow.map) D.moon.shadow.map.dispose();
     Object.assign(D, { spots: undefined, pool: undefined, billboards: [], updaters: [], backdropMesh: null, moon: null });
     old.traverse(o => { if (o.geometry) o.geometry.dispose(); for (const m of o.material ? [].concat(o.material) : []) m.dispose(); });
+    old.userData.bridgeDeckTexture?.dispose();
     if (old.environment && old.environment.dispose) old.environment.dispose();
   }
   function bambooFoes() {
@@ -157,8 +160,12 @@ export async function createRoam(host, cfg) {
   }
   async function loadZone(name, from) {
     clearWorld(); zone = name; const meta = ZONE[name] || [name, ''];
+    const post = D.post.uniforms;
+    post.amt.value = name === 'bamboo' ? .38 : 1;
+    post.band.value = name === 'bamboo' ? .37 : .2;
+    post.vig.value = name === 'bamboo' ? .22 : .42;
     if (name === 'bamboo') {
-      await BAM.build(D); D.renderer.toneMappingExposure = 1.15; D.setFX({}); try { D.envLight(); } catch (_) {}
+      await buildBambooRoam(D); D.renderer.toneMappingExposure = 1.27; D.setFX({}); try { D.envLight(); } catch (_) {}
       PATHS_Z = BAM.PATHS;
       if (!MEM.bamboo) MEM.bamboo = { FOES: bambooFoes(), ITEMS: B_ITEMS.map(i => Object.assign({}, i, { done: false })) };
       EX = [{ x: -96, dir: -1, to: 'w_village', z: 1.6, y: 0 }, { x: 78, dir: 1, to: 'road', z: 2.2, y: 0 }];
@@ -266,7 +273,9 @@ export async function createRoam(host, cfg) {
     else banner('Ambushed!', 'They caught you: the rival starts with Guard', 900);
     await new Promise(r => setTimeout(r, 900));
     host.classList.add('away'); D.paused = true;
-    const win = await cfg.engage(f.id, how, f.stage);
+    const bridgeX = zone === 'bamboo' && f.stage !== 'shrine' ? bridgeEncounter(f.x) : null;
+    const stage = bridgeX != null ? 'bridge' : f.stage === 'bridge' && zone === 'bamboo' ? 'road' : f.stage;
+    const win = await cfg.engage(f.id, how, stage, bridgeX);
     if (gone) return; if (win === 'leave') { leave(); return; }
     host.classList.remove('away'); D.paused = false; hud();
     if (win) { f.beaten = true; f.st = 'down'; f.t = 0; const r = cfg.loot('win') || {}; if (r.text) pop(r.text, pos.clone().add(new T.Vector3(0, 2.3, 0)), r.col); hud(); if (f.boss) banner('Clear!', f.id === 'nue' ? 'The sealed offering opens' : 'The hoard is yours to open', 1800); }
@@ -275,7 +284,9 @@ export async function createRoam(host, cfg) {
   }
 
   // ── loop ──
-  const camOff = small ? new T.Vector3(0, 6.2, 11) : new T.Vector3(0, 7.6, 13.5), camPos = new T.Vector3(), lookAt = new T.Vector3();
+  const camOff = small ? new T.Vector3(0, 6.2, 11) : new T.Vector3(0, 7.6, 13.5);
+  const bambooCam = small ? new T.Vector3(0, 4.7, 11) : new T.Vector3(0, 5.25, 13.5);
+  const camPos = new T.Vector3(), lookAt = new T.Vector3();
   D.frame((dt, t) => {
     if (gone) return;
     let ix = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + jv.x;
@@ -293,9 +304,9 @@ export async function createRoam(host, cfg) {
     atkT = Math.max(0, atkT - dt);
     const moving = Math.hypot(vel.x, vel.y) > .6; if (atkT <= 0) hero.set(moving ? 'run' : 'idle');
     if (Math.abs(vel.x) > .3) face = vel.x > 0 ? 1 : -1; hero.face = face; hero.fps = atkT > 0 ? 8 : moving ? 6 + Math.hypot(vel.x, vel.y) * 1.2 : 2;
-    const tgt = new T.Vector3(pos.x + vel.x * .35, pos.y, pos.z + vel.y * .2), want = tgt.clone().add(camOff);
+    const tgt = new T.Vector3(pos.x + vel.x * .35, pos.y, pos.z + vel.y * .2), want = tgt.clone().add(zone==='bamboo'?bambooCam:camOff);
     if (first) { camPos.copy(want); lookAt.copy(tgt); first = false; }
-    camPos.lerp(want, Math.min(1, dt * 3.2)); lookAt.lerp(tgt.clone().add(new T.Vector3(0, 1.1, -1.4)), Math.min(1, dt * 4));
+    camPos.lerp(want, Math.min(1, dt * 3.2)); lookAt.lerp(tgt.clone().add(new T.Vector3(0, zone==='bamboo'?1.55:1.1, -1.4)), Math.min(1, dt * 4));
     D.camera.position.copy(camPos); D.camera.lookAt(lookAt); D.focus = pos; D.followShadow(pos); D.fadeFor(pos);
     D.post.uniforms.flash.value = Math.max(0, D.post.uniforms.flash.value - dt * 1.8);
     // foes: idle breath → notice (!) → close in; touching you = Ambushed

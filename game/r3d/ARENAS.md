@@ -5,7 +5,8 @@ Every fight backdrop has a painted-relief 3D set (depth map, scene_painted.js). 
 Set `window.__lsPainted = true` to force the old painted relief for comparison.
 
 ## Modelled
-- road / shrine / bridge: Moonlit Bamboo Road (scene_bamboo.js)
+- road / shrine: Moonlit Bamboo Road (scene_bamboo.js)
+- bridge: the Red Bridge combat route (scene_bridge.js, bridge_route.js). Rushdown moves between landings along the shared free-roam path in one combat scene.
 - festival: Festival Avenue
 - blight: The Blight
 - marsh: Lotus Marsh
@@ -56,6 +57,7 @@ none: every stage now has a modelled set every fight location now has a modelled
 - kit.js `decal()` / `decals()` lay floor (or wall) decals: procedural scorch/crack/moss/oil/stain/paper plus ambientCG photo decals (asphalt damage, manholes, gum, leak streaks, road arrow) in r3d/tex/dcl_*. Every modelled set has a decals() call next to its scatter().
 
 ## Connected world (free roam)
+- Moonlit Bamboo Road uses `scene_bamboo_roam.js` for the walkable zone. It reuses the original road and shrine path data and shares Red Bridge geometry with combat. The seven landmarks span the Willow Village and Sunset Road exits and the shrine branch.
 - roam_mode.js now runs a chain of areas, west to east: Willow Graves · Watermill · Willow Village · Moonlit Bamboo Road · Sunset Road · Festival Avenue · Sake Bar Alley · Neon Ward Street · Teahouse · Snack Bar · Rooftop · Expressway · Pirate Harbor · Cliffside Dojo · Lighthouse Point · Whalebone Shore. Walking off an area's end fades into the next; a painted signpost names it.
 - Each arena area builds its set, then kit.walkPath() finds a walkable lane through it (ground raycast from just above the feet, box checks against everything solid, wiggling around obstacles). Foes (1–2) and loot (3) are scattered along it; region ends (graves, sake bar, expressway, whalebone) have a guardian and a locked hoard. Areas remember beaten foes and opened loot for the visit.
 - A roam fight in an arena area is fought on that arena (battle_bg takes the area name as its key).

@@ -49,7 +49,8 @@ export async function build(D) {
   // ── the floor: a great disc of cracked flagstones with the gold ring around the fighting circle ──
   const cz = -10;   // the colosseum's centre (behind the fighters, so the far stands fill the view)
   { const f = new T.Mesh(new T.CircleGeometry(40, 96), M.floor); f.rotation.x = -Math.PI / 2; f.position.set(0, 0, cz); f.receiveShadow = true; S.add(f);
-    const rm = new T.Mesh(new T.PlaneGeometry(24, 24), new T.MeshStandardMaterial({ map: ctex(ringTex()), emissive: 0xffb050, emissiveMap: ctex(ringTex()), emissiveIntensity: .7, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, roughness: .3, metalness: .6 }));
+    const inlay = ctex(ringTex());
+    const rm = new T.Mesh(new T.PlaneGeometry(24, 24), new T.MeshStandardMaterial({ map: inlay, emissive: 0xb87938, emissiveMap: inlay, emissiveIntensity: .32, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, roughness: .3, metalness: .6 }));
     rm.rotation.x = -Math.PI / 2; rm.position.set(0, .012, -1.4); rm.renderOrder = 1; S.add(rm); }
 
   // ── the rim wall with crimson pennants ──
@@ -94,6 +95,31 @@ export async function build(D) {
     pagoda(K, D, 0, gz, { w: 12, d: 5, h: 4, tiers: 2, y: 12, roof: M.roof, beam: M.gate, sd: 64, lamp: false });
     for (const [x, m, w, h] of [[0, M.moonBan, 4, 10], [-5, M.big, 2.6, 7.5], [5, M.big, 2.6, 7.5]]) { const b = new T.Mesh(new T.PlaneGeometry(w, h), m); b.position.set(x, 12 - h / 2 + 3, gz + 2.3); S.add(b); }
     for (const x of [-6.5, -2.6, 2.6, 6.5]) D.glow(x, 15, gz + 3, 2.4, 0xffc070); D.lantern(0, 14, gz + 5, { color: 0xffb060, intensity: 30, distance: 26, glow: 0 }); }
+
+  // A nearer judges' gallery gives the combat camera a readable middle layer.
+  // The gallery and lamps stay behind every mark and off the counter floor.
+  const galleryZ = -23;
+  box(14.8, .88, 2.85, M.plinth, 0, 0, galleryZ + .25);
+  box(7.3, .17, .89, M.stone, 0, .39, galleryZ + 2.12);
+  box(5.9, .18, .72, M.stone, 0, .19, galleryZ + 2.92);
+  const gallery = await D.prop(new URL('./img/ring_judges_pavilion.png', import.meta.url).href,
+    0, galleryZ, 6.2, { y: .87, tint: 0xddceca, emissive: 0xa1754e, emissiveI: .67, blob: false, shadow: false });
+  gallery.material.emissiveMap = gallery.material.map;
+  // An architectural front is a fixed plane while paper actors remain camera-facing.
+  const paperIndex = D.billboards.indexOf(gallery);
+  if (paperIndex >= 0) D.billboards.splice(paperIndex, 1);
+  for (const side of [-1, 1]) {
+    const x = side * 7.2;
+    box(.32, 4.65, .32, M.gate, x, .73, galleryZ + 1.2);
+    box(.76, .24, .76, M.stone, x, .68, galleryZ + 1.2);
+    add(new T.CylinderGeometry(.29, .30, .62, 8), M.lamp, x, 4.16, galleryZ + 1.28, { cast: false });
+    D.lantern(x, 4.18, galleryZ + 1.55, { color: 0xffb76b, intensity: 8, distance: 8, glow: .53 });
+  }
+  // Dark stone and brass side channels border the clear arena floor.
+  for (const side of [-1, 1]) {
+    box(.47, .08, 21, M.stone, side * 8.7, -.055, -4);
+    box(.045, .016, 19.8, M.bronze, side * 8.44, .014, -4);
+  }
 
   // ── crimson streamers across the sky, rippling ──
   for (const [x0, y0, x1, y1, z] of [[-30, 26, 6, 20, -24], [8, 24, 32, 28, -22], [-26, 18, -4, 30, -36]]) {

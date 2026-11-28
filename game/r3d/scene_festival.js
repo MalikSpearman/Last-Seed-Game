@@ -101,10 +101,21 @@ export async function build(D) {
   const A = (n, x, z, h, o) => D.prop(n.startsWith('data:') ? n : I(n), x, z, h, o);
 
   // ── ground: a wet flagstone avenue that catches every lantern ──
-  { const m = new T.Mesh(new T.PlaneGeometry(26, 110), pbr('rock_tile_floor', [6, 25], { color: 0xb8a8d0, rough: .42, metal: .15, ns: 1.4 }));
+  { const m = new T.Mesh(new T.PlaneGeometry(26, 110), pbr('rock_tile_floor', [6, 25], { color: 0xa99da9, rough: .53, metal: .06, ns: 1.4 }));
     m.rotation.x = -Math.PI / 2; m.position.set(0, 0, -40); m.receiveShadow = true; S.add(m);
     const o = new T.Mesh(new T.PlaneGeometry(260, 260), pbr('mud_forest', [40, 40], { color: 0x5a4a6a })); o.rotation.x = -Math.PI / 2; o.position.y = -.02; o.receiveShadow = true; S.add(o); }
 
+  // Copper gutter grates break up the slick lane at each market frontage.
+  const gutter = pbr('castle_wall_slates', [2, 5], { color: 0x45394c, rough: .9 });
+  const brass = new T.MeshStandardMaterial({ color: 0x987651, roughness: .78, metalness: .28 });
+  for (const side of [-1, 1]) {
+    const x = side * 7.6;
+    box(.28, .022, 30, gutter, x, -.008, -10, { cast: false });
+    for (const z of [-2.4, -8.2, -13.9, -19.7]) {
+      box(.50, .018, .67, brass, x, .006, z, { cast: false });
+      for (let n = -2; n <= 2; n++) box(.036, .012, .51, gutter, x + n * .079, .026, z, { cast: false });
+    }
+  }
   // ── sky, moon, searchlights ──
   { const sky = new T.Mesh(new T.PlaneGeometry(420, 160), new T.MeshBasicMaterial({ map: ctex(skyC()), fog: false })); sky.position.set(0, 40, -150); S.add(sky);
     const st = new T.BufferGeometry(), p = []; for (let i = 0; i < 260; i++) p.push(rnd(-200, 200), rnd(30, 115), -148); st.setAttribute('position', new T.Float32BufferAttribute(p, 3));
@@ -179,6 +190,8 @@ export async function build(D) {
     S.add(new T.Line(new T.BufferGeometry().setFromPoints(pts), M.rope));
     for (let i = 1; i < n; i++) { const u = i / n, x = a[0] + (b[0] - a[0]) * u, z = a[2] + (b[2] - a[2]) * u, y = a[1] + (b[1] - a[1]) * u - Math.sin(Math.PI * u) * sag - .32;
       const red = i % 2 === 0; const L = add(new T.SphereGeometry(.3, 14, 10), red ? M.paperR : M.paperW, x, y, z, { cast: false }); L.scale.y = 1.2;
+      const phase = z * .33 + i * .92;
+      D.updaters.push(t => { L.rotation.z = .08 * Math.sin(t * 1.32 + phase); });
       add(new T.CylinderGeometry(.12, .12, .08, 10), M.dark, x, y + .38, z, { cast: false }); D.glow(x, y, z, 1.4, red ? 0xff6a40 : 0xffc070);
       if (i % 2) D.lantern(x, y, z, { color: red ? 0xff6a40 : 0xffb060, distance: 7, intensity: 8, glow: 0 }); } };
   const L = tops.filter(t => t[0] < 0), Rt = tops.filter(t => t[0] > 0);
@@ -187,14 +200,14 @@ export async function build(D) {
 
   // ── sakura over the rooftops, petals on the wind ──
   for (const s of [-1, 1]) for (let z = -1; z > -48; z -= rnd(5, 7)) await A('sakura', s * rnd(9, 11), z, rnd(5.5, 7.5), { flip: R() < .5, sway: .01, blobW: .2 });
-  for (const s of [-1, 1]) await A('sakura', s * 8.4, 3, 6.5, { flip: s > 0, sway: .01, blobW: .2 });
+  for (const s of [-1, 1]) await A('sakura', s * 13.7, -1.8, 6.5, { flip: s > 0, sway: .01, blobW: .2 });
   D.petals(160, 0, -6, 12); D.petals(120, 0, -26, 12); D.fireflies(70, 0, -18, 9, 22, { y0: 2.5, y1: 6, color: 0xffc070, size: 10 });
   // a few barrels and crates at the near corners
   model(D, 'wine_barrel_01', -5.2, 0, 1.2, { h: 1.1, ry: .4 }); model(D, 'wooden_bucket_01', -4.5, 0, 1.7, { h: .6 }); model(D, 'wooden_crate_02', 5.4, 0, .8, { s: 1.5, ry: 1.3 }); model(D, 'wooden_crate_01', 5.5, .7, .8, { s: 1.3, ry: 1.5 });
 
   // ── detail wave 2: painted far backdrop, ground to the horizon, near scatter ──
   const R2 = rng(246);
-  farPainting(D, 'festival', { v1: .5, z: -145 });
+  farPainting(D, 'festival', { v1: .49, z: -145, tint: 0xd6bacb });
   scatter(D, R2, { area: [-13, 13, -3, 9], puddles: 9, petals: 420, pebbles: 50 });
   decals(D, rng(621), { area: [-13, 13, -3, 9], list: [['paper', 3, [1, 1.6]], ['stain', 3, [1.2, 2.4]], ['moss', 2, [1.4, 2.4]]] });   // floor decals: stains, cracks, moss, litter (see kit.decals)
   // background life and mid-ground clutter
